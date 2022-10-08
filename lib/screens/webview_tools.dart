@@ -2,7 +2,9 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:flutter_user_agent/flutter_user_agent.dart';
+// import 'package:flutter_user_agentx/flutter_user_agent.dart';
+// import 'package:device_info_plus/device_info_plus.dart';
+import 'package:fk_user_agent/fk_user_agent.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart';
 import 'package:http/http.dart' as http;
@@ -230,9 +232,12 @@ dom.Document modforTetsugakuNews(dom.Document doc) {
 }
 
 Future<String> loadUri(loaduri, siteID) async {
+  // static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
   String userAgent, _decode_charset;
   try {
-    userAgent = await FlutterUserAgent.getPropertyAsync('userAgent');
+    // userAgent = await deviceInfoPlugin.webBrowserInfo.userAgent;
+    // userAgent = await FlutterUserAgent.getPropertyAsync('userAgent');
+    userAgent = await FkUserAgent.getPropertyAsync('userAgent');
     // print("userAgent: ${userAgent}");
   } on PlatformException {
     userAgent = '<error>';
@@ -283,9 +288,12 @@ Future<String> loadUri(loaduri, siteID) async {
 }
 
 Future<dom.Document> _loadUriDom(loaduri) async {
+  // static final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
   String userAgent, _decode_charset;
   try {
-    userAgent = await FlutterUserAgent.getPropertyAsync('userAgent');
+    // userAgent = await deviceInfoPlugin.webBrowserInfo.userAgent;
+    // userAgent = await FlutterUserAgent.getPropertyAsync('userAgent');
+    userAgent = await FkUserAgent.getPropertyAsync('userAgent');
     // print("userAgent: ${userAgent}");
   } on PlatformException {
     userAgent = '<error>';

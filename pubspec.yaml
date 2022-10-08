@@ -35,12 +35,14 @@ dependencies:
   flutter_launcher_icons: ^0.9.0 # ^0.8.1
   euc: ^1.0.5+7
   charset_converter: ^1.0.3
-  flutter_user_agent: ^1.2.2
+  # flutter_user_agentx: ^1.2.4
+  # device_info_plus: ^4.1.3
+  fk_user_agent: ^2.1.0
   convex_bottom_bar: ^2.7.1+2
   hive: ^1.0.0
   hive_flutter: ^0.3.1
   flutter_riverpod: ^0.14.0+1
-  admob_flutter: ^1.0.1
+  admob_flutter: ^3.0.0
   extended_nested_scroll_view: ^3.0.0
   google_fonts: ^1.0.0
   flutter_share: ^2.0.0
