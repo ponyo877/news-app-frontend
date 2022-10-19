@@ -294,8 +294,8 @@ class NewsCard extends StatelessWidget {
   }
 
   Future _incrViewCount(String id) async {
-    var _incrViewCountURL = "http://gitouhon-juku-k8s2.ga/redis/put/";
-    await http.get(_incrViewCountURL + id);
+    var _incrViewCountURL = "https://matome-kun.ga/v1/article/view/";
+    await http.post(_incrViewCountURL + id);
   }
 }
 

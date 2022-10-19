@@ -74,7 +74,7 @@ class NewsState extends StateNotifier<List> {
   Map<String, dynamic> data;
   List newsPost = [];
   String lastpublished = "";
-  String baseURL = "http://gitouhon-juku-k8s2.ga";
+  String baseURL = "https://matome-kun.ga";
 
   Box historyBox;
   Box favoriteBox;
@@ -96,15 +96,16 @@ class NewsState extends StateNotifier<List> {
       _skipIDs = await _filePath.readAsString();
     }
     var getPostURL = baseURL +
-        "/mongo/get?lastpublished=" +
+        "/v1/article?lastPublishedAt=" +
         lastpublished +
         "&skipIDs=" +
         _skipIDs;
+    print('getPostURL: ' + getPostURL);
     http.Response response = await http.get(getPostURL);
     data = json.decode(response.body);
 
     newsPost.addAll(data["data"]);
-    lastpublished = data["lastpublished"];
+    lastpublished = data["lastPublishedAt"];
 
     //init readflg
     _initReadFlg();
@@ -265,7 +266,8 @@ class NewsState extends StateNotifier<List> {
   }
 
   void getRanking(String type) async {
-    var getPostURL = baseURL + "/mongo/ranking/" + type;
+    var getPostURL = baseURL + "/v1/article/view/popular/" + type;
+    print(getPostURL);
     http.Response response = await http.get(getPostURL);
     data = json.decode(response.body);
 
@@ -278,7 +280,7 @@ class NewsState extends StateNotifier<List> {
     List<HistoryModel> historyItems = historyBox.values.toList();
 
     if (historyItems.length == 0) {
-      var getPostURL = baseURL + "/mongo/ranking";
+      var getPostURL = baseURL + "/v1/article/view/popular/daily";
       http.Response response = await http.get(getPostURL);
       data = json.decode(response.body);
 
@@ -299,7 +301,8 @@ class NewsState extends StateNotifier<List> {
         }
       }
 
-      var getPostURL = baseURL + "/personal?ids=" + ids;
+      // var getPostURL = baseURL + "/personal?ids=" + ids;
+      var getPostURL = baseURL + "/v1/article/view/popular/daily";
       print(getPostURL);
       http.Response response = await http.get(getPostURL);
       if(response.statusCode != 200){
@@ -308,11 +311,7 @@ class NewsState extends StateNotifier<List> {
       data = json.decode(
           Utf8Decoder(allowMalformed: true).convert(response.bodyBytes));
 
-      //print("aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-
       newsPost = data["data"];
-      print("init");
-      print(newsPost);
     }
     _initReadFlg();
   }
@@ -321,7 +320,7 @@ class NewsState extends StateNotifier<List> {
     //String searchwords = textController.text;
     newsPost = [];
     //state = [];
-    var getPostURL = baseURL + "/elastic/get?words=" + searchwords;
+    var getPostURL = baseURL + "/v1/article/search?keyword=" + searchwords;
     print(getPostURL);
     http.Response response = await http.get(getPostURL);
     data = json.decode(response.body);

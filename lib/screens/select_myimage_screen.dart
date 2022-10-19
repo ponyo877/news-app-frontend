@@ -19,7 +19,7 @@ class SelectMyimageScreen extends StatefulWidget {
 class _SelectMyimageScreen extends State<SelectMyimageScreen> {
 
    int _selected = 0;
-   String baseURL = "https://gitouhon-juku-k8s2.ga";
+   String baseURL = "https://matome-kun.ga";
 
    @override
    void initState() {
@@ -115,7 +115,7 @@ class _SelectMyimageScreen extends State<SelectMyimageScreen> {
    }
 
    void setIcon(String icon) async {
-     var requestURL = baseURL + "/user/put";
+     var requestURL = baseURL + "/v1/user";
      var map = new Map<String, dynamic>();
 
      final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -136,7 +136,7 @@ class _SelectMyimageScreen extends State<SelectMyimageScreen> {
        await prefs.setString("devicehash", digest);
      }
 
-     map["avatarURL"] = icon;
+     map["avatar"] = icon;
      map["devicehash"] = myStringData;
      http.Response response = await http.post(requestURL, body: map);
      print(response.statusCode);

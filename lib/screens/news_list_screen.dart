@@ -31,7 +31,7 @@ class NewsListScreen extends StatelessWidget {
 
   String initName = 'まとめくん';
   String initIcon = 'assets/images/icon/myimage_1.png';
-  String baseURL = "https://gitouhon-juku-k8s2.ga";
+  String baseURL = "https://matome-kun.ga";
 
   final List<TabInfo> _tabs = [
     TabInfo(Icons.format_list_numbered, 'Ranking', RankingPostScreen()),
@@ -145,11 +145,11 @@ class NewsListScreen extends StatelessWidget {
       )..show();
 
       //サーバ側にも初期値を送信
-      var requestURL = baseURL + "/user/put";
+      var requestURL = baseURL + "/v1/user";
       var map = new Map<String, dynamic>();
       map["name"] = initName;
       map["devicehash"] = digest;
-      map["avatarURL"] = initIcon;
+      map["avatar"] = initIcon;
       http.Response response = await http.post(requestURL, body: map);
       print(response.statusCode);
     }

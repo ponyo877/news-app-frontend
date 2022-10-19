@@ -19,7 +19,7 @@ class SelectSites extends StatelessWidget {
 
   Future<bool> _future;
 
-  String baseURL = "http://gitouhon-juku-k8s2.ga";
+  String baseURL = "https://matome-kun.ga";
   Map<String, dynamic> data;
   List newsList = [];
 

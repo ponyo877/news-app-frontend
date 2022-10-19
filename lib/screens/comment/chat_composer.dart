@@ -18,7 +18,7 @@ class buildChatComposer extends StatelessWidget {
 // https://github.com/itzpradip/flutter-chat-app
 // https://github.com/tonydavidx/chattie-ui-design
   var _controller = TextEditingController();
-  String baseURL = "https://gitouhon-juku-k8s2.ga";
+  String baseURL = "https://matome-kun.ga";
 
   @override
   Widget build(BuildContext context) {
@@ -86,9 +86,9 @@ class buildChatComposer extends StatelessWidget {
                 FocusManager.instance.primaryFocus.unfocus();
               }
               var message = _controller.text;
-              var putCommentURL = baseURL + "/comment/put";
+              var putCommentURL = baseURL + "/v1/comment/" + this.articleID;
               var map = new Map<String, dynamic>();
-              map["articleID"] = this.articleID;
+              // map["articleID"] = this.articleID;
               map["massage"] = message;
               map["devicehash"] = this.deviceHash;
               print('putCommentURL: $putCommentURL');

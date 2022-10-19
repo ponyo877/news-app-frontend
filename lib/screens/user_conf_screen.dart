@@ -20,7 +20,7 @@ class _UserConfScreen extends State<UserConfScreen> {
   String NameData = "";
   String IconData = "";
 
-  String baseURL = "https://gitouhon-juku-k8s2.ga";
+  String baseURL = "https://matome-kun.ga";
 
   @override
   void initState() {
@@ -193,7 +193,7 @@ class _UserConfScreen extends State<UserConfScreen> {
   }
 
   void setName(String name) async {
-    var requestURL = baseURL + "/user/put";
+    var requestURL = baseURL + "/v1/user";
     var map = new Map<String, dynamic>();
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();

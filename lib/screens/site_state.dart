@@ -16,7 +16,7 @@ class SiteState extends StateNotifier<List> {
     this._getInitSiteList();
   }
 
-  String baseURL = "http://gitouhon-juku-k8s2.ga";
+  String baseURL = "https://matome-kun.ga";
   Map<String, dynamic> data;
   List newsList = [];
 
@@ -26,7 +26,7 @@ class SiteState extends StateNotifier<List> {
   bool _fileExists = false;
 
   Future<bool> _getInitSiteList() async {
-    var getSiteList = baseURL + "/site/get";
+    var getSiteList = baseURL + "/v1/user";
     http.Response response = await http.get(getSiteList);
     data = json.decode(response.body);
 

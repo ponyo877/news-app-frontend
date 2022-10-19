@@ -16,10 +16,10 @@ class CommentState extends StateNotifier<List> {
   }
 
   List commentList = [];
-  String baseURL = "http://gitouhon-juku-k8s2.ga";
+  String baseURL = "https://matome-kun.ga";
 
   getComments(String articleID) async {
-    var getCommentURL = baseURL + "/comment/get?articleID=" + articleID;
+    var getCommentURL = baseURL + "/v1/comment/" + articleID;
     //print('getCommentURL: $getCommentURL');
     http.Response response = await http.get(getCommentURL);
     var data = json.decode(response.body);

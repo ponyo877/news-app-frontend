@@ -40,7 +40,7 @@ class _MatomeWebView extends State<MatomeWebView> {
   ];
   // add_20201227
   WebViewController _controller;
-  String baseURL = "http://gitouhon-juku-k8s2.ga";
+  String baseURL = "https://matome-kun.ga";
   Map<String, dynamic> data;
   List recomPost = [];
   bool isOpen = false;
@@ -277,7 +277,8 @@ class _MatomeWebView extends State<MatomeWebView> {
   }
 
   Future _getRecom(String postID) async {
-    var getRecomURL = baseURL + "/recom/" + postID;
+    // var getRecomURL = baseURL + "/recom/" + postID;
+    var getRecomURL = baseURL + "/v1/article/view/popular/daily";
     print('getRecomURL: $getRecomURL');
     http.Response response = await http.get(getRecomURL);
     data = json

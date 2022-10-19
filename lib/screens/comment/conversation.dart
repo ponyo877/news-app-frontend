@@ -18,7 +18,7 @@ class Conversation extends StatelessWidget {
   final String articleID;
   final String deviceHash;
 
-  String baseURL = "http://gitouhon-juku-k8s2.ga";
+  String baseURL = "https://matome-kun.ga";
 
   @override
   Widget build(BuildContext context) {
