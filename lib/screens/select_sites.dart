@@ -64,14 +64,14 @@ class SelectSites extends StatelessWidget {
                       child: SwitchListTile(
                         value: list[index]["switchValue"],
                         title: Text(
-                          "${list[index]["sitetitle"]}",
+                          "${list[index]["titles"]}",
                           style: TextStyle(
                             //fontWeight: FontWeight.bold,
                             //fontFamily: 'Cursive',
                           ),
                         ),
                         onChanged: (bool value) {
-                          context.read(selectSiteProvider.notifier).changeSiteList(list[index]["siteID"], value);
+                          context.read(selectSiteProvider.notifier).changeSiteList(list[index]["id"], value);
                         },
                         secondary: thumbnail(list[index]["image"]),
                       )

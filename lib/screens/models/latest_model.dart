@@ -4,7 +4,7 @@ part 'latest_model.g.dart';
 
 @HiveType(typeId: 2)
 /*
-_id
+id
 image
 publishedAt
 siteID

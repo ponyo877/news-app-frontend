@@ -243,7 +243,7 @@ class _MatomeWebView extends State<MatomeWebView> {
                       return Container(
                         width: MediaQuery.of(context).size.width * 0.6,
                         child: NewsCard(
-                          "${recomPost[index]["_id"]}",
+                          "${recomPost[index]["id"]}",
                           "${recomPost[index]["image"]}",
                           "",
                           // "${recomPost[index]["publishedAt"]}",

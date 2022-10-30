@@ -212,7 +212,7 @@ class Conversation extends StatelessWidget {
         commentID +
         '\n- 本文: ' +
         message +
-        '\n削除コマンド: `db.article_col.update({_id: ObjectId("' +
+        '\n削除コマンド: `db.article_col.update({id: ObjectId("' +
         this.articleID +
         '")}, {\$pull: {\'comments\': {commentID: \'' +
         commentID +

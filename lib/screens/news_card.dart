@@ -21,7 +21,7 @@ class NewsCardInfo {
 }
 
 class NewsCard extends StatelessWidget {
-  String _id;
+  String id;
   String image;
   String publishedAt;
   String siteID;
@@ -33,7 +33,7 @@ class NewsCard extends StatelessWidget {
   bool favoriteFlg = false;
   static const String placeholderImg = 'assets/images/no_image_square.jpg';
 
-  NewsCard(this._id, this.image, this.publishedAt, this.siteID, this.sitetitle,
+  NewsCard(this.id, this.image, this.publishedAt, this.siteID, this.sitetitle,
       this.titles, this.url, this.readFlg, this.favoriteFlg);
 
   Future _addHistory(HistoryModel historyModel) async {
@@ -76,12 +76,12 @@ class NewsCard extends StatelessWidget {
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) => MatomeWebView(
                           title: titles,
-                          postID: _id,
+                          postID: id,
                           selectedUrl: url,
                           siteID: siteID,
                         )));
                 final newHistory = HistoryModel(
-                  _id,
+                  id,
                   image,
                   publishedAt,
                   siteID,
@@ -90,17 +90,17 @@ class NewsCard extends StatelessWidget {
                   url,
                 ); // int.parse(_age));
                 //_addHistory(newHistory);
-                _incrViewCount(_id);
-                context.read(newsProvider.notifier).changeOneLatest(_id);
+                _incrViewCount(id);
+                context.read(newsProvider.notifier).changeOneLatest(id);
                 context
                     .read(rankingMonthProvider.notifier)
-                    .changeOneLatest(_id);
-                context.read(rankingWeekProvider.notifier).changeOneLatest(_id);
-                context.read(rankingDayProvider.notifier).changeOneLatest(_id);
-                context.read(recommendedProvider.notifier).changeOneLatest(_id);
+                    .changeOneLatest(id);
+                context.read(rankingWeekProvider.notifier).changeOneLatest(id);
+                context.read(rankingDayProvider.notifier).changeOneLatest(id);
+                context.read(recommendedProvider.notifier).changeOneLatest(id);
                 context
                     .read(searchResultProvider.notifier)
-                    .changeOneLatest(_id);
+                    .changeOneLatest(id);
                 context
                     .read(historyProvider.notifier)
                     .addHistory(newHistory, "history");
@@ -183,7 +183,7 @@ class NewsCard extends StatelessWidget {
     if (!this.favoriteFlg) {
       //print('In ${this.titles}\'s Favorite Button!');
       final newfavorite = HistoryModel(
-        this._id,
+        this.id,
         this.image,
         this.publishedAt,
         this.siteID,
@@ -197,30 +197,30 @@ class NewsCard extends StatelessWidget {
           .addHistory(newfavorite, "favorite");
     } else {
       //print('Out ${this.titles}\'s Favorite Button!');
-      //_deleteFavorite(this._id);
-      context.read(favoriteProvider.notifier).deleteHistory(this._id);
+      //_deleteFavorite(this.id);
+      context.read(favoriteProvider.notifier).deleteHistory(this.id);
     }
     context
         .read(newsProvider.notifier)
-        .changeOneFavorite(this._id, this.favoriteFlg);
+        .changeOneFavorite(this.id, this.favoriteFlg);
     context
         .read(rankingMonthProvider.notifier)
-        .changeOneFavorite(this._id, this.favoriteFlg);
+        .changeOneFavorite(this.id, this.favoriteFlg);
     context
         .read(rankingWeekProvider.notifier)
-        .changeOneFavorite(this._id, this.favoriteFlg);
+        .changeOneFavorite(this.id, this.favoriteFlg);
     context
         .read(rankingDayProvider.notifier)
-        .changeOneFavorite(this._id, this.favoriteFlg);
+        .changeOneFavorite(this.id, this.favoriteFlg);
     context
         .read(recommendedProvider.notifier)
-        .changeOneFavorite(this._id, this.favoriteFlg);
+        .changeOneFavorite(this.id, this.favoriteFlg);
     context
         .read(searchResultProvider.notifier)
-        .changeOneFavorite(this._id, this.favoriteFlg);
+        .changeOneFavorite(this.id, this.favoriteFlg);
     // context
     //     .read(historyProvider.notifier)
-    //     .changeOneFavorite(this._id, this.favoriteFlg);
+    //     .changeOneFavorite(this.id, this.favoriteFlg);
     this.favoriteFlg = !this.favoriteFlg;
   }
 
@@ -301,7 +301,7 @@ class NewsCard extends StatelessWidget {
 
 class NewsRankingCard extends NewsCard {
   NewsRankingCard(
-      String _id,
+      String id,
       String image,
       String publishedAt,
       String siteID,
@@ -310,7 +310,7 @@ class NewsRankingCard extends NewsCard {
       String url,
       bool readFlg,
       bool favoriteFlg)
-      : super(_id, image, publishedAt, siteID, sitetitle, titles, url, readFlg,
+      : super(id, image, publishedAt, siteID, sitetitle, titles, url, readFlg,
             favoriteFlg);
 
   @override
@@ -326,7 +326,7 @@ class NewsRankingCard extends NewsCard {
 
 class NewsHistoryCard extends NewsCard {
   NewsHistoryCard(
-      String _id,
+      String id,
       String image,
       String publishedAt,
       String siteID,
@@ -335,7 +335,7 @@ class NewsHistoryCard extends NewsCard {
       String url,
       bool readFlg,
       bool favoriteFlg)
-      : super(_id, image, publishedAt, siteID, sitetitle, titles, url, readFlg,
+      : super(id, image, publishedAt, siteID, sitetitle, titles, url, readFlg,
             favoriteFlg);
 
   @override
@@ -361,9 +361,9 @@ class NewsHistoryCard extends NewsCard {
               //     ? IconButton(
               //         icon: Icon(Icons.favorite_border),
               //         onPressed: () {
-              //           print('Push ${widget._id}\'s Favorite Button!');
+              //           print('Push ${widget.id}\'s Favorite Button!');
               //           final newfavorite = HistoryModel(
-              //               widget._id,
+              //               widget.id,
               //               widget.image,
               //               widget.publishedAt,
               //               widget.siteID,
@@ -376,7 +376,7 @@ class NewsHistoryCard extends NewsCard {
               //     : null,
               onTap: () {
                 final newHistory = HistoryModel(
-                  this._id,
+                  this.id,
                   this.image,
                   this.publishedAt,
                   this.siteID,
@@ -385,12 +385,12 @@ class NewsHistoryCard extends NewsCard {
                   this.url,
                 ); // int.parse(_age));
                 _addHistory(newHistory);
-                _incrViewCount(this._id);
+                _incrViewCount(this.id);
 
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) => MatomeWebView(
                           title: titles,
-                          postID: _id,
+                          postID: id,
                           selectedUrl: url,
                           siteID: siteID,
                         )));

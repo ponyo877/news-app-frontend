@@ -70,7 +70,7 @@ class EachRankingPostScreen extends StatelessWidget {
             itemBuilder: (BuildContext context, int index) {
               // "${index + 1}",
               return NewsRankingCard(
-                "${list[index]["_id"] == "" ? list[index]["id"] : list[index]["_id"]}",
+                "${list[index]["id"] == "" ? list[index]["id"] : list[index]["id"]}",
                 "${index + 1}",
                 "${list[index]["publishedAt"]}",
                 "${list[index]["siteID"]}",

@@ -76,7 +76,7 @@ class MyHistoryPostScreen extends StatelessWidget {
               itemBuilder: (BuildContext context, int index) {
                 var rindex = list.length - index - 1;
                 return NewsHistoryCard(
-                  "${list[rindex].id}", // "_id" is not available, so use "id"
+                  "${list[rindex].id}", // "id" is not available, so use "id"
                   "${list[rindex].image}",
                   "${list[rindex].publishedAt}",
                   "${list[rindex].siteID}",
@@ -115,7 +115,7 @@ class MyFavoritePostScreen extends StatelessWidget {
               itemBuilder: (BuildContext context, int index) {
                 var rindex = list.length - index - 1;
                 return NewsHistoryCard(
-                  "${list[rindex].id}", // "_id" is not available, so use "id"
+                  "${list[rindex].id}", // "id" is not available, so use "id"
                   "${list[rindex].image}",
                   "${list[rindex].publishedAt}",
                   "${list[rindex].siteID}",

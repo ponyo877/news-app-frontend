@@ -26,7 +26,7 @@ class SiteState extends StateNotifier<List> {
   bool _fileExists = false;
 
   Future<bool> _getInitSiteList() async {
-    var getSiteList = baseURL + "/v1/user";
+    var getSiteList = baseURL + "/v1/site";
     http.Response response = await http.get(getSiteList);
     data = json.decode(response.body);
 

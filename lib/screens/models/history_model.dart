@@ -4,7 +4,7 @@ part 'history_model.g.dart';
 
 @HiveType(typeId: 1)
 /*
-_id
+id
 image
 publishedAt
 siteID

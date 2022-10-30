@@ -64,6 +64,7 @@ class LatestScreen extends StatelessWidget {
       child: Consumer(builder: (context, watch, _) {
         //print(context.runtimeType);
         final list = watch(newsProvider);
+        print("[1]list.length: ${list.length}");
         Widget childWidget;
         if (list.length == 0) {
           childWidget = Center(child: CircularProgressIndicator());
@@ -73,7 +74,7 @@ class LatestScreen extends StatelessWidget {
             itemCount: list.length,
             itemBuilder: (BuildContext context, int index) {
               if (index == list.length - 1) {
-                //print(list);
+                // print('list.length: ${list.length}');
                 context.read(newsProvider.notifier).getPost(false);
                 return new Center(
                   child: new Container(
@@ -84,10 +85,11 @@ class LatestScreen extends StatelessWidget {
                   ),
                 );
               } else if (index > list.length) {
+                print("[>]list.length: ${list.length}");
                 return null;
               }
               return NewsCard(
-                "${list[index]["_id"]}",
+                "${list[index]["id"]}",
                 "${list[index]["image"]}",
                 "${list[index]["publishedAt"]}",
                 "${list[index]["siteID"]}",
@@ -141,7 +143,7 @@ class RecommendedScreen extends StatelessWidget {
               //   return null;
               // }
               return NewsCard(
-                "${list[index]["_id"]}",
+                "${list[index]["id"]}",
                 "${list[index]["image"]}",
                 "${list[index]["publishedAt"]}",
                 "${list[index]["siteID"]}",

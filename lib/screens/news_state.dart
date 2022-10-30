@@ -87,7 +87,6 @@ class NewsState extends StateNotifier<List> {
     if (initFlg) {
       lastpublished = "";
       newsPost = [];
-      //print("init latest aaaaaaaaaaaaa");
     }
     _filePath = await _localFile;
     _fileExists = await _filePath.exists();
@@ -124,7 +123,7 @@ class NewsState extends StateNotifier<List> {
           // }
           if (newsPostOne["readFlg"] != true) {
             var check = historyBox.values.firstWhere(
-                (list) => list.id == newsPostOne["_id"],
+                (list) => list.id == newsPostOne["id"],
                 orElse: () => null);
             if (check == null) {
               newsPostOne["readFlg"] = false;
@@ -136,7 +135,7 @@ class NewsState extends StateNotifier<List> {
           //init favorite Flg
           if (newsPostOne["favoriteFlg"] != true) {
             var check = favoriteBox.values.firstWhere(
-                (list) => list.id == newsPostOne["_id"],
+                (list) => list.id == newsPostOne["id"],
                 orElse: () => null);
             if (check == null) {
               newsPostOne["favoriteFlg"] = false;
@@ -149,8 +148,7 @@ class NewsState extends StateNotifier<List> {
       }
     }
     // print(favoriteBox.values.toList().last.id);
-    state = newsPost;
-    // print(newsPost[0]["_id"]);
+    state = [...newsPost];
     // print(newsPost[0]["favoriteFlg"]);
   }
 
@@ -169,7 +167,7 @@ class NewsState extends StateNotifier<List> {
     if (newsPost != null) {
       if (newsPost.length != 0) {
         for (var newsPostOne in newsPost) {
-          if (newsPostOne["_id"] == id) {
+          if (newsPostOne["id"] == id) {
             newsPostOne["readFlg"] = true;
             state = newsPost;
           }
@@ -183,7 +181,7 @@ class NewsState extends StateNotifier<List> {
     if (newsPost != null) {
       if (newsPost.length != 0) {
         for (var newsPostOne in newsPost) {
-          if (newsPostOne["_id"] == id) {
+          if (newsPostOne["id"] == id) {
             if (onFlg) {
               newsPostOne["favoriteFlg"] = false;
             } else {

@@ -36,7 +36,7 @@ class SearchPostScreen extends StatelessWidget {
                           itemCount: list == null ? 0 : list.length,
                           itemBuilder: (BuildContext context, int index) {
                             return NewsCard(
-                              "${list[index]["_id"] == "" ? list[index]["id"] : list[index]["_id"]}",
+                              "${list[index]["id"] == "" ? list[index]["id"] : list[index]["id"]}",
                               "${list[index]["image"]}",
                               "${list[index]["publishedAt"]}",
                               "${list[index]["siteID"]}",
