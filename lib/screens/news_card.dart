@@ -10,6 +10,8 @@ import 'news_state.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'news_list_screen.dart';
 import 'site_state.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 
 class NewsCardInfo {
   Icon icon;
@@ -28,7 +30,6 @@ class NewsCard extends StatelessWidget {
   String sitetitle;
   String titles;
   String url;
-  //bool colorChange = true;
   bool readFlg = false;
   bool favoriteFlg = false;
   static const String placeholderImg = 'assets/images/no_image_square.jpg';
@@ -43,7 +44,6 @@ class NewsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //bloc = NewsBlocProvider.of(context).bloc;
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -58,7 +58,11 @@ class NewsCard extends StatelessWidget {
                   alignment: WrapAlignment.spaceBetween,
                   verticalDirection: VerticalDirection.up,
                   children: <Widget>[
-                    subtitle(this.publishedAt,
+                    subtitle(
+                        DateFormat("yyyy-MM-dd HH:mm:ss").format(
+                            DateFormat("yyyy-MM-ddTHH:mm:ssZ")
+                                .parse(this.publishedAt, true)
+                                .toLocal()),
                         this.readFlg ? Colors.grey : Colors.white),
                     subtitle(this.sitetitle,
                         this.readFlg ? Colors.grey : Colors.red[200]),
@@ -92,15 +96,11 @@ class NewsCard extends StatelessWidget {
                 //_addHistory(newHistory);
                 _incrViewCount(id);
                 context.read(newsProvider.notifier).changeOneLatest(id);
-                context
-                    .read(rankingMonthProvider.notifier)
-                    .changeOneLatest(id);
+                context.read(rankingMonthProvider.notifier).changeOneLatest(id);
                 context.read(rankingWeekProvider.notifier).changeOneLatest(id);
                 context.read(rankingDayProvider.notifier).changeOneLatest(id);
                 context.read(recommendedProvider.notifier).changeOneLatest(id);
-                context
-                    .read(searchResultProvider.notifier)
-                    .changeOneLatest(id);
+                context.read(searchResultProvider.notifier).changeOneLatest(id);
                 context
                     .read(historyProvider.notifier)
                     .addHistory(newHistory, "history");
@@ -353,7 +353,12 @@ class NewsHistoryCard extends NewsCard {
                   alignment: WrapAlignment.spaceBetween,
                   verticalDirection: VerticalDirection.up,
                   children: <Widget>[
-                    subtitle(this.publishedAt, Colors.white),
+                    subtitle(
+                        DateFormat("yyyy-MM-dd HH:mm:ss").format(
+                            DateFormat("yyyy-MM-ddTHH:mm:ssZ")
+                                .parse(this.publishedAt, true)
+                                .toLocal()),
+                        Colors.white),
                     subtitle(this.sitetitle, Colors.red[200]),
                   ]),
               // TODO: Need to implement favorite button

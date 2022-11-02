@@ -28,7 +28,7 @@ class CommentState extends StateNotifier<List> {
     if (commentList == null) {
       state = ["nodata"];
     } else {
-      state = commentList;
+      state = [...commentList];
     }
   }
 

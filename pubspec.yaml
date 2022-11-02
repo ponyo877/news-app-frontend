@@ -50,6 +50,8 @@ dependencies:
   crypto: ^3.0.1
   shared_preferences: ^0.5.12+4
   awesome_dialog: ^2.1.0
+  dio: ^3.0.10
+  intl: ^0.17.0
 
 flutter_icons:
   android: true

@@ -89,19 +89,17 @@ class buildChatComposer extends StatelessWidget {
               var putCommentURL = baseURL + "/v1/comment/" + this.articleID;
               var map = new Map<String, dynamic>();
               // map["articleID"] = this.articleID;
-              map["massage"] = message;
+              map["message"] = message;
               map["devicehash"] = this.deviceHash;
               print('putCommentURL: $putCommentURL');
               http.Response response =
                   await http.post(putCommentURL, body: map);
               var res = json.decode(response.body);
-              print('res["Status"]: ${res["Status"]}');
-              if (res["Status"] != "Ok") {
+              if (response.statusCode != 200) {
                 final snackBar = SnackBar(
                   content: Text('コメントに不適切な表現が含まれていたようです\n修正してください'),
                   duration: Duration(seconds: 2),
                 );
-
                 ScaffoldMessenger.of(context).showSnackBar(snackBar);
               } else {
                 print('deviceHash: ${this.deviceHash}');

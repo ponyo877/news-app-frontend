@@ -22,8 +22,8 @@ class SettingScreen extends StatelessWidget {
     SettingScreen _settingScreen = SettingScreen._internal();
     _settingScreen._contactURL =
         "https://docs.google.com/forms/d/e/1FAIpQLSd-fuupDifDoJQ1uTkdyUCgzEiNvfUzdJe0YOhPfdSC3U2Erw/viewform?usp=sf_link";
-    _settingScreen._PPURL = "https://matome-kun.ga/privacy_policy/";
-    _settingScreen._eulaURL = "https://matome-kun.ga/eula/";
+    _settingScreen._PPURL = "https://matome-kun.ga/static/privacy_policy/";
+    _settingScreen._eulaURL = "https://matome-kun.ga/static/eula/";
     _settingScreen._reportURL =
         "https://docs.google.com/forms/d/e/1FAIpQLSfKg5WOizYtdmAUdTUGvGoOTxHeARTzyiomS6fSiV8f6DfFVQ/viewform?usp=sf_link";
 

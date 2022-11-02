@@ -26,9 +26,6 @@ class Conversation extends StatelessWidget {
     return Consumer(builder: (context, watch, _) {
       final commentList = watch(commentProvider);
       var num_comment = commentList == null ? 0 : commentList.length;
-      //print(num_comment);
-      //print("aaaaaaaaaaaaaaaa");
-      //print(commentList);
       if (commentList.length == 0) {
         return Center(child: CircularProgressIndicator());
       } else if (commentList[0] == "nodata") {
@@ -45,7 +42,7 @@ class Conversation extends StatelessWidget {
             itemBuilder: (context, int index) {
               print('commentList[index] ${commentList[index]}');
               final comment = commentList[index];
-              bool isMe = comment["deviceHash"] == this.deviceHash;
+              bool isMe = comment["device_hash"] == this.deviceHash;
               return Container(
                 margin: EdgeInsets.only(top: 10),
                 child: Column(
@@ -61,9 +58,9 @@ class Conversation extends StatelessWidget {
                             radius: 15,
                             backgroundColor: Colors.white,
                             backgroundImage:
-                                comment["avatar"].startsWith('http')
-                                    ? NetworkImage(comment["avatar"])
-                                    : AssetImage(comment["avatar"]),
+                                comment["image_url"].startsWith('http')
+                                    ? NetworkImage(comment["image_url"])
+                                    : AssetImage(comment["image_url"]),
                           ),
                         SizedBox(
                           width: 10,
@@ -92,7 +89,7 @@ class Conversation extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        comment["username"],
+                                        comment["name"],
                                         textAlign: TextAlign.right,
                                         style:
                                             MyTheme.headerTextMessage.copyWith(
@@ -101,7 +98,7 @@ class Conversation extends StatelessWidget {
                                       ),
                                       SizedBox(width: 10),
                                       Text(
-                                          comment["deviceHash"].substring(0, 6),
+                                          comment["device_hash"].substring(0, 6),
                                           textAlign: TextAlign.right,
                                           style: MyTheme.headerTextMessage
                                               .copyWith(
@@ -110,7 +107,7 @@ class Conversation extends StatelessWidget {
                                     ],
                                   ),
                                 Text(
-                                  comment["massage"],
+                                  comment["message"],
                                   textAlign: TextAlign.left,
                                   style: MyTheme.bodyTextMessage.copyWith(
                                       color: isMe
@@ -133,7 +130,7 @@ class Conversation extends StatelessWidget {
                               width: 40,
                             ),
                           Text(
-                            comment["postDate"],
+                            comment["created_at"],
                             style: MyTheme.bodyTextTime,
                           ),
                           if (!isMe)
@@ -154,9 +151,9 @@ class Conversation extends StatelessWidget {
                                         child: Column(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                          Text('user: ' + comment["username"]),
+                                          Text('user: ' + comment["name"]),
                                           Text(
-                                              'message: ' + comment["massage"]),
+                                              'message: ' + comment["message"]),
                                           ReportDropdown(dropdownList: <String>[
                                             '通報理由を選択',
                                             '性的な内容',
@@ -181,8 +178,8 @@ class Conversation extends StatelessWidget {
                                           child: const Text('通報'),
                                           onPressed: () {
                                             print('Ok!');
-                                            execWebHook(comment["massage"],
-                                                comment["commentID"]);
+                                            execWebHook(comment["message"],
+                                                comment["id"]);
                                             Navigator.pop(context);
                                           })
                                     ],
