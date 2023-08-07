@@ -12,13 +12,13 @@ import 'comment_state.dart';
 // https://konifar.hatenablog.com/entry/2018/02/11/081031
 // https://zenn.dev/hayabusabusa/articles/7bf73f007584aa4e0ee8
 class Conversation extends StatelessWidget {
-  Conversation({Key key, @required this.articleID, @required this.deviceHash})
+  Conversation({Key? key, required this.articleID, required this.deviceHash})
       : super(key: key);
 
   final String articleID;
   final String deviceHash;
 
-  String baseURL = "https://matome-kun.ga";
+  String baseURL = "https://matome.folks-chat.com";
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class Conversation extends StatelessWidget {
                             backgroundImage:
                                 comment["image_url"].startsWith('http')
                                     ? NetworkImage(comment["image_url"])
-                                    : AssetImage(comment["image_url"]),
+                                    : AssetImage(comment["image_url"]) as ImageProvider,
                           ),
                         SizedBox(
                           width: 10,
@@ -215,7 +215,7 @@ class Conversation extends StatelessWidget {
         commentID +
         '\'}}})`';
     String body = json.encode({'text': reportText});
-    http.Response res = await http.post(slackWebhookURL, body: body);
+    http.Response res = await http.post(slackWebhookURL as Uri, body: body);
   }
 
   // Future getComments() async {
@@ -233,8 +233,8 @@ class Conversation extends StatelessWidget {
 
 class ReportDropdown extends StatefulWidget {
   const ReportDropdown({
-    Key key,
-    @required this.dropdownList,
+    Key? key,
+    required this.dropdownList,
   }) : super(key: key);
 
   @override
@@ -253,9 +253,9 @@ class _ReportDropdown extends State<ReportDropdown> {
       icon: const Icon(Icons.arrow_drop_down),
       iconSize: 24,
       elevation: 16,
-      onChanged: (String newValue) {
+      onChanged: (String? newValue) {
         setState(() {
-          dropdownValue = newValue;
+          dropdownValue = newValue!;
         });
       },
       items: widget.dropdownList.map<DropdownMenuItem<String>>((String value) {

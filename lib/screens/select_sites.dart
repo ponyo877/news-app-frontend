@@ -11,44 +11,31 @@ import 'site_state.dart';
 import 'news_state.dart';
 
 class SelectSites extends StatelessWidget {
-//   @override
-//   _SelectSites createState() => _SelectSites();
-// }
 
-// class _SelectSites extends State<SelectSites>{
+  Future<bool> _future = false as Future<bool>;
 
-  Future<bool> _future;
-
-  String baseURL = "https://matome-kun.ga";
-  Map<String, dynamic> data;
+  String baseURL = "https://matome.folks-chat.com";
+  Map<String, dynamic> data = {};
   List newsList = [];
 
-  //file
-  File _filePath;
+  File _filePath = File("");
   static const String kFileName = 'mySkipIDs.csv';
-  bool _fileExists = false;
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _future = _getInitSiteList();
-  // }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: (){
+      onWillPop: () {
         context.read(selectSiteProvider.notifier).writeJson();
         context.read(newsProvider.notifier).getPost(true);
         Navigator.pop(context);
         return Future.value(false);
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('表示サイトの選択'),
-        ),
-        body: Consumer(builder: (context, watch, _) {
-          final list = watch(selectSiteProvider);
+          appBar: AppBar(
+            title: Text('表示サイトの選択'),
+          ),
+          body: Consumer(builder: (context, watch, _) {
+            final list = watch(selectSiteProvider);
             Widget childWidget;
             if (list.length == 0) {
               childWidget = Center(child: CircularProgressIndicator());
@@ -66,12 +53,11 @@ class SelectSites extends StatelessWidget {
                         title: Text(
                           "${list[index]["titles"]}",
                           style: TextStyle(
-                            //fontWeight: FontWeight.bold,
-                            //fontFamily: 'Cursive',
                           ),
                         ),
                         onChanged: (bool value) {
-                          context.read(selectSiteProvider.notifier).changeSiteList(list[index]["id"], value);
+                          context.read(selectSiteProvider.notifier)
+                              .changeSiteList(list[index]["id"], value);
                         },
                         secondary: thumbnail(list[index]["image"]),
                       )
@@ -82,45 +68,10 @@ class SelectSites extends StatelessWidget {
             }
             return childWidget;
           }
-        )
-    ),
+          )
+      ),
     );
   }
-
-  // Future<bool> _getInitSiteList() async {
-  //
-  //   var getSiteList = baseURL + "/site/get";
-  //   http.Response response = await http.get(getSiteList);
-  //   data = json.decode(response.body);
-  //   if (mounted) {
-  //     setState(() {
-  //       newsList = data["data"];
-  //     });
-  //   }
-  //
-  //   //read File
-  //   _filePath = await _localFile;
-  //   _fileExists = await _filePath.exists();
-  //
-  //   if (!_fileExists) {
-  //     for (int i = 0; i < newsList.length; i++) {
-  //       newsList[i]["switchValue"] = true;
-  //     }
-  //   } else {
-  //     var _fileData = await _filePath.readAsString();
-  //     for (int i = 0; i < newsList.length; i++) {
-  //       var siteID = _fileData.split(",");
-  //       var flgSite = true;
-  //       for (int j = 0; j < siteID.length; j++) {
-  //         if (newsList[i]["siteID"].toString() == siteID[j].toString() ) {
-  //           flgSite = false;
-  //         }
-  //       }
-  //       newsList[i]["switchValue"] = flgSite;
-  //     }
-  //   }
-  //   return true;
-  // }
 
   thumbnail(imageUrl) {
     return Padding(
@@ -138,24 +89,4 @@ class SelectSites extends StatelessWidget {
       ),
     );
   }
-
-  // Future<String> get _localPath async {
-  //   final directory = await getApplicationDocumentsDirectory();
-  //   return directory.path;
-  // }
-  //
-  // Future<File> get _localFile async {
-  //   final path = await _localPath;
-  //   return File('$path/$kFileName');
-  // }
-  //
-  // void _writeJson(String _newData) async {
-  //   _filePath = await _localFile;
-  //   _fileExists = await _filePath.exists();
-  //
-  //   if (!_fileExists) {
-  //      _filePath.writeAsString('');
-  //   }
-  //   _filePath.writeAsString(_newData);
-  // }
 }

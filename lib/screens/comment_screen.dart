@@ -3,7 +3,7 @@ import 'comment/conversation.dart';
 import 'comment/chat_composer.dart';
 import 'comment/chat_theme.dart';
 class CommentScreen extends StatefulWidget {
-  const CommentScreen({Key key, @required this.articleID, @required this.deviceHash}) : super(key: key);
+  const CommentScreen({Key? key, required this.articleID, required this.deviceHash}) : super(key: key);
 
   @override
   _CommentScreen createState() => _CommentScreen();
@@ -24,7 +24,7 @@ class _CommentScreen extends State<CommentScreen> {
                 // Old Ver: FocusScope.of(context).unfocus();
                 final FocusScopeNode currentScope = FocusScope.of(context);
                 if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
-                  FocusManager.instance.primaryFocus.unfocus();
+                  FocusManager.instance.primaryFocus?.unfocus();
                 }
               },
               child: Column(

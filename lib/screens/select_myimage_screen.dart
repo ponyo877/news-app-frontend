@@ -13,7 +13,7 @@ import 'package:dio/dio.dart';
 class SelectMyimageScreen extends StatefulWidget {
   final String icon;
 
-  //const SelectMyimageScreen({Key key, this.icon}) : super(key: key);
+  //const SelectMyimageScreen({Key? key, this.icon}) : super(key: key);
   SelectMyimageScreen(this.icon);
 
   @override
@@ -22,7 +22,7 @@ class SelectMyimageScreen extends StatefulWidget {
 
 class _SelectMyimageScreen extends State<SelectMyimageScreen> {
   int _selected = 0;
-  String baseURL = "https://matome-kun.ga";
+  String baseURL = "https://matome.folks-chat.com";
 
   @override
   void initState() {
@@ -64,7 +64,7 @@ class _SelectMyimageScreen extends State<SelectMyimageScreen> {
                     )),
                 Checkbox(
                   activeColor: Color(0xFFEF476F),
-                  onChanged: (bool se) {
+                  onChanged: (bool? se) {
                     setState(() {
                       _selected = index + 1;
                     });

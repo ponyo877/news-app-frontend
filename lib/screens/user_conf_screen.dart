@@ -8,7 +8,7 @@ import 'package:crypto/crypto.dart';
 import 'select_myimage_screen.dart';
 
 class UserConfScreen extends StatefulWidget {
-  const UserConfScreen({Key key}) : super(key: key);
+  const UserConfScreen({Key? key}) : super(key: key);
 
   @override
   _UserConfScreen createState() => _UserConfScreen();
@@ -16,11 +16,11 @@ class UserConfScreen extends StatefulWidget {
 
 class _UserConfScreen extends State<UserConfScreen> {
   bool _isEdit = false;
-  Future<Map> _future;
+  Future<Map> _future = {} as Future<Map>;
   String NameData = "";
   String IconData = "";
 
-  String baseURL = "https://matome-kun.ga";
+  String baseURL = "https://matome.folks-chat.com";
 
   @override
   void initState() {
@@ -43,11 +43,12 @@ class _UserConfScreen extends State<UserConfScreen> {
         child: FutureBuilder(
           future: _future,
           builder: (BuildContext context, AsyncSnapshot<Map> snapshot) {
+            Map data = snapshot.data ?? {};
             if (!snapshot.hasData) {
               return Center(child: CircularProgressIndicator());
             } else {
               var _controller = TextEditingController(
-                  text: NameData.isEmpty ? snapshot.data['Name'] : NameData);
+                  text: NameData.isEmpty ? data['Name'] : NameData);
               return
                 Column (children: [
                   SizedBox(height: 10),
@@ -64,7 +65,7 @@ class _UserConfScreen extends State<UserConfScreen> {
                   onTap: () async {
                     var result = await Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (context) => SelectMyimageScreen(IconData.isEmpty ? snapshot.data['Icon'] : IconData)));
+                            builder: (context) => SelectMyimageScreen(IconData.isEmpty ? data['Icon']: IconData)));
                     // print(result);
                     if (result != null) {
                       setState(() {
@@ -91,7 +92,7 @@ class _UserConfScreen extends State<UserConfScreen> {
                       radius: 55.0,
                       backgroundColor: Colors.white,
                       backgroundImage: AssetImage(
-                          IconData.isEmpty ? snapshot.data['Icon'] : IconData),
+                          IconData.isEmpty ? data['Icon'] : IconData),
                     ),
                   ),
                 ),
@@ -114,7 +115,7 @@ class _UserConfScreen extends State<UserConfScreen> {
                             ),
                           )
                         : Text(
-                            NameData.isEmpty ? snapshot.data['Name'] : NameData,
+                            NameData.isEmpty ? data['Name'] : NameData,
                             style: TextStyle(
                               //color: Colors.black,
                               fontFamily: 'SF Pro',
@@ -176,7 +177,7 @@ class _UserConfScreen extends State<UserConfScreen> {
     if (myIconData == null) {
       myIconData = 'assets/images/icon/myimage_1.png';
     }
-    Map<String, String> myStringData = {
+    Map<String?, String?> myStringData = {
       'Name': myNameData,
       'Icon': myIconData,
     };
@@ -216,7 +217,7 @@ class _UserConfScreen extends State<UserConfScreen> {
 
     map["name"] = name;
     map["devicehash"] = myStringData;
-    http.Response response = await http.post(requestURL, body: map);
+    http.Response response = await http.post(Uri.parse(requestURL), body: map);
     print(response.statusCode);
   }
 }

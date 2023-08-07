@@ -53,7 +53,7 @@ class NewsState extends StateNotifier<List> {
         print("初期化：recommend");
         break;
       case "search":
-        state = null;
+        // state = null;
         break;
     }
     // if (type == "latest") {
@@ -68,19 +68,18 @@ class NewsState extends StateNotifier<List> {
   }
 
   static const String kFileName = 'mySkipIDs.csv';
-  File _filePath;
+  File _filePath = File("");
   bool _fileExists = false;
 
-  Map<String, dynamic> data;
+  Map<String, dynamic> data = {};
   List newsPost = [];
   String lastpublished = "";
-  String baseURL = "https://matome-kun.ga";
+  String baseURL = "https://matome.folks-chat.com";
 
-  Box historyBox;
-  Box favoriteBox;
+  Box historyBox = {} as Box;
+  Box favoriteBox = {} as Box;
 
-  Future _future;
-  String searchWord;
+  String searchWord = "";
 
   void getPost(bool initFlg) async {
     //print(initFlg);
@@ -100,7 +99,7 @@ class NewsState extends StateNotifier<List> {
         "&skipIDs=" +
         _skipIDs;
     print('getPostURL: ' + getPostURL);
-    http.Response response = await http.get(getPostURL);
+    http.Response response = await http.get(Uri.parse(getPostURL));
     data = json.decode(response.body);
 
     newsPost.addAll(data["data"]);
@@ -169,7 +168,7 @@ class NewsState extends StateNotifier<List> {
         for (var newsPostOne in newsPost) {
           if (newsPostOne["id"] == id) {
             newsPostOne["readFlg"] = true;
-            state = newsPost;
+            state = [...newsPost];
           }
         }
       }
@@ -190,7 +189,7 @@ class NewsState extends StateNotifier<List> {
             //print(newsPostOne["titles"]);
             //print(newsPostOne["favoriteFlg"]);
 
-            state = newsPost;
+            state = [...newsPost];
           }
         }
       }
@@ -200,8 +199,8 @@ class NewsState extends StateNotifier<List> {
   void initHistory(String type) async {
     //print("init History kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
     historyBox = await Hive.openBox<HistoryModel>(type);
-    List<HistoryModel> Items = historyBox.values.toList();
-    state = Items;
+    List<dynamic> Items = historyBox.values.toList();
+    state = [...Items];
   }
 
   void addHistory(HistoryModel history, String type) async {
@@ -215,18 +214,18 @@ class NewsState extends StateNotifier<List> {
     // add memory data
     if (newsPost != null) {
       if (newsPost.length != 0) {
-        List<HistoryModel> historyItems = state;
+        List<dynamic> historyItems = state;
         historyItems.add(history);
-        state = historyItems;
+        state = [...historyItems];
       } else {
         // print("[] です");
         List<HistoryModel> Items = addBox.values.toList();
-        state = Items;
+        state = [...Items];
       }
     } else {
       // print("null です");
       List<HistoryModel> Items = addBox.values.toList();
-      state = Items;
+      state = [...Items];
     }
   }
 
@@ -237,7 +236,8 @@ class NewsState extends StateNotifier<List> {
     final delBox = await Hive.openBox<HistoryModel>('favorite');
     for (int index = 0; index < delBox.length; index++) {
       //print(index.toString() + ", " + favoriteBox.getAt(index).id);
-      if (delBox.getAt(index).id == delId) {
+      var targetId = delBox.getAt(index);
+      if ((targetId != null && targetId.id == delId) || targetId == null) {
         delBox.deleteAt(index);
         //break;
       }
@@ -246,27 +246,27 @@ class NewsState extends StateNotifier<List> {
     // delete memory data
     if (newsPost != null) {
       if (newsPost.length != 0) {
-        List<HistoryModel> historyItems = state;
+        List<dynamic> historyItems = state;
         for (int index = 0; index < historyItems.length; index++) {
           if (historyItems[index].id == delId) {
             historyItems.removeAt(index);
           }
         }
-        state = historyItems;
+        state = [...historyItems];
       } else {
         List<HistoryModel> Item = delBox.values.toList();
-        state = Item;
+        state = [...Item];
       }
     } else {
       List<HistoryModel> Item = delBox.values.toList();
-      state = Item;
+      state = [...Item];
     }
   }
 
   void getRanking(String type) async {
     var getPostURL = baseURL + "/v1/article/view/popular/" + type;
     print(getPostURL);
-    http.Response response = await http.get(getPostURL);
+    http.Response response = await http.get(Uri.parse(getPostURL));
     data = json.decode(response.body);
 
     newsPost = data["data"];
@@ -275,11 +275,11 @@ class NewsState extends StateNotifier<List> {
 
   void getRecommended() async {
     historyBox = await Hive.openBox<HistoryModel>('history');
-    List<HistoryModel> historyItems = historyBox.values.toList();
+    List<dynamic> historyItems = historyBox.values.toList();
 
     if (historyItems.length == 0) {
       var getPostURL = baseURL + "/v1/article/view/popular/daily";
-      http.Response response = await http.get(getPostURL);
+      http.Response response = await http.get(Uri.parse(getPostURL));
       data = json.decode(response.body);
 
       newsPost = data["data"];
@@ -302,8 +302,8 @@ class NewsState extends StateNotifier<List> {
       // var getPostURL = baseURL + "/personal?ids=" + ids;
       var getPostURL = baseURL + "/v1/article/view/popular/daily";
       print(getPostURL);
-      http.Response response = await http.get(getPostURL);
-      if(response.statusCode != 200){
+      http.Response response = await http.get(Uri.parse(getPostURL));
+      if (response.statusCode != 200) {
         return;
       }
       data = json.decode(
@@ -315,12 +315,10 @@ class NewsState extends StateNotifier<List> {
   }
 
   void searchResultsList(String searchwords) async {
-    //String searchwords = textController.text;
     newsPost = [];
-    //state = [];
     var getPostURL = baseURL + "/v1/article/search?keyword=" + searchwords;
     print(getPostURL);
-    http.Response response = await http.get(getPostURL);
+    http.Response response = await http.get(Uri.parse(getPostURL));
     data = json.decode(response.body);
 
     newsPost = data["data"];

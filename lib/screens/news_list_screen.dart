@@ -30,7 +30,7 @@ class TabInfo {
 class NewsListScreen extends StatelessWidget {
   String initName = 'まとめくん';
   String initIconPath = 'assets/images/icon/myimage_1.png';
-  String baseURL = "https://matome-kun.ga";
+  String baseURL = "https://matome.folks-chat.com";
 
   final List<TabInfo> _tabs = [
     TabInfo(Icons.format_list_numbered, 'Ranking', RankingPostScreen()),
@@ -66,7 +66,7 @@ class NewsListScreen extends StatelessWidget {
         ),
         body: SafeArea(
           child: TabBarView(
-            children: _tabs.map((tab) => tab.widget).toList(),
+            children: _tabs.map<Widget>((tab) => tab.widget).toList(),
           ),
         ),
         // TODO: Need to implement hidden AppBar

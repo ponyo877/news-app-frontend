@@ -12,18 +12,18 @@ class SettingInfo {
 
 class SettingScreen extends StatelessWidget {
   SettingScreen._internal();
-  String _contactURL;
-  String _eulaURL;
-  String _PPURL;
-  String _reportURL;
-  List<SettingInfo> _settingTabs;
+  String _contactURL = "";
+  String _eulaURL = "";
+  String _PPURL = "";
+  String _reportURL = "";
+  List<SettingInfo> _settingTabs = [];
 
   factory SettingScreen() {
     SettingScreen _settingScreen = SettingScreen._internal();
     _settingScreen._contactURL =
         "https://docs.google.com/forms/d/e/1FAIpQLSd-fuupDifDoJQ1uTkdyUCgzEiNvfUzdJe0YOhPfdSC3U2Erw/viewform?usp=sf_link";
-    _settingScreen._PPURL = "https://matome-kun.ga/static/privacy_policy/";
-    _settingScreen._eulaURL = "https://matome-kun.ga/static/eula/";
+    _settingScreen._PPURL = "https://matome.folks-chat.com/static/privacy_policy/";
+    _settingScreen._eulaURL = "https://matome.folks-chat.com/static/eula/";
     _settingScreen._reportURL =
         "https://docs.google.com/forms/d/e/1FAIpQLSfKg5WOizYtdmAUdTUGvGoOTxHeARTzyiomS6fSiV8f6DfFVQ/viewform?usp=sf_link";
 
@@ -57,7 +57,7 @@ class SettingScreen extends StatelessWidget {
             title: "Help & Feedback",
             selectedUrl: _settingScreen._reportURL,
           )),
-      SettingInfo(Icons.arrow_circle_up, 'App Version: 1.35', null),
+      SettingInfo(Icons.arrow_circle_up, 'App Version: 1.38', Spacer()),
     ];
     return _settingScreen;
   }
@@ -65,42 +65,47 @@ class SettingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column (
-      children: [
-        UserConfScreen(),
-        SizedBox(height: 30),
-        Expanded(
-        child: Container(
-          //height: 250,
-        decoration: BoxDecoration(
-          color: Colors.white10,
-          borderRadius: BorderRadius.circular(16.0),
-        ),
-      child: ListView.separated(
-        shrinkWrap: true,
-        //physics: NeverScrollableScrollPhysics(),
-        itemCount: _settingTabs.length,
-        separatorBuilder: (BuildContext context, int index) =>
-            Divider(color: Colors.white),
-        itemBuilder: (BuildContext context, int index) {
-          var isAppVer = _settingTabs[index].title.contains('App Version');
-          return ListTile(
-            leading: Icon(_settingTabs[index].icon),
-            title: Text(
-              _settingTabs[index].title,
-              style: TextStyle(fontSize: 20),
+      body: Column(
+        children: [
+          UserConfScreen(),
+          SizedBox(height: 30),
+          Expanded(
+            child: Container(
+              //height: 250,
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                //physics: NeverScrollableScrollPhysics(),
+                itemCount: _settingTabs.length,
+                separatorBuilder: (BuildContext context, int index) =>
+                    Divider(color: Colors.white),
+                itemBuilder: (BuildContext context, int index) {
+                  var isAppVer =
+                      _settingTabs[index].title.contains('App Version');
+                  return ListTile(
+                    leading: Icon(_settingTabs[index].icon),
+                    title: Text(
+                      _settingTabs[index].title,
+                      style: TextStyle(fontSize: 20),
+                    ),
+                    trailing:
+                        isAppVer ? null : Icon(Icons.keyboard_arrow_right),
+                    onTap: isAppVer
+                        ? null
+                        : () async {
+                            await Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) =>
+                                    _settingTabs[index].widget));
+                          },
+                  );
+                },
+              ),
             ),
-            trailing: isAppVer ? null : Icon(Icons.keyboard_arrow_right),
-            onTap: isAppVer
-                ? null
-                : () async {
-                    await Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => _settingTabs[index].widget));
-                  },
-          );
-        },
-      ),
-      ),)],
+          )
+        ],
       ),
     );
   }

@@ -7,7 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'contact_page.dart';
 import 'screens/models/history_model.dart';
 import 'screens/news_list_screen.dart';
-import 'package:admob_flutter/admob_flutter.dart';
+// import 'package:admob_flutter/admob_flutter.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter/material.dart';
 
 //void main() => runApp(ProviderScope(child: MyApp()));
 
@@ -19,7 +21,8 @@ void main() async {
   Hive.registerAdapter(HistoryModelAdapter());
   Hive.registerAdapter(LatestModelAdapter());
   WidgetsFlutterBinding.ensureInitialized();
-  Admob.initialize();
+  MobileAds.instance.initialize();
+  // Admob.initialize();
   //await Hive.openBox<LatestModel>('latestData');
   runApp(ProviderScope(child: MyApp()));
 }
@@ -51,7 +54,7 @@ class MyApp extends StatelessWidget {
 // }
 
 // class MyApp extends StatelessWidget {
-//   const MyApp({Key key}) : super(key: key);
+//   const MyApp({Key? key}) : super(key: key);
 //
 //   @override
 //   Widget build(BuildContext context) {

@@ -10,7 +10,9 @@ import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../service/admob.dart';
-import 'package:admob_flutter/admob_flutter.dart';
+// import 'package:admob_flutter/admob_flutter.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'webview_tools.dart';
 import 'comment_screen.dart';
@@ -24,10 +26,10 @@ class MatomeWebView extends StatefulWidget {
   final String title;
   final String postID;
   final String selectedUrl;
-  final String siteID;
+  final String sitetitle;
 
   MatomeWebView(
-      {Key key, this.title, this.postID, this.selectedUrl, this.siteID})
+      {Key? key, required this.title, required this.postID, required this.selectedUrl, required this.sitetitle})
       : super(key: key);
 
   @override
@@ -35,22 +37,24 @@ class MatomeWebView extends StatefulWidget {
 }
 
 class _MatomeWebView extends State<MatomeWebView> {
-  var notLiveDoorIDs = [
-    2,
-  ];
-  // add_20201227
-  WebViewController _controller;
-  String baseURL = "https://matome-kun.ga";
-  Map<String, dynamic> data;
+  WebViewController _controller = WebViewController();
+  String baseURL = "https://matome.folks-chat.com";
+  Map<String, dynamic> data = {};
   List recomPost = [];
   bool isOpen = false;
   double dist_threshold = 0.1;
-  bool _isExpanded = false;
-  String _deviceIdHash;
+  bool _isExpanded = true;
+  String _deviceIdHash = "";
+  final BannerAd banner = BannerAd(
+    adUnitId: AdMobService().getBannerAdUnitId()!,
+    size: AdSize.banner,
+    request: AdRequest(),
+    listener: BannerAdListener(),
+  );
 
   final List<TabInfo> _tabs = [
-    TabInfo(Icons.share, 'Share', null),
-    TabInfo(Icons.report, 'Report article problem', null),
+    TabInfo(Icons.share, 'Share', Spacer()),
+    TabInfo(Icons.report, 'Report article problem', Spacer()),
   ];
 
   @override
@@ -62,6 +66,8 @@ class _MatomeWebView extends State<MatomeWebView> {
 
   @override
   Widget build(BuildContext context) {
+    banner.load();
+    AdWidget adWidget = AdWidget(ad: banner);
     return WillPopScope(
       onWillPop: () {
         context.read(commentProvider.notifier).clearComments();
@@ -110,24 +116,31 @@ class _MatomeWebView extends State<MatomeWebView> {
           ],
         ),
         body: FutureBuilder(
-          future: loadUri(widget.selectedUrl, widget.siteID),
+          future: loadUri(widget.selectedUrl, widget.sitetitle),
           builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
             if (snapshot.hasData) {
               var commentFieldHeight = 60;
-              var screenHeight = MediaQuery.of(context).size.height;
-              var appBarHeight = Scaffold.of(context).appBarMaxHeight;
-              var bottomBarHeight = AdMobService().getHeight(context).toInt();
-              var viewInsets = EdgeInsets.fromWindowPadding(WidgetsBinding.instance.window.viewInsets,WidgetsBinding.instance.window.devicePixelRatio).bottom;
-              var notbodyHeight = appBarHeight + bottomBarHeight + commentFieldHeight + viewInsets;
+              var screenHeight = MediaQuery.of(context).size.height ?? 0;
+              var appBarHeight = Scaffold.of(context).appBarMaxHeight ?? 0;
+              var bottomBarHeight = AdMobService().getHeight(context).toInt() ?? 0;
+              var viewInsets = EdgeInsets.fromWindowPadding(
+                      WidgetsBinding.instance.window.viewInsets,
+                      WidgetsBinding.instance.window.devicePixelRatio)
+                  .bottom ?? 0;
+              var notbodyHeight = appBarHeight + bottomBarHeight + viewInsets;
+              // + commentFieldHeight;
 
               var expandedBodyHeight = screenHeight - notbodyHeight;
               var contractBodyHeight = expandedBodyHeight * 0.5;
-              print('contractBodyHeight: $contractBodyHeight');
+              var controller = WebViewController()
+                ..setJavaScriptMode(JavaScriptMode.unrestricted)
+                ..loadRequest(Uri.parse(widget.selectedUrl));
               return Column(mainAxisSize: MainAxisSize.min, children: [
                 Container(
-                  height: _isExpanded ? expandedBodyHeight : contractBodyHeight,
+                  height: _isExpanded
+                      ? expandedBodyHeight
+                      : contractBodyHeight, //contractBodyHeight, // 画面が
                   decoration: BoxDecoration(
-                    // border: Border.all(color: Colors.blueGrey, width: 5),
                     borderRadius: BorderRadius.all(Radius.circular(25)),
                   ),
                   child: GestureDetector(
@@ -135,22 +148,24 @@ class _MatomeWebView extends State<MatomeWebView> {
                         resizeToAvoidBottomInset: false,
                         body: ClipRRect(
                           borderRadius: BorderRadius.all(Radius.circular(20)),
-                          child: WebView(
-                            // initialUrl: widget.selectedUrl,
-                            javascriptMode: JavascriptMode.unrestricted,
-                            onWebViewCreated:
-                                (WebViewController webViewController) {
-                              // controller.complete(webViewController);
-                              _controller = webViewController;
-                              // print(snapshot.data);
-                              _controller.loadUrl(snapshot.data);
-                              _getRecom(widget.postID);
-                            },
+                        child: Scaffold(
+                          appBar: AppBar(
+                            title: Text(widget.title),
                           ),
+                          body: WebViewWidget(controller: controller),
+                        ),
+                          // child: WebView(
+                          //   javascriptMode: JavascriptMode.unrestricted,
+                          //   onWebViewCreated:
+                          //       (WebViewController webViewController) {
+                          //     _controller = webViewController;
+                          //     _controller.loadUrl(snapshot.data);
+                          //     _getRecom(widget.postID);
+                          //   },
+                          // ),
                         ),
                         floatingActionButton: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          // mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Expanded(child: SizedBox()),
                             Spacer(),
@@ -178,12 +193,10 @@ class _MatomeWebView extends State<MatomeWebView> {
                           ],
                         )),
                     onTapDown: (details) {
-                      print("test");
                       setState(() {
-                        print(_isExpanded);
                         _isExpanded = true;
                       });
-                      return false;
+                      // return false;
                     },
                     behavior: HitTestBehavior.opaque,
                   ),
@@ -205,14 +218,24 @@ class _MatomeWebView extends State<MatomeWebView> {
             }
           },
         ),
-        bottomNavigationBar: AdmobBanner(
-          adUnitId: AdMobService().getBannerAdUnitId(),
-          adSize: AdmobBannerSize(
-            width: MediaQuery.of(context).size.width.toInt(),
-            height: AdMobService().getHeight(context).toInt(),
-            name: 'BANNER',
-          ),
+        bottomNavigationBar: // SizedBox(),
+            Container(
+          alignment: Alignment.center,
+          child: adWidget,
+          width: banner.size.width.toDouble(),
+          height: banner.size.height.toDouble(),
         ),
+        //     AdWidget(
+        //   ad: banner,
+        // ),
+        // AdmobBanner(
+        //   adUnitId: AdMobService().getBannerAdUnitId(),
+        //   adSize: AdmobBannerSize(
+        //     width: MediaQuery.of(context).size.width.toInt(),
+        //     height: AdMobService().getHeight(context).toInt(),
+        //     name: 'BANNER',
+        //   ),
+        // ),
       ),
     );
   }
@@ -245,8 +268,8 @@ class _MatomeWebView extends State<MatomeWebView> {
                         child: NewsCard(
                           "${recomPost[index]["id"]}",
                           "${recomPost[index]["image"]}",
-                          "",
                           // "${recomPost[index]["publishedAt"]}",
+                          "",
                           "${recomPost[index]["siteID"]}",
                           "${recomPost[index]["sitetitle"]}",
                           "${recomPost[index]["titles"]}",
@@ -277,10 +300,9 @@ class _MatomeWebView extends State<MatomeWebView> {
   }
 
   Future _getRecom(String postID) async {
-    // var getRecomURL = baseURL + "/recom/" + postID;
-    var getRecomURL = baseURL + "/v1/article/view/popular/daily";
+    var getRecomURL = baseURL + "/v1/article/similar/" + postID;
     print('getRecomURL: $getRecomURL');
-    http.Response response = await http.get(getRecomURL);
+    http.Response response = await http.get(Uri.parse(getRecomURL));
     data = json
         .decode(Utf8Decoder(allowMalformed: true).convert(response.bodyBytes));
     if (mounted) {
@@ -289,9 +311,7 @@ class _MatomeWebView extends State<MatomeWebView> {
         if (postTmps != null) {
           for (var postTmp in postTmps) {
             if (postTmp != null) {
-              if (postTmp["distance"] > dist_threshold) {
-                recomPost.add(postTmp);
-              }
+              recomPost.add(postTmp);
             }
           }
         }
@@ -304,31 +324,23 @@ class NormalWebView extends StatefulWidget {
   final String title;
   final String selectedUrl;
 
-  NormalWebView({Key key, this.title, this.selectedUrl}) : super(key: key);
+  NormalWebView({Key? key, required this.title, required this.selectedUrl}) : super(key: key);
 
   @override
   _NormalWebView createState() => _NormalWebView();
 }
 
 class _NormalWebView extends State<NormalWebView> {
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
-
   @override
   Widget build(BuildContext context) {
+    var controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse(widget.selectedUrl));
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Builder(builder: (BuildContext context) {
-        return WebView(
-          initialUrl: widget.selectedUrl,
-          javascriptMode: JavascriptMode.unrestricted,
-          onWebViewCreated: (WebViewController webViewController) {
-            _controller.complete(webViewController);
-          },
-        );
-      }),
+      body: WebViewWidget(controller: controller),
     );
   }
 }

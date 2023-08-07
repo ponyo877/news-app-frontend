@@ -16,18 +16,18 @@ class SiteState extends StateNotifier<List> {
     this._getInitSiteList();
   }
 
-  String baseURL = "https://matome-kun.ga";
-  Map<String, dynamic> data;
+  String baseURL = "https://matome.folks-chat.com";
+  Map<String, dynamic> data = {};
   List newsList = [];
 
   //file
-  File _filePath;
+  File _filePath = File("");
   static const String kFileName = 'mySkipIDs.csv';
   bool _fileExists = false;
 
   Future<bool> _getInitSiteList() async {
     var getSiteList = baseURL + "/v1/site";
-    http.Response response = await http.get(getSiteList);
+    http.Response response = await http.get(Uri.parse(getSiteList));
     data = json.decode(response.body);
 
     newsList = data["data"];
@@ -46,24 +46,24 @@ class SiteState extends StateNotifier<List> {
         var siteID = _fileData.split(",");
         var flgSite = true;
         for (int j = 0; j < siteID.length; j++) {
-          if (newsList[i]["siteID"].toString() == siteID[j].toString() ) {
+          if (newsList[i]["id"] == siteID[j] ) {
             flgSite = false;
           }
         }
         newsList[i]["switchValue"] = flgSite;
       }
     }
-    state = newsList;
+    state = [...newsList];
     return true;
   }
 
-  void changeSiteList(int site, bool flg) {
+  void changeSiteList(String siteID, bool flg) {
     for (int index=0; index < newsList.length; index++) {
-      if (newsList[index]["siteID"] == site) {
+      if (newsList[index]["id"] == siteID) {
         newsList[index]["switchValue"] = flg;
       }
     }
-    state = newsList;
+    state = [...newsList];
   }
 
   void writeJson() async {
@@ -72,11 +72,17 @@ class SiteState extends StateNotifier<List> {
 
     String _newData = '';
     newsList = state;
+    int cnt = 0;
     for (int i = 0; i < newsList.length; i++) {
       if (newsList[i]["switchValue"] == false) {
-        _newData = '$_newData${newsList[i]["siteID"]},';
+        if (cnt != 0){
+          _newData = '$_newData,';
+        }
+        _newData = '$_newData${newsList[i]["id"]}';
+        cnt++;
       }
     }
+
 
     if (!_fileExists) {
       _filePath.writeAsString('');

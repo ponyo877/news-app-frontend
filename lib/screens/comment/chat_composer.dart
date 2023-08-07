@@ -8,7 +8,7 @@ import 'comment_state.dart';
 
 class buildChatComposer extends StatelessWidget {
   buildChatComposer(
-      {Key key, @required this.articleID, @required this.deviceHash})
+      {Key? key, required this.articleID, required this.deviceHash})
       : super(key: key);
 
   final String articleID;
@@ -18,7 +18,7 @@ class buildChatComposer extends StatelessWidget {
 // https://github.com/itzpradip/flutter-chat-app
 // https://github.com/tonydavidx/chattie-ui-design
   var _controller = TextEditingController();
-  String baseURL = "https://matome-kun.ga";
+  String baseURL = "https://matome.folks-chat.com";
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +83,7 @@ class buildChatComposer extends StatelessWidget {
             onTap: () async {
               final FocusScopeNode currentScope = FocusScope.of(context);
               if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
-                FocusManager.instance.primaryFocus.unfocus();
+                FocusManager.instance.primaryFocus?.unfocus();
               }
               var message = _controller.text;
               var putCommentURL = baseURL + "/v1/comment/" + this.articleID;
@@ -93,7 +93,7 @@ class buildChatComposer extends StatelessWidget {
               map["devicehash"] = this.deviceHash;
               print('putCommentURL: $putCommentURL');
               http.Response response =
-                  await http.post(putCommentURL, body: map);
+                  await http.post(Uri.parse(putCommentURL), body: map);
               var res = json.decode(response.body);
               if (response.statusCode != 200) {
                 final snackBar = SnackBar(

@@ -58,12 +58,14 @@ class NewsCard extends StatelessWidget {
                   alignment: WrapAlignment.spaceBetween,
                   verticalDirection: VerticalDirection.up,
                   children: <Widget>[
-                    subtitle(
-                        DateFormat("yyyy-MM-dd HH:mm:ss").format(
-                            DateFormat("yyyy-MM-ddTHH:mm:ssZ")
-                                .parse(this.publishedAt, true)
-                                .toLocal()),
-                        this.readFlg ? Colors.grey : Colors.white),
+                    this.publishedAt != ""
+                        ? subtitle(
+                            DateFormat("yyyy-MM-dd HH:mm:ss").format(
+                                DateFormat("yyyy-MM-ddTHH:mm:ssZ")
+                                    .parse(this.publishedAt, true)
+                                    .toLocal()),
+                            Colors.white)
+                        : Spacer(),
                     subtitle(this.sitetitle,
                         this.readFlg ? Colors.grey : Colors.red[200]),
                   ]),
@@ -82,7 +84,7 @@ class NewsCard extends StatelessWidget {
                           title: titles,
                           postID: id,
                           selectedUrl: url,
-                          siteID: siteID,
+                          sitetitle: sitetitle,
                         )));
                 final newHistory = HistoryModel(
                   id,
@@ -227,7 +229,7 @@ class NewsCard extends StatelessWidget {
   void _clickBlockSite(BuildContext context) {
     context
         .read(selectSiteProvider.notifier)
-        .changeSiteList(int.parse(this.siteID), false);
+        .changeSiteList(this.siteID, false);
     context.read(selectSiteProvider.notifier).writeJson();
     context.read(newsProvider.notifier).getPost(true);
   }
@@ -294,8 +296,8 @@ class NewsCard extends StatelessWidget {
   }
 
   Future _incrViewCount(String id) async {
-    var _incrViewCountURL = "https://matome-kun.ga/v1/article/view/";
-    await http.post(_incrViewCountURL + id);
+    var _incrViewCountURL = "https://matome.folks-chat.com/v1/article/view/";
+    await http.post(Uri.parse(_incrViewCountURL + id));
   }
 }
 
@@ -353,12 +355,14 @@ class NewsHistoryCard extends NewsCard {
                   alignment: WrapAlignment.spaceBetween,
                   verticalDirection: VerticalDirection.up,
                   children: <Widget>[
-                    subtitle(
-                        DateFormat("yyyy-MM-dd HH:mm:ss").format(
-                            DateFormat("yyyy-MM-ddTHH:mm:ssZ")
-                                .parse(this.publishedAt, true)
-                                .toLocal()),
-                        Colors.white),
+                    this.publishedAt != ""
+                        ? subtitle(
+                            DateFormat("yyyy-MM-dd HH:mm:ss").format(
+                                DateFormat("yyyy-MM-ddTHH:mm:ssZ")
+                                    .parse(this.publishedAt, true)
+                                    .toLocal()),
+                            Colors.white)
+                        : Spacer(),
                     subtitle(this.sitetitle, Colors.red[200]),
                   ]),
               // TODO: Need to implement favorite button
@@ -380,6 +384,7 @@ class NewsHistoryCard extends NewsCard {
               //       )
               //     : null,
               onTap: () {
+                print("this.publishedAt");
                 final newHistory = HistoryModel(
                   this.id,
                   this.image,
@@ -391,13 +396,12 @@ class NewsHistoryCard extends NewsCard {
                 ); // int.parse(_age));
                 _addHistory(newHistory);
                 _incrViewCount(this.id);
-
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) => MatomeWebView(
                           title: titles,
                           postID: id,
                           selectedUrl: url,
-                          siteID: siteID,
+                          sitetitle: sitetitle,
                         )));
               },
             ),
