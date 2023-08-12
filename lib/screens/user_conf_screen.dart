@@ -16,7 +16,7 @@ class UserConfScreen extends StatefulWidget {
 
 class _UserConfScreen extends State<UserConfScreen> {
   bool _isEdit = false;
-  Future<Map> _future = {} as Future<Map>;
+  late Future<Map<dynamic, dynamic> > _future;
   String NameData = "";
   String IconData = "";
 

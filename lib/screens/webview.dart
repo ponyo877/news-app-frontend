@@ -134,7 +134,11 @@ class _MatomeWebView extends State<MatomeWebView> {
               var contractBodyHeight = expandedBodyHeight * 0.5;
               var controller = WebViewController()
                 ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                ..loadRequest(Uri.parse(widget.selectedUrl));
+                ..loadRequest(Uri.parse(snapshot.data!))
+              .then((_) =>
+                {
+                      _getRecom(widget.postID)
+                });
               return Column(mainAxisSize: MainAxisSize.min, children: [
                 Container(
                   height: _isExpanded
@@ -149,9 +153,6 @@ class _MatomeWebView extends State<MatomeWebView> {
                         body: ClipRRect(
                           borderRadius: BorderRadius.all(Radius.circular(20)),
                         child: Scaffold(
-                          appBar: AppBar(
-                            title: Text(widget.title),
-                          ),
                           body: WebViewWidget(controller: controller),
                         ),
                           // child: WebView(
@@ -336,6 +337,7 @@ class _NormalWebView extends State<NormalWebView> {
     var controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadRequest(Uri.parse(widget.selectedUrl));
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),

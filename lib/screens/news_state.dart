@@ -76,8 +76,8 @@ class NewsState extends StateNotifier<List> {
   String lastpublished = "";
   String baseURL = "https://matome.folks-chat.com";
 
-  Box historyBox = {} as Box;
-  Box favoriteBox = {} as Box;
+  late Box<HistoryModel> historyBox;
+  late Box<HistoryModel> favoriteBox;
 
   String searchWord = "";
 
@@ -112,19 +112,15 @@ class NewsState extends StateNotifier<List> {
   void _initReadFlg() async {
     historyBox = await Hive.openBox<HistoryModel>('history');
     favoriteBox = await Hive.openBox<HistoryModel>('favorite');
-
+    var nullHistoryModel = HistoryModel("", "", "", "", "", "", "");
     if (newsPost != null) {
       if (newsPost.length != 0) {
         for (var newsPostOne in newsPost) {
-          // if (newsPostOne == null) {
-          // print("aaaaaaaaaaaaa");
-          // print(newsPost);
-          // }
           if (newsPostOne["readFlg"] != true) {
-            var check = historyBox.values.firstWhere(
-                (list) => list.id == newsPostOne["id"],
-                orElse: () => null);
-            if (check == null) {
+            HistoryModel check = historyBox.values.firstWhere(
+                (list) => list.id == newsPostOne["id"]
+                , orElse: () => nullHistoryModel);
+            if (check == nullHistoryModel){
               newsPostOne["readFlg"] = false;
             } else {
               newsPostOne["readFlg"] = true;
@@ -133,10 +129,10 @@ class NewsState extends StateNotifier<List> {
 
           //init favorite Flg
           if (newsPostOne["favoriteFlg"] != true) {
-            var check = favoriteBox.values.firstWhere(
-                (list) => list.id == newsPostOne["id"],
-                orElse: () => null);
-            if (check == null) {
+            HistoryModel? check = favoriteBox?.values.firstWhere(
+                (list) => list.id == newsPostOne["id"]
+                , orElse: () => nullHistoryModel);
+            if (check == nullHistoryModel) {
               newsPostOne["favoriteFlg"] = false;
             } else {
               newsPostOne["favoriteFlg"] = true;
@@ -199,8 +195,8 @@ class NewsState extends StateNotifier<List> {
   void initHistory(String type) async {
     //print("init History kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
     historyBox = await Hive.openBox<HistoryModel>(type);
-    List<dynamic> Items = historyBox.values.toList();
-    state = [...Items];
+    List? Items = historyBox?.values.toList();
+    state = [...?Items];
   }
 
   void addHistory(HistoryModel history, String type) async {
@@ -275,9 +271,9 @@ class NewsState extends StateNotifier<List> {
 
   void getRecommended() async {
     historyBox = await Hive.openBox<HistoryModel>('history');
-    List<dynamic> historyItems = historyBox.values.toList();
+    List? historyItems = historyBox?.values.toList();
 
-    if (historyItems.length == 0) {
+    if (historyItems?.length == 0) {
       var getPostURL = baseURL + "/v1/article/view/popular/daily";
       http.Response response = await http.get(Uri.parse(getPostURL));
       data = json.decode(response.body);
@@ -286,7 +282,7 @@ class NewsState extends StateNotifier<List> {
     } else {
       int index = 0;
       String ids = "";
-      for (var item in historyItems.reversed) {
+      for (var item in historyItems!.reversed) {
         if (ids == "") {
           ids = item.id;
         } else {

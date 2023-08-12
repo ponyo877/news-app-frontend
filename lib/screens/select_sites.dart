@@ -11,9 +11,6 @@ import 'site_state.dart';
 import 'news_state.dart';
 
 class SelectSites extends StatelessWidget {
-
-  Future<bool> _future = false as Future<bool>;
-
   String baseURL = "https://matome.folks-chat.com";
   Map<String, dynamic> data = {};
   List newsList = [];

@@ -57,7 +57,7 @@ class SettingScreen extends StatelessWidget {
             title: "Help & Feedback",
             selectedUrl: _settingScreen._reportURL,
           )),
-      SettingInfo(Icons.arrow_circle_up, 'App Version: 1.38', Spacer()),
+      SettingInfo(Icons.arrow_circle_up, 'App Version: 1.41', Spacer()),
     ];
     return _settingScreen;
   }
