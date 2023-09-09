@@ -32,6 +32,7 @@ class NewsCard extends StatelessWidget {
   String url;
   bool readFlg = false;
   bool favoriteFlg = false;
+  String baseURL = "https://matome.folks-chat.com";
   static const String placeholderImg = 'assets/images/no_image_square.jpg';
 
   NewsCard(this.id, this.image, this.publishedAt, this.siteID, this.sitetitle,
@@ -296,7 +297,7 @@ class NewsCard extends StatelessWidget {
   }
 
   Future _incrViewCount(String id) async {
-    var _incrViewCountURL = "https://matome.folks-chat.com/v1/article/view/";
+    var _incrViewCountURL = baseURL + "/v1/article/view/";
     await http.post(Uri.parse(_incrViewCountURL + id));
   }
 }

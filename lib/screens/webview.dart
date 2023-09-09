@@ -44,6 +44,7 @@ class _MatomeWebView extends State<MatomeWebView> {
   bool isOpen = false;
   double dist_threshold = 0.1;
   bool _isExpanded = true;
+  bool _isLoaded = false;
   String _deviceIdHash = "";
   final BannerAd banner = BannerAd(
     adUnitId: AdMobService().getBannerAdUnitId()!,
@@ -132,13 +133,19 @@ class _MatomeWebView extends State<MatomeWebView> {
 
               var expandedBodyHeight = screenHeight - notbodyHeight;
               var contractBodyHeight = expandedBodyHeight * 0.5;
-              var controller = WebViewController()
+              final controller = WebViewController()
                 ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                ..loadRequest(Uri.parse(snapshot.data!))
-              .then((_) =>
-                {
-                      _getRecom(widget.postID)
-                });
+                ..setNavigationDelegate(
+                  NavigationDelegate(
+                    onPageStarted: (_) {
+                      if (!_isLoaded){
+                        _getRecom(widget.postID);
+                        _isLoaded = true;
+                      }
+                    },
+                  ),
+                )
+                ..loadRequest(Uri.parse(snapshot.data!));
               return Column(mainAxisSize: MainAxisSize.min, children: [
                 Container(
                   height: _isExpanded
