@@ -47,8 +47,27 @@ export function avatarIdFromLegacyPath(path: string | null | undefined): number 
   return id >= 1 && id <= 22 ? id : null;
 }
 
-// コメントのimage_url: httpならリモート画像、そうでなければ旧版のアセットパス文字列
+// サーバーのフリー画像フォールバック(RSSに画像がない記事に付与される
+// /static/myimage_N.png)は同一画像をアプリに同梱しているため、ローカル資産で表示する。
+// 旧ドメイン(matome-kun.ga)死亡によるリンク切れ対策+通信ゼロ化
+const FREE_IMAGE_PATH = /\/static\/myimage_(\d+)\.png$/;
+
+export function freeImageSource(url: string): ImageSourcePropType | null {
+  const match = FREE_IMAGE_PATH.exec(url);
+  if (!match?.[1]) {
+    return null;
+  }
+  const id = Number(match[1]);
+  return id >= 1 && id <= 22 ? avatarSource(id) : null;
+}
+
+// コメントのimage_url: フリー画像はローカル資産、httpならリモート画像、
+// そうでなければ旧版のアセットパス文字列
 export function commentAvatarSource(imageUrl: string): ImageSourcePropType {
+  const freeImage = freeImageSource(imageUrl);
+  if (freeImage) {
+    return freeImage;
+  }
   if (imageUrl.startsWith('http')) {
     return { uri: imageUrl };
   }
