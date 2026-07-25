@@ -3,14 +3,14 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { ConvexTabBar } from '@/components/ConvexTabBar';
 import { EmptyMessage } from '@/components/EmptyMessage';
 import { HomeScreen } from '@/features/home/HomeScreen';
+import { MyPageScreen } from '@/features/mypage/MyPageScreen';
+import { RankingScreen } from '@/features/ranking/RankingScreen';
+import { SearchScreen } from '@/features/search/SearchScreen';
 import type { MainTabsParamList } from '@/navigation/types';
 
 const Tab = createMaterialTopTabNavigator<MainTabsParamList>();
 
-// プレースホルダー(Phase 5/6で実装)
-const RankingPlaceholder = () => <EmptyMessage message="Ranking(Phase 5で実装)" />;
-const SearchPlaceholder = () => <EmptyMessage message="Search(Phase 5で実装)" />;
-const MyPagePlaceholder = () => <EmptyMessage message="My Page(Phase 5で実装)" />;
+// プレースホルダー(Phase 6で実装)
 const SettingPlaceholder = () => <EmptyMessage message="Setting(Phase 6で実装)" />;
 
 // 5タブ本体。旧版: DefaultTabController(length:5, initialIndex:2)+ConvexAppBar。
@@ -24,10 +24,10 @@ export function MainTabs() {
       screenOptions={{ swipeEnabled: true, lazy: false, animationEnabled: true }}
       tabBar={(props) => <ConvexTabBar {...props} />}
     >
-      <Tab.Screen name="Ranking" component={RankingPlaceholder} />
-      <Tab.Screen name="Search" component={SearchPlaceholder} />
+      <Tab.Screen name="Ranking" component={RankingScreen} />
+      <Tab.Screen name="Search" component={SearchScreen} />
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="MyPage" component={MyPagePlaceholder} />
+      <Tab.Screen name="MyPage" component={MyPageScreen} />
       <Tab.Screen name="Setting" component={SettingPlaceholder} />
     </Tab.Navigator>
   );
