@@ -47,9 +47,8 @@ const config: ExpoConfig = {
           // まとめサイトのHTTP通信許可(iOSのATS無効と対)
           usesCleartextTraffic: true,
         },
-        ios: {
-          deploymentTarget: '16.0',
-        },
+        // iOS deploymentTargetはSDK既定(16.4+)に従う。
+        // 旧版は16.0だったがExpo SDK 57の下限が16.4のため、iOS 16.0-16.3端末は更新対象外になる
       },
     ],
     [
