@@ -1,8 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as Application from 'expo-application';
+import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { isAdsPrivacyOptionsRequired, showAdsPrivacyOptionsForm } from '@/lib/ads';
 import { ProfileCard } from '@/features/settings/ProfileCard';
 import { MenuItem, buildMenuItems } from '@/features/settings/menuItems';
 import type { RootNavigation } from '@/navigation/types';
@@ -12,7 +14,13 @@ import { fontFamily } from '@/theme/typography';
 // Settingタブ(旧SettingScreen): プロフィール+メニューリスト
 export function SettingsScreen() {
   const navigation = useNavigation<RootNavigation>();
-  const menuItems = buildMenuItems(Application.nativeApplicationVersion ?? '-');
+  const [showAdsPrivacy, setShowAdsPrivacy] = useState(false);
+
+  useEffect(() => {
+    void isAdsPrivacyOptionsRequired().then(setShowAdsPrivacy);
+  }, []);
+
+  const menuItems = buildMenuItems(Application.nativeApplicationVersion ?? '-', showAdsPrivacy);
 
   const onPressItem = (item: MenuItem) => {
     switch (item.action.type) {
@@ -24,6 +32,9 @@ export function SettingsScreen() {
           title: item.action.title,
           url: item.action.url,
         });
+        break;
+      case 'adsPrivacy':
+        void showAdsPrivacyOptionsForm();
         break;
       case 'none':
         break;

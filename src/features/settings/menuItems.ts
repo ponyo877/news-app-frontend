@@ -13,6 +13,7 @@ export const EULA_URL = `${BASE_URL}/static/eula/`;
 export type MenuAction =
   | { type: 'selectSites' }
   | { type: 'webview'; title: string; url: string }
+  | { type: 'adsPrivacy' }
   | { type: 'none' };
 
 export interface MenuItem {
@@ -21,9 +22,14 @@ export interface MenuItem {
   action: MenuAction;
 }
 
-export function buildMenuItems(appVersion: string): MenuItem[] {
+export function buildMenuItems(appVersion: string, showAdsPrivacy: boolean): MenuItem[] {
+  // GDPR対象ユーザー(UMPがREQUIREDを返す場合)のみ表示する同意変更導線
+  const adsPrivacyItem: MenuItem[] = showAdsPrivacy
+    ? [{ icon: 'ads-click', title: '広告のプライバシー設定', action: { type: 'adsPrivacy' } }]
+    : [];
   return [
     { icon: 'select-all', title: 'Select Site', action: { type: 'selectSites' } },
+    ...adsPrivacyItem,
     {
       icon: 'privacy-tip',
       title: 'Privacy Policy',

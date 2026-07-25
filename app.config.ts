@@ -83,6 +83,16 @@ const config: ExpoConfig = {
       ],
       ITSAppUsesNonExemptEncryption: false,
     },
+    // App Store 2024年〜要件: 自アプリコードが使うRequired Reason APIの申告。
+    // UserDefaults(NSUserDefaults/Settings経由のレガシー移行読み取り)= CA92.1(自アプリ専用アクセス)
+    privacyManifests: {
+      NSPrivacyAccessedAPITypes: [
+        {
+          NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryUserDefaults',
+          NSPrivacyAccessedAPITypeReasons: ['CA92.1'],
+        },
+      ],
+    },
   },
   android: {
     // 既存Playアプリと同一(アンダースコア)
@@ -101,6 +111,9 @@ const config: ExpoConfig = {
         android: {
           // まとめサイトのHTTP通信許可(iOSのATS無効と対)
           usesCleartextTraffic: true,
+          // Google Play 2026年要件(2026-08-31以降の更新はAPI 36必須)を確実に満たす
+          compileSdkVersion: 36,
+          targetSdkVersion: 36,
         },
         // iOS deploymentTargetはSDK既定(16.4+)に従う。
         // 旧版は16.0だったがExpo SDK 57の下限が16.4のため、iOS 16.0-16.3端末は更新対象外になる
@@ -118,6 +131,13 @@ const config: ExpoConfig = {
         androidAppId: ADMOB_ANDROID_APP_ID,
         iosAppId: ADMOB_IOS_APP_ID,
         skAdNetworkItems: SK_AD_NETWORK_ITEMS,
+      },
+    ],
+    [
+      'expo-tracking-transparency',
+      {
+        userTrackingPermission:
+          '広告をあなたにとってより関連性の高いものにするため、トラッキングの許可をお願いします。許可しない場合も広告は表示されます。',
       },
     ],
   ],

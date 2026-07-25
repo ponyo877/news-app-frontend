@@ -133,7 +133,32 @@ eas submit -p android --latest    # 内部テストトラックへ
 - iOS審査メモ: ATS無効の理由「外部まとめサイトの一部がHTTPのみ対応のため」を記載
   (既存アプリが同設定で承認済み)
 
-## 7. 既知の注意点
+## 7. 2026年プラットフォーム要件への適合状況
+
+### コード側で対応済み
+| 要件 | 状態 |
+|---|---|
+| Google Play: targetSdk(2026-08-31以降は API 36) | expo-build-propertiesで36を明示指定済み |
+| Google Play: 16KBメモリページ対応 | RN 0.86(Expo SDK 57)が対応済み |
+| Google Play: 広告ID宣言(AD_ID permission) | AndroidManifestに宣言済み(Data safetyフォーム申告は下記) |
+| App Store: 最新SDK(Xcode 26)ビルド | EAS Build / ローカルXcode 26.6で充足 |
+| App Store: プライバシーマニフェスト | Expoが集約生成+自アプリのUserDefaults(CA92.1)を宣言済み |
+| App Store: ATT(トラッキング透明性) | expo-tracking-transparencyで許可プロンプト実装済み |
+| AdMob: GDPR同意(Google認定CMP=UMP) | AdsConsent.gatherConsent()を初期化フローに実装済み |
+| AdMob: プライバシーオプション常設導線 | 設定画面に「広告のプライバシー設定」(GDPR対象時のみ表示)実装済み |
+
+### ストアコンソール側の作業(人手・必須)
+- [ ] **AdMob管理画面 → プライバシーとメッセージ**: GDPRメッセージ(+必要ならUS州法メッセージ)を
+      作成して**公開**する。未公開だとUMPフォームが出ず、EEA/UKで広告配信が停止される
+- [ ] **Play Console → データセーフティ**: デバイスID(devicehash)・広告ID・
+      おおよその位置情報(広告SDK由来)の収集を申告
+- [ ] **App Store Connect → Appのプライバシー**: ATT導入に伴い
+      「トラッキング: あり(デバイスID)」へ更新(初回のRN版提出時に必須)
+- [ ] **app-ads.txt**: 開発者サイト(folks-chat.com等)に
+      `google.com, pub-6803082941924637, DIRECT, f08c47fec0942fa0` を設置(広告収益の保護)
+- [ ] Playの段階公開時、Android Vitals(クラッシュ率・ANR)がPlay品質基準内であることを監視
+
+## 8. 既知の注意点
 
 - **iOS Deployment Target が 16.0 → 16.4 に上がる**(Expo SDK 57の下限)。
   iOS 16.0〜16.3端末は更新対象外になる
