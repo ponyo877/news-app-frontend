@@ -58,6 +58,9 @@ export function ConvexTabBar({ state, navigation }: MaterialTopTabBarProps) {
             <Pressable
               key={route.key}
               style={styles.tab}
+              accessibilityRole="tab"
+              accessibilityLabel={route.name}
+              accessibilityState={{ selected: focused }}
               onPress={() => {
                 const event = navigation.emit({
                   type: 'tabPress',

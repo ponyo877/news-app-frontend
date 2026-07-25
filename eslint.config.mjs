@@ -10,6 +10,7 @@ export default tseslint.config(
   ...expoConfig,
   {
     files: ['**/*.ts', '**/*.tsx'],
+    // eslint-disable-next-line import/no-named-as-default-member -- tseslintの公式推奨形
     extends: [...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {

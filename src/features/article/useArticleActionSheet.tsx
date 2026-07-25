@@ -9,8 +9,7 @@ import type { RootNavigation } from '@/navigation/types';
 import { ArticleMeta, useArticleFlags, useArticleStatusStore } from '@/stores/articleStatusStore';
 import { useSiteFilterStore } from '@/stores/siteFilterStore';
 import { colors } from '@/theme/colors';
-import { fontFamily } from '@/theme/typography';
-import { radius } from '@/theme/typography';
+import { fontFamily, radius } from '@/theme/typography';
 
 // 記事カードのmore_vertメニュー(旧newsDetail BottomSheet相当)。
 // Favorite / Block this site / Report this article の3ボタン横並び。

@@ -1,0 +1,8 @@
+# 起動 → Home新着リスト表示のスモークテスト
+# Android: maestro test .maestro/01_launch_home.yaml
+# iOS実行時: --app-id com.matomebeta-app を指定
+appId: com.matomebeta_app
+---
+- launchApp
+- assertVisible: '😁まとめくん😁'
+- assertVisible: 'for You'

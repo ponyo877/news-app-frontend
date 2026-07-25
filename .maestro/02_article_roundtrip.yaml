@@ -1,0 +1,18 @@
+# 記事カードタップ → 記事詳細 → 戻るの往復
+appId: com.matomebeta_app
+---
+- launchApp
+- assertVisible: '😁まとめくん😁'
+# 新着リストの読み込み完了を待つ
+- extendedWaitUntil:
+    visible: 'for You'
+    timeout: 10000
+# リスト上部の記事カードをタップ(座標ベース)
+- tapOn:
+    point: '50%, 35%'
+- extendedWaitUntil:
+    visible: 'コメントを開く'
+    timeout: 15000
+- tapOn: 'コメントを開く'
+- assertVisible: '記事を開く'
+- back

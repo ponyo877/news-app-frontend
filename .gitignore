@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Native directories (Expo CNG: prebuild/EAS Buildで生成)
+/android
+/ios

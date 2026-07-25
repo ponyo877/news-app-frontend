@@ -1,0 +1,16 @@
+# 5タブ横断ナビゲーション
+appId: com.matomebeta_app
+---
+- launchApp
+- assertVisible: '😁まとめくん😁'
+- tapOn: 'Ranking'
+- assertVisible: 'Daily'
+- assertVisible: 'Weekly'
+- tapOn: 'MyPage'
+- assertVisible: 'History'
+- assertVisible: 'Favorite'
+- tapOn: 'Setting'
+- assertVisible: 'Profile'
+- assertVisible: 'Select Site'
+- tapOn: 'Home'
+- assertVisible: 'for You'
