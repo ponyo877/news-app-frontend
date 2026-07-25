@@ -1,7 +1,16 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { useHeaderHeight } from '@react-navigation/elements';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useLayoutEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { WebView } from 'react-native-webview';
 
@@ -24,6 +33,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Article'>;
 export function ArticleScreen({ route, navigation }: Props) {
   const { article } = route.params;
   const markRead = useArticleStatusStore((s) => s.markRead);
+  const headerHeight = useHeaderHeight();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isRelatedOpen, setIsRelatedOpen] = useState(false);
 
@@ -53,7 +63,11 @@ export function ArticleScreen({ route, navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={headerHeight}
+    >
       <View style={styles.articleArea}>
         <View style={styles.webViewClip}>
           <WebView
@@ -104,7 +118,7 @@ export function ArticleScreen({ route, navigation }: Props) {
       <View style={styles.adContainer}>
         <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
