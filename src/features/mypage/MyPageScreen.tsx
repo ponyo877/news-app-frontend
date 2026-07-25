@@ -5,6 +5,7 @@ import { FlashList } from '@shopify/flash-list';
 
 import { EmptyMessage } from '@/components/EmptyMessage';
 import { NewsCard } from '@/components/NewsCard';
+import { PillTabBar } from '@/components/PillTabBar';
 import { ArticleMeta, useArticleStatusStore } from '@/stores/articleStatusStore';
 import { colors } from '@/theme/colors';
 import { innerTabScreenOptions } from '@/theme/innerTabs';
@@ -17,7 +18,10 @@ const Tab = createMaterialTopTabNavigator();
 export function MyPageScreen() {
   return (
     <View style={styles.container}>
-      <Tab.Navigator screenOptions={innerTabScreenOptions}>
+      <Tab.Navigator
+        screenOptions={innerTabScreenOptions}
+        tabBar={(props) => <PillTabBar {...props} />}
+      >
         <Tab.Screen name="History" options={{ tabBarLabel: labelRenderer('History') }}>
           {() => <HistoryList />}
         </Tab.Screen>

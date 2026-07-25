@@ -1,17 +1,33 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import type { MaterialTopTabBarProps } from '@react-navigation/material-top-tabs';
-import { useEffect } from 'react';
-import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { useEffect, useRef } from 'react';
+import {
+  Animated,
+  Easing,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useAnimatedValue,
+  useWindowDimensions,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors } from '@/theme/colors';
+import { fontFamily } from '@/theme/typography';
 
-// convex_bottom_bar の TabStyle.reactCircle を再現した自作ボトムバー:
-// blueGreyのバー上で、選択タブのアイコンが円形に浮上しspringで移動する。
+// convex_bottom_bar v3.2.0 の TabStyle.reactCircle を忠実に再現:
+//   バー高さ50 / 凸カーブ80×80(top -25) / 白円60+アイコン40(バー色) /
+//   非アクティブ=アイコン24+タイトル14の縦積み / 遷移150ms easeInOut+円のスケールイン
+// 凸バンプはバーと同色の円をバー上端から突出させて近似(下半分はバーに溶け込む)
 const BAR_HEIGHT = 50;
-const CIRCLE_SIZE = 54;
-const CIRCLE_LIFT = -16;
+const CONVEX_SIZE = 80;
+const CONVEX_TOP = -25;
+const CIRCLE_SIZE = 60;
+const CIRCLE_TOP = -18;
+const ACTIVE_ICON_SIZE = 40;
+const INACTIVE_ICON_SIZE = 24;
+const TRANSITION_MS = 150;
 
 export const TAB_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
   Ranking: 'format-list-numbered',
@@ -21,75 +37,106 @@ export const TAB_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
   Setting: 'settings',
 };
 
-export function ConvexTabBar({ state, navigation }: MaterialTopTabBarProps) {
+// 旧TabItemのtitle(表示名)。ルート名と異なるのはMy Pageのみ
+const TAB_TITLES: Record<string, string> = {
+  Ranking: 'Ranking',
+  Search: 'Search',
+  Home: 'Home',
+  MyPage: 'My Page',
+  Setting: 'Setting',
+};
+
+export function ConvexTabBar({ state, navigation, position }: MaterialTopTabBarProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const tabWidth = width / state.routes.length;
-  const circleX = useSharedValue(state.index * tabWidth);
+  const scale = useAnimatedValue(1);
+  const previousIndex = useRef(state.index);
 
+  // 白円のスケールイン(旧TransitionContainer.scale相当)
   useEffect(() => {
-    circleX.value = withSpring(state.index * tabWidth + (tabWidth - CIRCLE_SIZE) / 2, {
-      damping: 16,
-      stiffness: 180,
-    });
-  }, [state.index, tabWidth, circleX]);
+    if (previousIndex.current !== state.index) {
+      previousIndex.current = state.index;
+      scale.setValue(0);
+      Animated.timing(scale, {
+        toValue: 1,
+        duration: TRANSITION_MS,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [state.index, scale]);
 
-  const circleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: circleX.value }],
-  }));
+  // スワイプ中もバンプと円が連続追従する(旧ConvexAppBarのTabController連動と同じ)
+  const centerX = Animated.multiply(position, tabWidth);
+  const bumpTransform = [{ translateX: Animated.add(centerX, tabWidth / 2 - CONVEX_SIZE / 2) }];
+  const circleTransform = [
+    { translateX: Animated.add(centerX, tabWidth / 2 - CIRCLE_SIZE / 2) },
+    { scale },
+  ];
 
   const activeRoute = state.routes[state.index];
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
-      <Animated.View style={[styles.circle, circleStyle]}>
-        {activeRoute && (
-          <MaterialIcons
-            name={TAB_ICONS[activeRoute.name] ?? 'circle'}
-            size={26}
-            color={colors.textPrimary}
-          />
-        )}
-      </Animated.View>
-      <View style={styles.row}>
-        {state.routes.map((route, index) => {
-          const focused = state.index === index;
-          return (
-            <Pressable
-              key={route.key}
-              style={styles.tab}
-              accessibilityRole="tab"
-              accessibilityLabel={route.name}
-              accessibilityState={{ selected: focused }}
-              onPress={() => {
-                const event = navigation.emit({
-                  type: 'tabPress',
-                  target: route.key,
-                  canPreventDefault: true,
-                });
-                if (!focused && !event.defaultPrevented) {
-                  navigation.navigate(route.name);
-                }
-              }}
-            >
-              {/* 浮上円側で描画するため、選択中タブのバー内アイコンは非表示 */}
-              {!focused && (
-                <MaterialIcons
-                  name={TAB_ICONS[route.name] ?? 'circle'}
-                  size={24}
-                  color={colors.textPrimary}
-                />
-              )}
-            </Pressable>
-          );
-        })}
+    // 旧版はSafeArea(child: ConvexAppBar)のため、下部インセット帯はScaffold背景色(ダーク)
+    <View style={{ paddingBottom: insets.bottom, backgroundColor: colors.background }}>
+      <View style={styles.bar}>
+        {/* 凸バンプ(バー同色・上端から突出) */}
+        <Animated.View style={[styles.bump, { transform: bumpTransform }]} />
+        {/* タブ列: アクティブ位置は空けておき、白円が浮かぶ(旧_barContentと同じ) */}
+        <View style={styles.row}>
+          {state.routes.map((route, index) => {
+            const focused = state.index === index;
+            return (
+              <Pressable
+                key={route.key}
+                style={styles.tab}
+                accessibilityRole="tab"
+                accessibilityLabel={TAB_TITLES[route.name] ?? route.name}
+                accessibilityState={{ selected: focused }}
+                onPress={() => {
+                  const event = navigation.emit({
+                    type: 'tabPress',
+                    target: route.key,
+                    canPreventDefault: true,
+                  });
+                  if (!focused && !event.defaultPrevented) {
+                    navigation.navigate(route.name);
+                  }
+                }}
+              >
+                {!focused && (
+                  <>
+                    <MaterialIcons
+                      name={TAB_ICONS[route.name] ?? 'circle'}
+                      size={INACTIVE_ICON_SIZE}
+                      color={colors.textPrimary}
+                    />
+                    <Text style={styles.title}>{TAB_TITLES[route.name] ?? route.name}</Text>
+                  </>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+        {/* アクティブの白円(activeColor既定=白、アイコンはblendでバー色) */}
+        <Animated.View style={[styles.circle, { transform: circleTransform }]} pointerEvents="none">
+          {activeRoute && (
+            <MaterialIcons
+              name={TAB_ICONS[activeRoute.name] ?? 'circle'}
+              size={ACTIVE_ICON_SIZE}
+              color={colors.blueGrey}
+            />
+          )}
+        </Animated.View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  bar: {
+    height: BAR_HEIGHT,
     backgroundColor: colors.blueGrey,
   },
   row: {
@@ -100,21 +147,36 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingBottom: 2,
+  },
+  title: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontFamily: fontFamily.regular,
+    lineHeight: 16,
+  },
+  bump: {
+    position: 'absolute',
+    top: CONVEX_TOP,
+    left: 0,
+    width: CONVEX_SIZE,
+    height: CONVEX_SIZE,
+    borderRadius: CONVEX_SIZE / 2,
+    backgroundColor: colors.blueGrey,
+    shadowColor: colors.black,
+    shadowOpacity: 0.38,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: -1 },
   },
   circle: {
     position: 'absolute',
-    top: CIRCLE_LIFT,
+    top: CIRCLE_TOP,
     left: 0,
     width: CIRCLE_SIZE,
     height: CIRCLE_SIZE,
     borderRadius: CIRCLE_SIZE / 2,
-    backgroundColor: colors.blueGrey,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 2 },
   },
 });

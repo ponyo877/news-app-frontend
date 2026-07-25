@@ -2,6 +2,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { RankingPeriod } from '@/api/endpoints';
+import { PillTabBar } from '@/components/PillTabBar';
 import { PopularList } from '@/features/home/PopularList';
 import { useArticleActionSheet } from '@/features/article/useArticleActionSheet';
 import { colors } from '@/theme/colors';
@@ -23,7 +24,10 @@ export function RankingScreen() {
 
   return (
     <View style={styles.container}>
-      <Tab.Navigator screenOptions={innerTabScreenOptions}>
+      <Tab.Navigator
+        screenOptions={innerTabScreenOptions}
+        tabBar={(props) => <PillTabBar {...props} />}
+      >
         {PERIODS.map(({ name, label, period }) => (
           <Tab.Screen
             key={name}

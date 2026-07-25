@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { PillTabBar } from '@/components/PillTabBar';
 import { LatestList } from '@/features/home/LatestList';
 import { PopularList } from '@/features/home/PopularList';
 import { useArticleActionSheet } from '@/features/article/useArticleActionSheet';
@@ -17,7 +18,10 @@ export function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Tab.Navigator screenOptions={innerTabScreenOptions}>
+      <Tab.Navigator
+        screenOptions={innerTabScreenOptions}
+        tabBar={(props) => <PillTabBar {...props} />}
+      >
         <Tab.Screen
           name="Latest"
           options={{
