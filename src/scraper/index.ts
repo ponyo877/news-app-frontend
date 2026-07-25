@@ -1,12 +1,15 @@
-import { load } from 'cheerio/slim';
-
 import { applySiteRules } from '@/scraper/applyRules';
+import { detectEngine } from '@/scraper/engines';
 import { fetchHtml } from '@/scraper/fetchHtml';
+import { loadDoc } from '@/scraper/htmlLoad';
 import { NOT_FOUND_HTML } from '@/scraper/notFound';
-import { ARTICLE_BODY_SELECTOR, LOAD_OPTIONS, collectArticleBodies } from '@/scraper/pagination';
-import { rebuildBody, rebuildHead, serialize, stripLinkHrefs } from '@/scraper/rebuild';
+import { matchSiteRule } from '@/scraper/ruleMatcher';
+import { getActiveRuleSet } from '@/scraper/rulesStore';
+import { serialize, stripLinkHrefs } from '@/scraper/serialize';
 
-// 記事URLを取得し、広告・不要要素を除去した表示用HTMLを返す唯一の公開API。
+// 記事URLを取得し、記事本体以外(サイドバー・コメント欄・広告等)を除去した
+// 表示用HTMLを返す唯一の公開API。
+// 処理は2層: エンジン(テンプレート種別ごとの構造再構築)+サイト別ルール(個別の除去)。
 // WebViewには source={{ html, baseUrl: 記事URL }} で渡す(CSS相対パス解決のため)
 export async function scrapeArticle(url: string, siteTitle: string): Promise<string> {
   const page = await fetchHtml(url);
@@ -14,16 +17,19 @@ export async function scrapeArticle(url: string, siteTitle: string): Promise<str
     return NOT_FOUND_HTML;
   }
 
-  const $ = load(page.html, LOAD_OPTIONS);
-  if ($(ARTICLE_BODY_SELECTOR).length === 0) {
-    // livedoor構造でないページは整形せずそのまま表示する(旧版はここでクラッシュしていた)
+  const $ = loadDoc(page.html);
+  const engine = detectEngine($);
+  if (!engine) {
+    // 対応エンジンのない構造は整形せずそのまま表示する(旧版はここでクラッシュしていた)
     return page.html;
   }
 
-  rebuildHead($);
-  await collectArticleBodies($, async (pageUrl) => (await fetchHtml(pageUrl)).html);
-  rebuildBody($);
-  applySiteRules($, siteTitle);
+  await engine.prepare($, async (pageUrl) => (await fetchHtml(pageUrl)).html);
+
+  const rule = matchSiteRule(getActiveRuleSet(), url, siteTitle);
+  if (rule) {
+    applySiteRules($, rule);
+  }
   stripLinkHrefs($);
   return serialize($);
 }

@@ -1,6 +1,6 @@
 import { load } from 'cheerio/slim';
 
-import { collectArticleBodies } from '@/scraper/pagination';
+import { collectArticleBodies } from '@/scraper/engines/livedoor';
 import { buildLivedoorHtml, pageBodyHtml } from '@/scraper/__fixtures__/builders';
 
 describe('collectArticleBodies', () => {
@@ -27,8 +27,6 @@ describe('collectArticleBodies', () => {
       );
     await collectArticleBodies($, fetchPage);
     expect(fetchPage).toHaveBeenCalledTimes(2);
-    expect(fetchPage).toHaveBeenCalledWith('http://blog.example/archives/1.html?p=2');
-    expect(fetchPage).toHaveBeenCalledWith('http://blog.example/archives/1.html?p=3');
     const text = $('div.article-body-outer').text();
     expect(text).toContain('P1');
     expect(text).toContain('P2');

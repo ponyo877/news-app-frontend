@@ -1,6 +1,7 @@
 import { load } from 'cheerio/slim';
 
-import { rebuildBody, rebuildHead, serialize, stripLinkHrefs } from '@/scraper/rebuild';
+import { rebuildBody, rebuildHead } from '@/scraper/engines/livedoor';
+import { serialize, stripLinkHrefs } from '@/scraper/serialize';
 import { buildLivedoorHtml } from '@/scraper/__fixtures__/builders';
 
 describe('rebuildHead', () => {
@@ -16,14 +17,13 @@ describe('rebuildHead', () => {
 });
 
 describe('rebuildBody', () => {
-  it('タイトル2つと本文のみの階層に再構成する', () => {
+  it('タイトル2つと本文のみの階層に再構成する(サイドバー・記事外広告は除去)', () => {
     const $ = load(buildLivedoorHtml({ bodyContent: '<p>本文</p>' }));
     rebuildBody($);
     expect($('body .sidebar')).toHaveLength(0);
     expect($('body .ad-block')).toHaveLength(0);
     expect($('body header.section-box')).toHaveLength(2);
     expect($('body div.article-body-outer p').text()).toBe('本文');
-    // 階層: container > container-inner > content
     expect($('body > div.container > div.container-inner > div.content')).toHaveLength(1);
   });
 });

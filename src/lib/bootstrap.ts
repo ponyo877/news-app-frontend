@@ -4,6 +4,7 @@ import { postUser } from '@/api/endpoints';
 import { avatarSources } from '@/lib/avatars';
 import { computeDeviceHash } from '@/lib/deviceHash';
 import { runLegacyMigrationIfNeeded } from '@/migration';
+import { refreshRemoteRules } from '@/scraper/rulesStore';
 import { DEFAULT_AVATAR_ID, DEFAULT_USER_NAME, useUserStore } from '@/stores/userStore';
 
 export interface BootstrapResult {
@@ -13,6 +14,8 @@ export interface BootstrapResult {
 
 // 起動時に一度だけ実行: レガシー移行 → devicehash確保 → 新規ならサーバー登録
 export async function bootstrapUser(): Promise<BootstrapResult> {
+  // スクレイパールールのリモート更新(fire-and-forget、失敗しても同梱版で動く)
+  void refreshRemoteRules();
   await runLegacyMigrationIfNeeded();
 
   const store = useUserStore.getState();

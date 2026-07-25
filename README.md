@@ -47,8 +47,27 @@ src/
 ## コード品質ルール
 
 - `sonarjs/cognitive-complexity` **<= 20 を lint エラーで強制**(CI必須チェック)
-- 新しいまとめサイト対応は `src/scraper/siteRules.ts` に1エントリ追加するだけ
 - BASE_URL・devicehash生成・ブロックサイト定数の重複禁止(単一定義に集約済み)
+
+## スクレイパーの構成(記事本体以外の除去)
+
+2層構造+リモートルール配信:
+
+1. **エンジン層**(`src/scraper/engines/`): ブログ種別ごとの構造再構築。
+   本文抽出・複数ページ結合・サイドバー/コメント欄/記事外広告の一括除去。
+   現在は livedoor 系のみ。新種別はエンジンを1つ実装してレジストリに追加
+2. **サイト別ルール**(`src/scraper/defaultRules.json`): 本文内の広告・アフィリンク除去。
+   **完全なJSONデータ**(記事URLプレフィックスでマッチ、旧sitetitle一致はフォールバック)
+3. **リモート配信**: 起動時に `GET /v1/static/scraper-rules.json` を取得し、
+   zod検証+version比較の上でMMKVにキャッシュ。**サイト側のテンプレート変更に
+   アプリ更新(ストア審査)なしで追従できる**。配信手順:
+   ```bash
+   curl -F 'file=@scraper-rules.json' https://matome.folks-chat.com/v1/static
+   # defaultRules.jsonと同形式。versionを上げるのを忘れずに
+   ```
+4. **風化検知**: セレクタが0マッチだった場合、devログ+MMKVカウンタに記録
+   (`getRuleMissReport()`)。実サイトHTMLでの検証は `npm run fetch-fixtures` →
+   `npm test`(realSites.test.ts が自動でスナップショット的に検証)
 
 ## Flutter版から意図的に変えた点(バグ修正)
 

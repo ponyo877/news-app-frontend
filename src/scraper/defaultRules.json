@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "name": "ニュー速クオリティ",
+      "urlPrefixes": ["news4vip.livedoor.biz/"],
+      "siteTitles": ["ニュー速クオリティ"],
+      "removeSelectors": [
+        "script[src=\"https://blogroll.livedoor.net/js/blogroll.js\"]",
+        "div#f984a"
+      ]
+    },
+    {
+      "name": "暇人速報",
+      "urlPrefixes": ["himasoku.com/"],
+      "siteTitles": ["暇人速報"],
+      "removeSelectors": [
+        "div.article_mid_v2",
+        "div#article_low_v2",
+        "iframe",
+        "span[style*=\"color: #CC0033\"]",
+        "img[src*=\"/parts/ichiosi.png\"]"
+      ]
+    },
+    {
+      "name": "稲妻速報",
+      "urlPrefixes": ["inazumanews2.com/"],
+      "siteTitles": ["稲妻速報"],
+      "removeSelectors": ["div.ika2", "ul#anop", "ul.inc"]
+    },
+    {
+      "name": "哲学ニュース",
+      "urlPrefixes": ["blog.livedoor.jp/nwknews/"],
+      "siteTitles": ["哲学ニュース"],
+      "removeSelectors": [
+        "span[style*=\"font-size: large\"]",
+        "span[style*=\"font-size: 150%\"]",
+        "blockquote"
+      ]
+    },
+    {
+      "name": "VIPPERな俺",
+      "urlPrefixes": ["blog.livedoor.jp/news23vip/"],
+      "siteTitles": ["VIPPERな俺"],
+      "anchorCleanups": [
+        {
+          "selector": "a[href]",
+          "hrefPrefix": "http://blog.livedoor.jp/news23vip/archives/",
+          "trailingBr": 1
+        }
+      ]
+    },
+    {
+      "name": "ワラノート",
+      "urlPrefixes": ["waranote.livedoor.biz/"],
+      "siteTitles": ["ワラノート"],
+      "removeSelectors": ["div.amazon.Default", "span[style*=\"#006600\"]"],
+      "anchorCleanups": [
+        {
+          "selector": "a[href][title]:not([class])",
+          "hrefNotPrefix": "https://livedoor.blogimg.jp/waranote2/imgs/",
+          "trailingBr": 2
+        },
+        {
+          "selector": "a[href][target=\"_blank\"]:not([class])",
+          "hrefNotPrefix": "https://livedoor.blogimg.jp/waranote2/imgs/",
+          "trailingBr": 2
+        }
+      ],
+      "trimTrailingBrs": 6
+    }
+  ]
+}

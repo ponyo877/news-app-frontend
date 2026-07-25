@@ -43,3 +43,6 @@ yarn-error.*
 # Native directories (Expo CNG: prebuild/EAS Buildで生成)
 /android
 /ios
+
+# 実サイトHTMLフィクスチャ(npm run fetch-fixturesで取得、コミットしない)
+src/scraper/__fixtures__/real/
