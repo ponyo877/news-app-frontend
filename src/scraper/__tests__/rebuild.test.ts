@@ -1,0 +1,46 @@
+import { load } from 'cheerio/slim';
+
+import { rebuildBody, rebuildHead, serialize, stripLinkHrefs } from '@/scraper/rebuild';
+import { buildLivedoorHtml } from '@/scraper/__fixtures__/builders';
+
+describe('rebuildHead', () => {
+  it('stylesheet・style・viewportのみ残す', () => {
+    const $ = load(buildLivedoorHtml({ bodyContent: '<p>本文</p>' }));
+    rebuildHead($);
+    expect($('head link[rel="stylesheet"]')).toHaveLength(1);
+    expect($('head style')).toHaveLength(1);
+    expect($('head meta[name="viewport"]')).toHaveLength(1);
+    expect($('head script')).toHaveLength(0);
+    expect($('head meta[name="description"]')).toHaveLength(0);
+  });
+});
+
+describe('rebuildBody', () => {
+  it('タイトル2つと本文のみの階層に再構成する', () => {
+    const $ = load(buildLivedoorHtml({ bodyContent: '<p>本文</p>' }));
+    rebuildBody($);
+    expect($('body .sidebar')).toHaveLength(0);
+    expect($('body .ad-block')).toHaveLength(0);
+    expect($('body header.section-box')).toHaveLength(2);
+    expect($('body div.article-body-outer p').text()).toBe('本文');
+    // 階層: container > container-inner > content
+    expect($('body > div.container > div.container-inner > div.content')).toHaveLength(1);
+  });
+});
+
+describe('stripLinkHrefs', () => {
+  it('target付きリンクのhrefを剥奪する', () => {
+    const $ = load('<body><a href="http://x.example" target="_blank">x</a></body>');
+    stripLinkHrefs($);
+    expect($('a').attr('href')).toBeUndefined();
+  });
+});
+
+describe('serialize', () => {
+  it('head+bodyのouterHTMLを出力する(旧版と同形式)', () => {
+    const $ = load('<html><head><style>.a{}</style></head><body><p>b</p></body></html>');
+    const html = serialize($);
+    expect(html.startsWith('<head>')).toBe(true);
+    expect(html.endsWith('</body>')).toBe(true);
+  });
+});

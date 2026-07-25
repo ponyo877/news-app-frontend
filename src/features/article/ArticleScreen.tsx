@@ -1,25 +1,177 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+import { WebView } from 'react-native-webview';
 
 import { incrementView } from '@/api/endpoints';
-import { EmptyMessage } from '@/components/EmptyMessage';
+import { useSimilarArticles } from '@/api/queries';
+import { ArticleMenu } from '@/features/article/ArticleMenu';
+import { RelatedArticlesSheet } from '@/features/article/RelatedArticlesSheet';
+import { useArticleHtml } from '@/features/article/useArticleHtml';
+import { CommentPanel } from '@/features/comments/CommentPanel';
+import { bannerAdUnitId } from '@/lib/ads';
 import type { RootStackParamList } from '@/navigation/types';
 import { useArticleStatusStore } from '@/stores/articleStatusStore';
+import { colors } from '@/theme/colors';
+import { fontFamily, radius, sizes } from '@/theme/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Article'>;
 
-// 記事詳細画面。WebView本体はPhase 3で実装。
-// 既読化+履歴追加+閲覧数はマウント時に1回(履歴カード経由でも同一挙動)
-export function ArticleScreen({ route }: Props) {
+// 記事詳細画面(旧MatomeWebView)。
+// 整形済みHTMLをWebViewで表示し、コメント欄を100%:0⇔50%:50で切り替える
+export function ArticleScreen({ route, navigation }: Props) {
   const { article } = route.params;
   const markRead = useArticleStatusStore((s) => s.markRead);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [isRelatedOpen, setIsRelatedOpen] = useState(false);
+
+  const htmlQuery = useArticleHtml(article.url, article.sitetitle);
+  const similarQuery = useSimilarArticles(article.id);
+  const related = similarQuery.data ?? [];
 
   useEffect(() => {
+    // 既読化+履歴追加+閲覧数はマウント時に1回(履歴カード経由でも同一挙動)
     markRead(article);
     incrementView(article.id);
-    // マウント時のみ実行
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <EmptyMessage message="記事画面(Phase 3で実装)" />;
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => <ArticleMenu article={article} navigation={navigation} />,
+    });
+  }, [navigation, article]);
+
+  if (htmlQuery.isLoading || htmlQuery.data === undefined) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size={32} color={colors.textPrimary} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.articleArea}>
+        <View style={styles.webViewClip}>
+          <WebView
+            source={{ html: htmlQuery.data, baseUrl: article.url }}
+            javaScriptEnabled
+            // hrefは剥奪済みだが、万一のページ遷移を遮断する保険
+            onShouldStartLoadWithRequest={(req) =>
+              req.url === article.url || req.url === 'about:blank'
+            }
+          />
+          {/* コメント表示中は記事側タップで100%に復帰(旧GestureDetector相当) */}
+          {!isExpanded && (
+            <Pressable style={StyleSheet.absoluteFill} onPress={() => setIsExpanded(true)} />
+          )}
+        </View>
+        <View style={styles.fabRow} pointerEvents="box-none">
+          <View style={styles.fabSpacer} />
+          <Pressable
+            style={styles.toggleButton}
+            onPress={() => setIsExpanded((expanded) => !expanded)}
+          >
+            <Text style={styles.toggleLabel} numberOfLines={1}>
+              {isExpanded ? 'コメントを開く' : '記事を開く'}
+            </Text>
+          </Pressable>
+          <View style={styles.fabSpacer}>
+            {related.length > 0 && (
+              <Pressable
+                style={styles.boltFab}
+                onPress={() => setIsRelatedOpen((open) => !open)}
+              >
+                <MaterialIcons name="bolt" size={40} color="#FFD740" />
+              </Pressable>
+            )}
+          </View>
+        </View>
+        {isRelatedOpen && (
+          <View style={styles.relatedSheet}>
+            <RelatedArticlesSheet articles={related} />
+          </View>
+        )}
+      </View>
+      {!isExpanded && (
+        <View style={styles.commentArea}>
+          <CommentPanel articleId={article.id} />
+        </View>
+      )}
+      <View style={styles.adContainer}>
+        <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
+      </View>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  articleArea: {
+    flex: 1,
+  },
+  webViewClip: {
+    flex: 1,
+    borderRadius: radius.articleWebView,
+    overflow: 'hidden',
+  },
+  fabRow: {
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fabSpacer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  toggleButton: {
+    backgroundColor: colors.blueGrey,
+    borderRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    elevation: 4,
+  },
+  toggleLabel: {
+    color: colors.textPrimary,
+    fontFamily: fontFamily.medium,
+    fontSize: 14,
+  },
+  boltFab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.black,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+  },
+  relatedSheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  commentArea: {
+    flex: 1,
+  },
+  adContainer: {
+    height: sizes.adBannerHeight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
