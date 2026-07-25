@@ -1,17 +1,14 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 
 import { ConvexTabBar } from '@/components/ConvexTabBar';
-import { EmptyMessage } from '@/components/EmptyMessage';
 import { HomeScreen } from '@/features/home/HomeScreen';
 import { MyPageScreen } from '@/features/mypage/MyPageScreen';
 import { RankingScreen } from '@/features/ranking/RankingScreen';
 import { SearchScreen } from '@/features/search/SearchScreen';
+import { SettingsScreen } from '@/features/settings/SettingsScreen';
 import type { MainTabsParamList } from '@/navigation/types';
 
 const Tab = createMaterialTopTabNavigator<MainTabsParamList>();
-
-// プレースホルダー(Phase 6で実装)
-const SettingPlaceholder = () => <EmptyMessage message="Setting(Phase 6で実装)" />;
 
 // 5タブ本体。旧版: DefaultTabController(length:5, initialIndex:2)+ConvexAppBar。
 // tabBarPosition:'bottom' のmaterial-top-tabsで左右スワイプも再現。
@@ -28,7 +25,7 @@ export function MainTabs() {
       <Tab.Screen name="Search" component={SearchScreen} />
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="MyPage" component={MyPageScreen} />
-      <Tab.Screen name="Setting" component={SettingPlaceholder} />
+      <Tab.Screen name="Setting" component={SettingsScreen} />
     </Tab.Navigator>
   );
 }

@@ -2,6 +2,8 @@ import { DarkTheme, NavigationContainer, Theme } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { ArticleScreen } from '@/features/article/ArticleScreen';
+import { SelectAvatarScreen } from '@/features/settings/SelectAvatarScreen';
+import { SelectSitesScreen } from '@/features/settings/SelectSitesScreen';
 import { NormalWebViewScreen } from '@/features/webview/NormalWebViewScreen';
 import { MainTabs } from '@/navigation/MainTabs';
 import type { RootStackParamList } from '@/navigation/types';
@@ -46,6 +48,16 @@ export function RootNavigator() {
           name="NormalWebView"
           component={NormalWebViewScreen}
           options={({ route }) => ({ title: route.params.title })}
+        />
+        <Stack.Screen
+          name="SelectSites"
+          component={SelectSitesScreen}
+          options={{ title: '表示サイトの選択' }}
+        />
+        <Stack.Screen
+          name="SelectAvatar"
+          component={SelectAvatarScreen}
+          options={{ title: '画像の選択' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
