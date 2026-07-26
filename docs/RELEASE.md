@@ -13,7 +13,17 @@
 
 ※ Play Console「製品版」画面で実際の最新versionCodeを必ず確認すること(44想定だが要実測)。
 
-## 1. 【最優先・リードタイム最長】Android署名鍵の確認
+## 1. 【✅ 2026-07-26 解決済み】Android署名鍵の確認
+
+> **確認結果**: アップロード鍵を発見・照合済み。リセット申請は不要。
+> - 鍵ファイル: `~/Documents/workspace/upload-keystore.jks`(~/Downloads にも同一コピー)
+> - SHA-1 `AE:DC:DD:26:E2:F5:AB:44:72:D7:F8:22:EE:75:CB:DC:4E:1A:3C:2B` =
+>   Play Console「アップロード鍵の証明書」と完全一致
+> - Play App Signing: 有効(アプリ署名鍵はGoogle保持)
+> - 製品版最新リリース: **44 (1.0.44)** → 新リリースは versionCode 45 で確定
+> - 残タスク: keystoreのパスワード確認のみ(EAS credentials登録時に必要)
+
+以下は当初の確認手順(参考として保持):
 
 リポジトリ内の旧AAB(`flutter-legacy`ブランチ `android/app/release/app-release.aab`)の
 アップロード署名証明書は実測済み:
