@@ -14,6 +14,15 @@ describe('matchSiteRule', () => {
     ).toBe('暇人速報');
   });
 
+  it('独自ドメイン移行済みサイト(nwknews.jp)もURLでマッチする', () => {
+    expect(matchSiteRule(bundledRuleSet, 'https://nwknews.jp/archives/6250764.html', '')?.name).toBe(
+      '哲学ニュース',
+    );
+    expect(
+      matchSiteRule(bundledRuleSet, 'http://digital-thread.com/archives/1.html', '')?.name,
+    ).toBe('デジタルニューススレッド');
+  });
+
   it('共有ホスト(blog.livedoor.jp)はパスプレフィックスで区別する', () => {
     expect(
       matchSiteRule(bundledRuleSet, 'http://blog.livedoor.jp/news23vip/archives/1.html', '')?.name,

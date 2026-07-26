@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "rules": [
     {
       "name": "ニュー速クオリティ",
@@ -7,7 +7,13 @@
       "siteTitles": ["ニュー速クオリティ"],
       "removeSelectors": [
         "script[src=\"https://blogroll.livedoor.net/js/blogroll.js\"]",
-        "div#f984a"
+        "div#f984a",
+        "div.kiziad",
+        "div#ad",
+        "script[src*=\"permalink-system.com\"]",
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
       ]
     },
     {
@@ -30,12 +36,23 @@
     },
     {
       "name": "哲学ニュース",
-      "urlPrefixes": ["blog.livedoor.jp/nwknews/"],
+      "urlPrefixes": ["blog.livedoor.jp/nwknews/", "nwknews.jp/"],
       "siteTitles": ["哲学ニュース"],
       "removeSelectors": [
         "span[style*=\"font-size: large\"]",
         "span[style*=\"font-size: 150%\"]",
-        "blockquote"
+        "blockquote",
+        "iframe[src*=\"richlink.blogsys.jp\"]"
+      ]
+    },
+    {
+      "name": "デジタルニューススレッド",
+      "urlPrefixes": ["digital-thread.com/"],
+      "siteTitles": ["デジタルニューススレッド"],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
       ]
     },
     {

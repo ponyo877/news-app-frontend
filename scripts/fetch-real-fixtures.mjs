@@ -4,7 +4,7 @@
 // realSites.test.ts がこのファイル群を見つけると検証を行う。
 // 取得戦略: APIの新着フィード→見つからないサイトは各ブログのRSS(index.rdf)から直接取得。
 // ルール未定義サイト(痛いニュース等)も含む全サイトを対象にする
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
