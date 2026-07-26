@@ -17,13 +17,16 @@ export const livedoorEngine: BlogEngine = {
   },
 };
 
-// headをstylesheet・最初のstyle・viewportのみに再構成する(旧arrangeHeader相当)
+// headをstylesheet・最初のstyle・viewportのみに再構成する(旧arrangeHeader相当)。
+// fetchHtmlは元サイトの文字コードによらずUTF-8文字列を返すため、
+// charsetを明示注入して表示側の誤推定(EUC-JP/Shift_JISサイトでの文字化け)を防ぐ
 export function rebuildHead($: CheerioAPI): void {
   const stylesheets = $('head link[rel="stylesheet"]').toArray();
   const style = $('head style').first().toArray();
   const viewport = $('head meta[name="viewport"]').toArray();
   const head = $('head');
   head.empty();
+  head.append('<meta charset="utf-8">');
   head.append([...stylesheets, ...style, ...viewport]);
 }
 
