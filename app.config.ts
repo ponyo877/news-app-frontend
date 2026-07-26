@@ -129,7 +129,12 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
+        // 旧版は白一色のスプラッシュ。中央にアプリアイコンを置いて同等以上に。
+        // 画像を指定しないとAndroidでsplashscreen_logoドローアブルが生成されず
+        // resource linkingに失敗するため、画像指定は必須
         backgroundColor: '#ffffff',
+        image: './assets/app/icon-1024.png',
+        imageWidth: 200,
       },
     ],
     [
