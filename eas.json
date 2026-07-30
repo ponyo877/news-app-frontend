@@ -27,7 +27,8 @@
         "appleTeamId": "579Y3Y3699"
       },
       "android": {
-        "track": "internal"
+        "track": "internal",
+        "serviceAccountKeyPath": "../../../.gcp/matome-play.json"
       }
     }
   }

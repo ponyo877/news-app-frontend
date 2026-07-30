@@ -1,6 +1,6 @@
 {
   "name": "matome",
-  "version": "1.43.0",
+  "version": "1.44.0",
   "main": "index.ts",
   "dependencies": {
     "@expo-google-fonts/m-plus-rounded-1c": "^0.4.4",

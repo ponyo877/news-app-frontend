@@ -1,4 +1,3 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useLayoutEffect, useState } from 'react';
@@ -12,11 +11,12 @@ import {
   View,
 } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
 import { incrementView } from '@/api/endpoints';
 import { useSimilarArticles } from '@/api/queries';
-import { ArticleMenu } from '@/features/article/ArticleMenu';
+import { ArticleHeaderActions } from '@/features/article/ArticleHeaderActions';
 import { RelatedArticlesSheet } from '@/features/article/RelatedArticlesSheet';
 import { useArticleHtml } from '@/features/article/useArticleHtml';
 import { CommentPanel } from '@/features/comments/CommentPanel';
@@ -24,16 +24,22 @@ import { bannerAdUnitId } from '@/lib/ads';
 import type { RootStackParamList } from '@/navigation/types';
 import { useArticleStatusStore } from '@/stores/articleStatusStore';
 import { colors } from '@/theme/colors';
-import { fontFamily, radius, sizes } from '@/theme/typography';
+import { fontFamily, radius } from '@/theme/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Article'>;
 
 // 記事詳細画面(旧MatomeWebView)。
-// 整形済みHTMLをWebViewで表示し、コメント欄を100%:0⇔50%:50で切り替える
+// 整形済みHTMLをWebViewで表示し、コメント欄を100%:0⇔50%:50で切り替える。
+//
+// 【AdMobポリシー対応】最下部のバナー広告に隣接するタップ要素を作らないこと。
+// 旧版はここに「コメントを開く」トグルと関連記事FABを浮かせていたため
+// 「ナビゲーションと誤認する配置」として違反を指摘された。操作系はすべて
+// ヘッダー(ArticleHeaderActions)に集約し、広告の上はクリアランス帯として空ける。
 export function ArticleScreen({ route, navigation }: Props) {
   const { article } = route.params;
   const markRead = useArticleStatusStore((s) => s.markRead);
   const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isRelatedOpen, setIsRelatedOpen] = useState(false);
 
@@ -50,9 +56,19 @@ export function ArticleScreen({ route, navigation }: Props) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => <ArticleMenu article={article} navigation={navigation} />,
+      headerRight: () => (
+        <ArticleHeaderActions
+          article={article}
+          navigation={navigation}
+          commentsOpen={!isExpanded}
+          onToggleComments={() => setIsExpanded((expanded) => !expanded)}
+          hasRelated={related.length > 0}
+          relatedOpen={isRelatedOpen}
+          onToggleRelated={() => setIsRelatedOpen((open) => !open)}
+        />
+      ),
     });
-  }, [navigation, article]);
+  }, [navigation, article, isExpanded, related.length, isRelatedOpen]);
 
   if (htmlQuery.isLoading || htmlQuery.data === undefined) {
     return (
@@ -83,27 +99,7 @@ export function ArticleScreen({ route, navigation }: Props) {
             <Pressable style={StyleSheet.absoluteFill} onPress={() => setIsExpanded(true)} />
           )}
         </View>
-        <View style={styles.fabRow} pointerEvents="box-none">
-          <View style={styles.fabSpacer} />
-          <Pressable
-            style={styles.toggleButton}
-            onPress={() => setIsExpanded((expanded) => !expanded)}
-          >
-            <Text style={styles.toggleLabel} numberOfLines={1}>
-              {isExpanded ? 'コメントを開く' : '記事を開く'}
-            </Text>
-          </Pressable>
-          <View style={styles.fabSpacer}>
-            {related.length > 0 && (
-              <Pressable
-                style={styles.boltFab}
-                onPress={() => setIsRelatedOpen((open) => !open)}
-              >
-                <MaterialIcons name="bolt" size={40} color="#FFD740" />
-              </Pressable>
-            )}
-          </View>
-        </View>
+        {/* 関連記事はヘッダー直下から降りる。広告から最も遠い位置に置くため上寄せにした */}
         {isRelatedOpen && (
           <View style={styles.relatedSheet}>
             <RelatedArticlesSheet articles={related} />
@@ -115,7 +111,10 @@ export function ArticleScreen({ route, navigation }: Props) {
           <CommentPanel articleId={article.id} />
         </View>
       )}
-      <View style={styles.adContainer}>
+      {/* 広告ブロック: 上にクリアランス帯(タップ要素ゼロ)・区切り線・ラベル・
+          背景色でアプリUIと塗り分ける。下端はセーフエリアを空けてジェスチャー領域を避ける */}
+      <View style={[styles.adBlock, { paddingBottom: insets.bottom }]}>
+        <Text style={styles.adLabel}>広告</Text>
         <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
       </View>
     </KeyboardAvoidingView>
@@ -140,52 +139,31 @@ const styles = StyleSheet.create({
     borderRadius: radius.articleWebView,
     overflow: 'hidden',
   },
-  fabRow: {
-    position: 'absolute',
-    bottom: 16,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fabSpacer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  toggleButton: {
-    backgroundColor: colors.blueGrey,
-    borderRadius: 4,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    elevation: 4,
-  },
-  toggleLabel: {
-    color: colors.textPrimary,
-    fontFamily: fontFamily.medium,
-    fontSize: 14,
-  },
-  boltFab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-  },
   relatedSheet: {
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 0,
+    top: 0,
   },
   commentArea: {
     flex: 1,
   },
-  adContainer: {
-    height: sizes.adBannerHeight,
+  adBlock: {
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.appBar,
+    borderTopWidth: 1,
+    borderTopColor: colors.white10,
+    // タップ要素を一切置かないクリアランス帯。誤タップ防止のため詰めないこと。
+    // コメント表示時はすぐ上に入力欄の送信ボタンが来るので、ここを削ると再発する
+    paddingTop: 24,
+  },
+  adLabel: {
+    alignSelf: 'flex-start',
+    marginLeft: 12,
+    marginBottom: 6,
+    fontSize: 10,
+    lineHeight: 13,
+    fontFamily: fontFamily.regular,
+    color: colors.textDisabled,
   },
 });

@@ -62,7 +62,7 @@ const SK_AD_NETWORK_ITEMS = [
 const config: ExpoConfig = {
   name: 'まとめくん',
   slug: 'matome-kun',
-  version: '1.43',
+  version: '1.44',
   extra: {
     eas: { projectId: '2d486ee4-ba33-45bd-ba1b-a2d421d7de97' },
   },
@@ -73,7 +73,7 @@ const config: ExpoConfig = {
     // 既存App Storeアプリと同一(ハイフン)。Androidと文字列が異なる点に注意
     bundleIdentifier: 'com.matomebeta-app',
     // 旧版の最終build 42より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)
-    buildNumber: '43',
+    buildNumber: '44',
     supportsTablet: true,
     requireFullScreen: true,
     infoPlist: {
@@ -103,7 +103,7 @@ const config: ExpoConfig = {
     // 既存Playアプリと同一(アンダースコア)
     package: 'com.matomebeta_app',
     // Play製品版の最新vc44より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)
-    versionCode: 45,
+    versionCode: 46,
     adaptiveIcon: {
       foregroundImage: './assets/app/adaptive-foreground.png',
       backgroundColor: '#E0AEE7',

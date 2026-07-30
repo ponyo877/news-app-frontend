@@ -1,12 +1,14 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TextInput, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 
 import { useSearchArticles } from '@/api/queries';
+import { FeedAdCard } from '@/components/FeedAdCard';
 import { NewsCard } from '@/components/NewsCard';
 import { useArticleActionSheet } from '@/features/article/useArticleActionSheet';
 import { useDebouncedValue } from '@/features/search/useDebouncedValue';
+import { withFeedAds } from '@/lib/feedAds';
 import { colors } from '@/theme/colors';
 import { fontFamily } from '@/theme/typography';
 
@@ -16,6 +18,11 @@ export function SearchScreen() {
   const debouncedKeyword = useDebouncedValue(keyword.trim());
   const query = useSearchArticles(debouncedKeyword);
   const { openSheet, sheet } = useArticleActionSheet();
+  // 一定間隔でインフィード広告を差し込む(記事画面の常時バナーの置き換え)
+  const entries = useMemo(
+    () => withFeedAds(query.data ?? [], (article, index) => `${article.id}-${index}`),
+    [query.data],
+  );
 
   return (
     <View style={styles.container}>
@@ -36,9 +43,17 @@ export function SearchScreen() {
           </View>
         ) : (
           <FlashList
-            data={query.data ?? []}
-            keyExtractor={(item, index) => `${item.id}-${index}`}
-            renderItem={({ item }) => <NewsCard article={item} onPressMenu={openSheet} />}
+            data={entries}
+            keyExtractor={(item) => item.key}
+            // 記事カードと広告カードは高さが違うため、種別を伝えてリサイクルを分ける
+            getItemType={(item) => item.type}
+            renderItem={({ item }) =>
+              item.type === 'ad' ? (
+                <FeedAdCard />
+              ) : (
+                <NewsCard article={item.article} onPressMenu={openSheet} />
+              )
+            }
             keyboardShouldPersistTaps="handled"
           />
         )}

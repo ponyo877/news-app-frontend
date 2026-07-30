@@ -1,61 +1,39 @@
 import type { MaterialTopTabBarProps } from '@react-navigation/material-top-tabs';
-import { ReactNode, useEffect, useState } from 'react';
-import {
-  Animated,
-  LayoutAnimation,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { ReactNode } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { colors } from '@/theme/colors';
 import { fontFamily, radius } from '@/theme/typography';
 
 // FlutterのTabBar(indicatorSize: TabBarIndicatorSize.label +
-// BoxDecoration(borderRadius: 50, color: blueGrey))を忠実に再現:
-//   高さ46 / ピルは「ラベルの実幅×タブ全高」/ スワイプに指追従でスライド /
+// BoxDecoration(borderRadius: 50, color: blueGrey))を再現:
+//   高さ46 / ピルは「タブの占有幅 - ラベル余白」/ スワイプに指追従でスライド /
 //   選択=白・非選択=white70(Material darkテーマのTabBar既定)
-// 位置はposition(ネイティブ駆動)のtranslateXで連続追従し、
-// 幅はタブ確定時にLayoutAnimationで滑らかに切り替える(width自体はネイティブ駆動不可のため)
+//
+// 旧版は indicatorSize: label だが、タブのラベルが Center(...) で包まれていた
+// (例: Center(child: Text("Daily")))。Flutterの Center は利用可能な幅いっぱいに
+// 広がるため、「ラベル幅」= タブの占有幅となり、実際にはピルがタブ全体を覆っていた。
+// テキストの実寸を測るとピルが文字に張り付いてしまい旧版と一致しないので、
+// タブ幅から左右のラベル余白を引いた固定幅にする。
 const TAB_BAR_HEIGHT = 46;
 const UNSELECTED_COLOR = 'rgba(255, 255, 255, 0.7)';
-const WIDTH_TRANSITION_MS = 150;
+// FlutterのTabBar既定 kTabLabelPadding = EdgeInsets.symmetric(horizontal: 16) 相当。
+// styles.tab の paddingHorizontal と必ず同じ値にすること
+const LABEL_PADDING = 16;
 
 export function PillTabBar({ state, descriptors, navigation, position }: MaterialTopTabBarProps) {
   const { width } = useWindowDimensions();
   const tabWidth = width / state.routes.length;
-  const [labelWidths, setLabelWidths] = useState<Record<number, number>>({});
+  // どのタブでも同じ幅。ラベルの文字数に依存させない
+  const pillWidth = Math.max(0, tabWidth - LABEL_PADDING * 2);
 
-  const count = state.routes.length;
-  const allMeasured = state.routes.every((_, i) => (labelWidths[i] ?? 0) > 0);
-  const activeWidth = labelWidths[state.index] ?? 0;
-
-  useEffect(() => {
-    LayoutAnimation.configureNext(
-      LayoutAnimation.create(WIDTH_TRANSITION_MS, 'easeInEaseOut', 'opacity'),
-    );
-  }, [state.index]);
-
-  // ピル左端 = タブ左端 + (タブ幅 - ラベル幅) / 2 をスワイプ位置で補間
-  const translateX =
-    count > 1
-      ? position.interpolate({
-          inputRange: state.routes.map((_, i) => i),
-          outputRange: state.routes.map(
-            (_, i) => i * tabWidth + (tabWidth - (labelWidths[i] ?? 0)) / 2,
-          ),
-        })
-      : (tabWidth - activeWidth) / 2;
+  // スワイプ中も指に追従してスライドする(旧版のTabController連動と同じ)。
+  // 幅が一定になったのでネイティブ駆動のtranslateXだけで完結する
+  const translateX = Animated.add(Animated.multiply(position, tabWidth), LABEL_PADDING);
 
   return (
     <View style={styles.bar}>
-      {allMeasured && (
-        <Animated.View
-          style={[styles.pill, { width: activeWidth, transform: [{ translateX }] }]}
-        />
-      )}
+      <Animated.View style={[styles.pill, { width: pillWidth, transform: [{ translateX }] }]} />
       {state.routes.map((route, index) => {
         const focused = state.index === index;
         const { options } = descriptors[route.key] ?? {};
@@ -77,16 +55,7 @@ export function PillTabBar({ state, descriptors, navigation, position }: Materia
               }
             }}
           >
-            <View
-              onLayout={(e) => {
-                const measured = Math.ceil(e.nativeEvent.layout.width);
-                setLabelWidths((prev) =>
-                  prev[index] === measured ? prev : { ...prev, [index]: measured },
-                );
-              }}
-            >
-              {renderLabel(options?.tabBarLabel, route.name, focused, color)}
-            </View>
+            {renderLabel(options?.tabBarLabel, route.name, focused, color)}
           </Pressable>
         );
       })}
@@ -121,7 +90,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    // LABEL_PADDING と同じ値。ピル幅の算出根拠になっている
+    paddingHorizontal: LABEL_PADDING,
   },
   pill: {
     position: 'absolute',

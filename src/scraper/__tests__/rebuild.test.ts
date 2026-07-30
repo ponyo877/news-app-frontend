@@ -43,4 +43,24 @@ describe('serialize', () => {
     expect(html.startsWith('<head>')).toBe(true);
     expect(html.endsWith('</body>')).toBe(true);
   });
+
+  it('本文末尾に下部余白を注入する(最終行が広告ブロックに張り付かないように)', () => {
+    const $ = load('<html><head></head><body><p>b</p></body></html>');
+    expect(serialize($)).toContain('padding-bottom:24px');
+  });
+
+  it('余白スタイルは取得元のCSSより後(head末尾)に入る', () => {
+    const $ = load('<html><head><style>.a{}</style></head><body><p>b</p></body></html>');
+    const html = serialize($);
+    expect(html.indexOf('.a{}')).toBeLessThan(html.indexOf('padding-bottom'));
+  });
+
+  it('取得元のhead内容を壊さない', () => {
+    const $ = load(
+      '<html><head><meta name="viewport" content="width=device-width"><link rel="stylesheet" href="/a.css"></head><body><p>b</p></body></html>',
+    );
+    const html = serialize($);
+    expect(html).toContain('name="viewport"');
+    expect(html).toContain('/a.css');
+  });
 });

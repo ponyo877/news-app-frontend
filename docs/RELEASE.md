@@ -9,9 +9,14 @@
 |---|---|---|
 | 識別子 | `com.matomebeta-app`(ハイフン) | `com.matomebeta_app`(アンダースコア) |
 | 旧最終バージョン | 1.42 (build 42) | versionName 1.0.44 / versionCode 44 |
-| 新リリース要件 | version 1.43 / **build >= 43** | **versionCode >= 45** |
+| RN移行リリース | 1.43 (build 43) | versionCode 45 |
+| **次リリース(AdMob対応)** | **1.44 (build 44)** | **versionCode 46** |
 
-※ Play Console「製品版」画面で実際の最新versionCodeを必ず確認すること(44想定だが要実測)。
+※ Play Console「製品版」画面で実際の最新versionCodeを必ず確認すること。
+
+> 1.44 は AdMob のポリシー違反(記事画面のバナー配置)対応。
+> 記事画面から広告を撤去し、一覧のインフィード広告へ移した。
+> 詳細と審査再リクエスト手順は `docs/REMAINING_TASKS.md` を参照。
 
 ## 1. 【✅ 2026-07-26 解決済み】Android署名鍵の確認
 

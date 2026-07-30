@@ -32,7 +32,6 @@ export const radius = {
 export const sizes = {
   thumbnail: 60,
   siteIcon: 50,
-  adBannerHeight: 50,
   composerHeight: 60,
   composerInputHeight: 40,
   relatedSheetHeight: 120,
