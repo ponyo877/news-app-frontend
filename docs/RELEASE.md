@@ -10,7 +10,12 @@
 | 識別子 | `com.matomebeta-app`(ハイフン) | `com.matomebeta_app`(アンダースコア) |
 | 旧最終バージョン | 1.42 (build 42) | versionName 1.0.44 / versionCode 44 |
 | RN移行リリース | 1.43 (build 43) | versionCode 45 |
-| **次リリース(AdMob対応)** | **1.44 (build 44)** | **versionCode 46** |
+| **次リリース(AdMob対応)** | **1.44 (build 45)** | **versionCode 47** |
+
+> build 44 / versionCode 46 は作り直しで欠番。build 44 は 1.44 として一度
+> App Store Connect に到達しており再利用できない(同一バージョン内でビルド番号は一意)。
+> `eas.json` の build profile に `"autoIncrement": true` を入れると、この手の
+> 取り違えを防げる(現在は `appVersionSource: local` で手動運用)。
 
 ※ Play Console「製品版」画面で実際の最新versionCodeを必ず確認すること。
 

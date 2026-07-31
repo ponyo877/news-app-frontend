@@ -107,15 +107,22 @@ export function ArticleScreen({ route, navigation }: Props) {
         )}
       </View>
       {!isExpanded && (
-        <View style={styles.commentArea}>
+        // コメント表示中は入力欄の送信ボタンが広告の真上に来るため、ここで間隔を稼ぐ。
+        // 記事のみ表示のときは不要なので、広告ブロック側は詰めたままにできる
+        <View style={[styles.commentArea, styles.commentAreaClearance]}>
           <CommentPanel articleId={article.id} />
         </View>
       )}
-      {/* 広告ブロック: 上にクリアランス帯(タップ要素ゼロ)・区切り線・ラベル・
-          背景色でアプリUIと塗り分ける。下端はセーフエリアを空けてジェスチャー領域を避ける */}
+      {/* 広告ブロック: 記事の表示面積を最大化するためバナー高さぴったりに詰める。
+          アプリUIとの区別は区切り線・背景色・左端の「広告」ラベルで担保し、
+          下端はセーフエリアを空けてジェスチャー領域と重ならないようにする */}
       <View style={[styles.adBlock, { paddingBottom: insets.bottom }]}>
-        <Text style={styles.adLabel}>広告</Text>
-        <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
+        <View style={styles.adRow}>
+          {/* バナーは320pt幅。画面幅との差が左右に余るので、そこにラベルを収めて
+              縦方向の高さを増やさない */}
+          <Text style={styles.adLabel}>広告</Text>
+          <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -148,19 +155,27 @@ const styles = StyleSheet.create({
   commentArea: {
     flex: 1,
   },
+  commentAreaClearance: {
+    // 送信ボタンと広告バナーの間隔。AdMobポリシー対応のため詰めないこと
+    paddingBottom: 16,
+  },
   adBlock: {
-    alignItems: 'center',
     backgroundColor: colors.appBar,
     borderTopWidth: 1,
     borderTopColor: colors.white10,
-    // タップ要素を一切置かないクリアランス帯。誤タップ防止のため詰めないこと。
-    // コメント表示時はすぐ上に入力欄の送信ボタンが来るので、ここを削ると再発する
-    paddingTop: 24,
+    // バナー(高さ50)にぴったり合わせ、記事の表示面積を最大化する。
+    // 記事のみ表示のときは上がWebViewでタップ要素がないため詰めてよい
+    paddingVertical: 0,
+  },
+  adRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   adLabel: {
-    alignSelf: 'flex-start',
-    marginLeft: 12,
-    marginBottom: 6,
+    // バナー左の余白に重ねて置き、広告ブロックの高さを増やさない
+    position: 'absolute',
+    left: 8,
     fontSize: 10,
     lineHeight: 13,
     fontFamily: fontFamily.regular,

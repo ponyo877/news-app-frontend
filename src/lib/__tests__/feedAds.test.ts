@@ -21,28 +21,13 @@ describe('withFeedAds', () => {
     expect(shape(withFeedAds(articles(4), keyOf))).toEqual(['a0', 'a1', 'a2', 'AD', 'a3']);
   });
 
-  it('以降は6件ごとに1枠入る', () => {
-    expect(shape(withFeedAds(articles(16), keyOf))).toEqual([
-      'a0',
-      'a1',
-      'a2',
-      'AD',
-      'a3',
-      'a4',
-      'a5',
-      'a6',
-      'a7',
-      'a8',
-      'AD',
-      'a9',
-      'a10',
-      'a11',
-      'a12',
-      'a13',
-      'a14',
-      'AD',
-      'a15',
-    ]);
+  it('以降は12件ごとに1枠入る', () => {
+    const entries = shape(withFeedAds(articles(28), keyOf));
+    // 広告が入るのは先頭3件の後と、そこから12件ごと
+    const adPositions = entries.flatMap((e, i) => (e === 'AD' ? [i] : []));
+    expect(adPositions).toEqual([3, 16, 29]);
+    // 記事の並び自体は元のまま
+    expect(entries.filter((e) => e !== 'AD')).toEqual(articles(28));
   });
 
   it('0件・少数件では広告が入らない', () => {

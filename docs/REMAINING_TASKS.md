@@ -1,14 +1,15 @@
 # 「まとめくん」React Native リプレイス — 残作業まとめ
 
-最終更新: 2026-07-27(AdMob ポリシー違反対応のコード修正を完了)
+最終更新: 2026-08-01(1.44 を build 45 / versionCode 47 で再ビルド)
 
 ## 現在の状態
 
 | 項目 | 状態 |
 |---|---|
 | コード | 全フェーズ完了、lint/typecheck/テスト全通過、main ブランチにコミット済み |
+| **1.44(AdMob対応)ビルド** | 🕐 EAS で再ビルド中(iOS build 45 / Android versionCode 47) |
 | iOS ビルド | ✅ 成功(1.43 / build 43)、TestFlight 処理完了 |
-| Android ビルド | ✅ 成功(1.43 / versionCode 45)、未提出 |
+| Android ビルド | ✅ 成功(1.43 / versionCode 45)、製品版公開済み |
 | Android 署名鍵 | ✅ 確認済み・EAS 登録済み(Play Console 実測値と一致) |
 | iOS 認証情報 | ✅ EAS 自動作成済み(Distribution 証明書・プロビジョニングプロファイル) |
 | AdMob GDPR 同意メッセージ | ✅ 公開済み(iOS/Android 含む 4 アプリ対象) |
@@ -21,7 +22,8 @@
 | App Store 審査提出 | ⬜ 未実行(TestFlight 実機確認後) |
 | Google Play 内部テスト提出 | ✅ 完了(1.43 / versionCode 45 を内部テスターに公開) |
 | Android 実機動作確認 | ✅ 完了 |
-| Google Play 製品版リリース | 🕐 **審査中**(1.43 / versionCode 45、完全公開 100%) |
+| Google Play 製品版リリース | ✅ **公開済み**(1.43 / versionCode 45、2026-07-28 10:39、完全公開 100%) |
+| Google Play ポリシーステータス | ✅ 問題は検出されませんでした |
 | Play「ニュース&雑誌アプリ」申告 | ✅ 製品版リリースと一緒に審査送信済み |
 | AdMob ポリシー違反 | 🔴 **制限付きで広告配信中** — コード修正済み、1.44 公開後に審査再リクエスト |
 
@@ -62,19 +64,19 @@ AdMob ポリシーセンターの証拠画像で、Google のレビュアーは*
 | | Before | After |
 |---|---|---|
 | 記事画面の操作系 | 最下部に「コメントを開く」トグル + 稲妻FAB を浮かせる | **すべてヘッダーに集約**(画面下部はタップ要素ゼロ) |
-| 記事画面の広告 | 最下部にバナー(50px)、ボタンと16px隣接 | 最下部にバナー(**維持**)+ クリアランス帯・区切り線・「広告」ラベル・セーフエリア |
+| 記事画面の広告 | 最下部にバナー(50px)、ボタンと16px隣接 | 最下部にバナー(**維持**)+ 区切り線・「広告」ラベル・セーフエリア。占有は約85pt(旧構成の128ptから圧縮) |
 | 関連記事シート | 下から出る(広告に密着) | **ヘッダー直下から降りる**(広告から最遠) |
-| 一覧画面 | 広告なし | 記事カードの間にインフィード広告(**収益追加**) |
+| 一覧画面 | 広告なし | **Homeの「新着」のみ**、記事カードの間にインフィード広告(**収益追加**) |
 
 コメント欄は旧版どおり **100%:0 ⇔ 50%:50 の上下分割を維持**した(既存ユーザーの操作感を壊さないため)。変わったのは開閉トリガーの位置だけ。
 
 **変更ファイル**
 
-- `src/features/article/ArticleHeaderActions.tsx`(新規)— ヘッダー右の操作クラスタ。`💬コメント` トグル(開いている間は `✕記事`)/ `⚡` 関連記事(0件時は非表示)/ 既存の `⋮` メニュー。旧版はラベル付きボタンだったため、アイコンのみでは気付かれにくい点を踏まえ文字を併記した
-- `src/features/article/ArticleScreen.tsx` — `fabRow`(トグル+FAB)を撤去してヘッダーへ移管。関連記事シートを `bottom:0` → `top:0` に変更。広告ブロックを再構成(`paddingTop:16` のクリアランス帯・`borderTopWidth:1`・背景 `appBar`・「広告」ラベル・`insets.bottom`)
-- `src/lib/feedAds.ts`(新規)— 一覧の広告スロット計算。**先頭3件は広告なし・以降6件ごと・末尾は必ず記事**。ランキング順位がずれないよう元インデックスを保持する
+- `src/features/article/ArticleHeaderActions.tsx`(新規)— ヘッダー右の操作クラスタ。`💬` コメントトグル(開いている間は `✕`)/ `⚡` 関連記事(0件時は非表示)/ 既存の `⋮` メニュー。アイコンのみだが `accessibilityLabel` で用途を読み上げる
+- `src/features/article/ArticleScreen.tsx` — `fabRow`(トグル+FAB)を撤去してヘッダーへ移管。関連記事シートを `bottom:0` → `top:0` に変更。広告ブロックを再構成(`borderTopWidth:1`・背景 `appBar`・バナー左余白に重ねた「広告」ラベル・`insets.bottom`)。記事の表示面積を最大化するためバナー高さぴったりに詰め、クリアランスはコメント表示時のみ `commentAreaClearance` で確保する
+- `src/lib/feedAds.ts`(新規)— 一覧の広告スロット計算。**先頭3件は広告なし・以降12件ごと・末尾は必ず記事**。ランキング順位がずれないよう元インデックスを保持する
 - `src/components/FeedAdCard.tsx`(新規)— 記事カードと見間違えないよう、上下マージン12px(NewsCard は 4)・上下の区切り線・背景色を `appBar` に変更・「広告」ラベル常時表示
-- `src/features/home/LatestList.tsx` / `PopularList.tsx` / `src/features/search/SearchScreen.tsx` — `withFeedAds` を適用。`getItemType` で FlashList のリサイクルを種別ごとに分離
+- `src/features/home/LatestList.tsx` — `withFeedAds` を適用。`getItemType` で FlashList のリサイクルを種別ごとに分離。**適用はここだけ**(人気/ランキング/検索/MyPageには入れない)
 - `src/scraper/serialize.ts` — `head` に `padding-bottom:24px` を注入。最終行が広告ブロックの区切り線に張り付くのを防ぐ(ボタンが最下部に浮いていた頃は90px必要だったが、ヘッダー移管により不要になった)
 - `src/theme/typography.ts` — 未参照になった `sizes.adBannerHeight` を削除(広告ブロックは余白で高さが決まるため固定値を持たない)
 
@@ -102,7 +104,7 @@ AdMob ポリシーセンターの証拠画像で、Google のレビュアーは*
 
 ### 公開後にやること
 
-- AdMob の表示回数・収益を実測し、`feedAds.ts` の頻度(先頭3件・6件ごと)を調整する
+- AdMob の表示回数・収益を実測し、`feedAds.ts` の頻度(先頭3件・12件ごと)を調整する
 - **再度不承認になった場合の次の一手**: `src/scraper/serialize.ts` が `a[target]` の `href` を剥奪し、`ArticleScreen` の `onShouldStartLoadWithRequest` が全遷移を遮断しているため、本文中のリンクはすべて無反応になっている。指摘されたポリシーの箇条書きには *「存在しないコンテンツにリンクしている」* も含まれるため、リンクを見た目上もリンクでなくす(下線・色の除去)対応が候補
 
 ---
