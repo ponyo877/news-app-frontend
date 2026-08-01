@@ -37,8 +37,8 @@ cd ~/Documents/workspace/news-app-backend-refactor
 go run ./scripts/seed-sites -upload
 
 # 3-2. 生成されたSQLをVMで実行(61件、冪等)
-scp scripts/seed-sites/insert-sites.sql keisuke877jp@35.197.79.235:/tmp/
-ssh keisuke877jp@35.197.79.235 "mysql -h 127.0.0.1 -P 3306 -u root -ppassword -D matome < /tmp/insert-sites.sql"
+scp scripts/seed-sites/insert-sites.sql keisuke877jp@34.173.153.189:/tmp/
+ssh keisuke877jp@34.173.153.189 "mysql -h 127.0.0.1 -P 3306 -u root -ppassword -D matome < /tmp/insert-sites.sql"
 
 # 3-3. スクレイパールールv3をリモート配信(既存ユーザのアプリにも適用される)
 cd ~/Documents/workspace/news-app-frontend
