@@ -8,7 +8,7 @@
 | リポジトリ | 内容 |
 |---|---|
 | news-app-backend-refactor (develop) | クローラ堅牢化(1サイト失敗で全停止しない・WordPress/FC2形式対応)、`GET /health`、画像ドメイン修正、シードツール(`scripts/seed-sites`) |
-| news-app-docker | app v0.0.21・healthcheck・`AP_ROOT`修正・クロールcronコンテナ化・nginx `/health`(手順: `DEPLOY-2026-08.md`) |
+| news-app-docker | app v0.0.21・healthcheck・`AP_ROOT`修正・ポート127.0.0.1化・nginx `/health`(手順: `DEPLOY-2026-08.md`) |
 | news-app-frontend (main) | defaultRules.json v3(69ルール)、汎用エンジン(WordPress/FC2/Seesaa系5サイト)、検証パイプライン(`npm run fetch-candidates` → `npx jest candidateSites`)、サイト選択画面の一括切替 |
 
 検証状況: 66サイト×2記事=132ケースで「エンジン整形+広告/レコメンド/目次の残留ゼロ」を機械検証済み。
@@ -19,7 +19,7 @@
 
 `news-app-docker/DEPLOY-2026-08.md` の手順どおり:
 1. `news-app:v0.0.21` をビルド・push(developの最新を取り込む)
-2. VMで compose 反映(旧クロールcrontabの削除を忘れずに)
+2. VMで compose 反映(クロールはsystemdタイマー`stock.timer`のまま維持)
 3. `scripts/2026-08-01-fix-image-domain.sql` で既存8サイトの壊れ画像を修復
 
 ### Step 2: アプリ審査プロセス(既存の予定どおり)
@@ -44,7 +44,7 @@ ssh keisuke877jp@34.173.153.189 "mysql -h 127.0.0.1 -P 3306 -u root -ppassword -
 cd ~/Documents/workspace/news-app-frontend
 curl -X POST https://matome.folks-chat.com/v1/static -F "file=@src/scraper/defaultRules.json;filename=scraper-rules.json"
 
-# 3-4. クロールは10分ごとのcronで自動実行される。初回は各フィード20〜30件が一括流入する
+# 3-4. クロールはsystemdタイマー(2分ごと)で自動実行される。初回は各フィード20〜30件が一括流入する
 curl -s https://matome.folks-chat.com/v1/site | python3 -m json.tool | grep titles | wc -l   # 69件
 ```
 
@@ -56,7 +56,7 @@ curl -s https://matome.folks-chat.com/v1/site | python3 -m json.tool | grep titl
 - [ ] 新サイト記事を開いて広告・目次・コメント欄・サイドバーが出ないこと(数サイト抜き取り)
 - [ ] 既存8サイトの表示にリグレッションがないこと
 - [ ] Setting → 表示サイトの選択: 69件表示・一括切替が動くこと
-- [ ] `docker compose logs cron` でクロールが回っていること(失敗サイトがあってもスキップされる)
+- [ ] `journalctl -u stock.service --since "10 min ago"` でクロールが回っていること(失敗サイトがあってもスキップされる)
 
 ## 運用メモ
 
