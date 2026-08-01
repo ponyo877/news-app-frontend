@@ -1,7 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { useEffect } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Switch, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 
 import { useSites } from '@/api/queries';
 import { useSiteFilterStore } from '@/stores/siteFilterStore';
@@ -9,10 +17,11 @@ import { colors } from '@/theme/colors';
 import { fontFamily, sizes } from '@/theme/typography';
 
 // 表示サイトの選択(旧SelectSites): Switch+サイトアイコン。
-// ブロック状態はストアに即時保存され、画面を離れる時に新着を再取得(旧WillPopScope相当)
+// ブロック状態はストアに即時保存され、画面を離れる時に新着を再取得(旧WillPopScope相当)。
+// サイト数増(8→約70)に伴い、表示中件数と一括切り替えをヘッダーに置く
 export function SelectSitesScreen() {
   const sitesQuery = useSites();
-  const { blockedSiteIds, toggleSite } = useSiteFilterStore();
+  const { blockedSiteIds, toggleSite, setBlockedSiteIds } = useSiteFilterStore();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -29,11 +38,35 @@ export function SelectSitesScreen() {
     );
   }
 
+  const sites = sitesQuery.data;
+  const visibleCount = sites.filter((site) => !blockedSiteIds.includes(site.id)).length;
+
   return (
     <FlatList
       style={styles.list}
-      data={sitesQuery.data}
+      data={sites}
       keyExtractor={(site) => site.id}
+      ListHeaderComponent={
+        <View style={styles.header}>
+          <Text style={styles.count}>
+            {sites.length}サイト中{visibleCount}件を表示
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setBlockedSiteIds([])}
+            hitSlop={8}
+          >
+            <Text style={styles.bulkAction}>すべて表示</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setBlockedSiteIds(sites.map((site) => site.id))}
+            hitSlop={8}
+          >
+            <Text style={styles.bulkAction}>すべて非表示</Text>
+          </Pressable>
+        </View>
+      }
       renderItem={({ item: site }) => (
         <View style={styles.row}>
           <Image source={{ uri: site.image }} style={styles.icon} />
@@ -60,6 +93,24 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 16,
+  },
+  count: {
+    flex: 1,
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontFamily: fontFamily.regular,
+  },
+  bulkAction: {
+    color: colors.blueGrey,
+    fontSize: 13,
+    fontFamily: fontFamily.bold,
   },
   row: {
     flexDirection: 'row',
