@@ -29,8 +29,8 @@ maybeDescribe('実サイトHTML(fetch-fixtures取得分)', () => {
     const sourceUrl = /<!-- source: (.*?) -->/.exec(html)?.[1] ?? '';
     const $ = loadDoc(html);
 
-    const engine = detectEngine($);
     const rule = matchSiteRule(bundledRuleSet, sourceUrl, name);
+    const engine = detectEngine($, rule);
 
     if (!engine) {
       // エンジン非対応サイトは生HTML表示にフォールバックする仕様。

@@ -46,3 +46,5 @@ yarn-error.*
 
 # 実サイトHTMLフィクスチャ(npm run fetch-fixturesで取得、コミットしない)
 src/scraper/__fixtures__/real/
+# 追加候補サイトのHTMLフィクスチャ(npm run fetch-candidatesで取得、コミットしない)
+src/scraper/__fixtures__/candidates/

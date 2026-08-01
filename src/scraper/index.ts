@@ -18,15 +18,16 @@ export async function scrapeArticle(url: string, siteTitle: string): Promise<str
   }
 
   const $ = loadDoc(page.html);
-  const engine = detectEngine($);
+  // ルールを先に特定する(汎用エンジンがengine設定を参照するため)
+  const rule = matchSiteRule(getActiveRuleSet(), url, siteTitle);
+  const engine = detectEngine($, rule);
   if (!engine) {
     // 対応エンジンのない構造は整形せずそのまま表示する(旧版はここでクラッシュしていた)
     return page.html;
   }
 
-  await engine.prepare($, async (pageUrl) => (await fetchHtml(pageUrl)).html);
+  await engine.prepare($, async (pageUrl) => (await fetchHtml(pageUrl)).html, rule);
 
-  const rule = matchSiteRule(getActiveRuleSet(), url, siteTitle);
   if (rule) {
     applySiteRules($, rule);
   }

@@ -14,6 +14,15 @@ export interface AnchorCleanupRule {
   trailingBr: number;
 }
 
+// 汎用エンジン(engines/generic.ts)の設定。livedoor構造を持たないブログは
+// 本文セレクタをデータとして持たせ、テンプレート族ごとの専用エンジンを増やさない
+export interface EngineConfig {
+  // 本文ブロックのセレクタ(複数マッチは出現順に全て結合)
+  bodySelector: string;
+  // 記事タイトルのセレクタ(未指定・不一致時はタイトル行を出さない)
+  titleSelector?: string;
+}
+
 export interface SiteRule {
   // 表示・ログ用の識別名
   name: string;
@@ -26,6 +35,10 @@ export interface SiteRule {
   anchorCleanups?: AnchorCleanupRule[];
   // body末尾から削除する<br>の数(ワラノート固有)
   trimTrailingBrs?: number;
+  // 指定時: livedoorエンジン非対応サイトを汎用エンジンで処理する。
+  // 旧バージョンのアプリはこのフィールドを無視する(zodが未知フィールドとして除去)ため、
+  // リモート配信しても後方互換が保たれる
+  engine?: EngineConfig;
 }
 
 export interface ScraperRuleSet {

@@ -61,7 +61,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "fetch-fixtures": "node scripts/fetch-real-fixtures.mjs"
+    "fetch-fixtures": "node scripts/fetch-real-fixtures.mjs",
+    "fetch-candidates": "node scripts/fetch-candidate-fixtures.mjs"
   },
   "private": true
 }

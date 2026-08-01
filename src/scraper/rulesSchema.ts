@@ -12,6 +12,11 @@ const anchorCleanupSchema = z.object({
   trailingBr: z.number().int().min(0).max(10),
 });
 
+const engineConfigSchema = z.object({
+  bodySelector: z.string().min(1).max(300),
+  titleSelector: z.string().min(1).max(200).optional(),
+});
+
 const siteRuleSchema = z.object({
   name: z.string().min(1).max(100),
   urlPrefixes: z.array(z.string().min(1).max(200)).max(10),
@@ -19,6 +24,7 @@ const siteRuleSchema = z.object({
   removeSelectors: z.array(z.string().min(1).max(300)).max(50).optional(),
   anchorCleanups: z.array(anchorCleanupSchema).max(10).optional(),
   trimTrailingBrs: z.number().int().min(0).max(50).optional(),
+  engine: engineConfigSchema.optional(),
 });
 
 export const ruleSetSchema = z.object({

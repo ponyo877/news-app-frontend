@@ -1,10 +1,14 @@
 {
-  "version": 2,
+  "version": 3,
   "rules": [
     {
       "name": "ニュー速クオリティ",
-      "urlPrefixes": ["news4vip.livedoor.biz/"],
-      "siteTitles": ["ニュー速クオリティ"],
+      "urlPrefixes": [
+        "news4vip.livedoor.biz/"
+      ],
+      "siteTitles": [
+        "ニュー速クオリティ"
+      ],
       "removeSelectors": [
         "script[src=\"https://blogroll.livedoor.net/js/blogroll.js\"]",
         "div#f984a",
@@ -13,42 +17,70 @@
         "script[src*=\"permalink-system.com\"]",
         "script[src*=\"ad-stir.com\"]",
         "script:contains(\"adstir\")",
-        "script:contains(\"gsspcln\")"
+        "script:contains(\"gsspcln\")",
+        "script[src*=\"blogroll.livedoor.net\"]",
+        "script:contains(\"blogroll\")",
+        "div.adleft",
+        "div.adright",
+        "iframe[src*=\"nsq.html\"]"
       ]
     },
     {
       "name": "暇人速報",
-      "urlPrefixes": ["himasoku.com/"],
-      "siteTitles": ["暇人速報"],
+      "urlPrefixes": [
+        "himasoku.com/"
+      ],
+      "siteTitles": [
+        "暇人速報"
+      ],
       "removeSelectors": [
         "div.article_mid_v2",
         "div#article_low_v2",
         "iframe",
         "span[style*=\"color: #CC0033\"]",
-        "img[src*=\"/parts/ichiosi.png\"]"
+        "img[src*=\"/parts/ichiosi.png\"]",
+        "script:contains(\"decodeURIComponent\")"
       ]
     },
     {
       "name": "稲妻速報",
-      "urlPrefixes": ["inazumanews2.com/"],
-      "siteTitles": ["稲妻速報"],
-      "removeSelectors": ["div.ika2", "ul#anop", "ul.inc"]
+      "urlPrefixes": [
+        "inazumanews2.com/"
+      ],
+      "siteTitles": [
+        "稲妻速報"
+      ],
+      "removeSelectors": [
+        "div.ika2",
+        "ul#anop",
+        "ul.inc"
+      ]
     },
     {
       "name": "哲学ニュース",
-      "urlPrefixes": ["blog.livedoor.jp/nwknews/", "nwknews.jp/"],
-      "siteTitles": ["哲学ニュース"],
+      "urlPrefixes": [
+        "blog.livedoor.jp/nwknews/",
+        "nwknews.jp/"
+      ],
+      "siteTitles": [
+        "哲学ニュース"
+      ],
       "removeSelectors": [
         "span[style*=\"font-size: large\"]",
         "span[style*=\"font-size: 150%\"]",
         "blockquote",
-        "iframe[src*=\"richlink.blogsys.jp\"]"
+        "iframe[src*=\"richlink.blogsys.jp\"]",
+        "script:contains(\"in_article_cd\")"
       ]
     },
     {
       "name": "デジタルニューススレッド",
-      "urlPrefixes": ["digital-thread.com/"],
-      "siteTitles": ["デジタルニューススレッド"],
+      "urlPrefixes": [
+        "digital-thread.com/"
+      ],
+      "siteTitles": [
+        "デジタルニューススレッド"
+      ],
       "removeSelectors": [
         "script[src*=\"ad-stir.com\"]",
         "script:contains(\"adstir\")",
@@ -57,21 +89,37 @@
     },
     {
       "name": "VIPPERな俺",
-      "urlPrefixes": ["blog.livedoor.jp/news23vip/"],
-      "siteTitles": ["VIPPERな俺"],
+      "urlPrefixes": [
+        "blog.livedoor.jp/news23vip/"
+      ],
+      "siteTitles": [
+        "VIPPERな俺"
+      ],
       "anchorCleanups": [
         {
           "selector": "a[href]",
           "hrefPrefix": "http://blog.livedoor.jp/news23vip/archives/",
           "trailingBr": 1
         }
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "div.amazon"
       ]
     },
     {
       "name": "ワラノート",
-      "urlPrefixes": ["waranote.livedoor.biz/"],
-      "siteTitles": ["ワラノート"],
-      "removeSelectors": ["div.amazon.Default", "span[style*=\"#006600\"]"],
+      "urlPrefixes": [
+        "waranote.livedoor.biz/"
+      ],
+      "siteTitles": [
+        "ワラノート"
+      ],
+      "removeSelectors": [
+        "div.amazon.Default",
+        "span[style*=\"#006600\"]"
+      ],
       "anchorCleanups": [
         {
           "selector": "a[href][title]:not([class])",
@@ -85,6 +133,963 @@
         }
       ],
       "trimTrailingBrs": 6
+    },
+    {
+      "name": "IT速報",
+      "urlPrefixes": [
+        "blog.livedoor.jp/itsoku/"
+      ],
+      "siteTitles": [
+        "IT速報"
+      ],
+      "removeSelectors": [
+        "script[src*=\"pdn.adingo.jp\"]",
+        "script:contains(\"fluct\")",
+        "script:contains(\"decodeURIComponent\")"
+      ]
+    },
+    {
+      "name": "いきぬき2ちゃんねる",
+      "urlPrefixes": [
+        "ikinuki2ch.blog.jp/"
+      ],
+      "siteTitles": [
+        "いきぬき2ちゃんねる"
+      ],
+      "removeSelectors": [
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "痛いニュース(ノ∀`)",
+      "urlPrefixes": [
+        "itainews.com/",
+        "blog.livedoor.jp/dqnplus/"
+      ],
+      "siteTitles": [
+        "痛いニュース"
+      ],
+      "removeSelectors": [
+        "script:contains(\"in_article_cd\")"
+      ]
+    },
+    {
+      "name": "いたしん!",
+      "urlPrefixes": [
+        "itaishinja.com/"
+      ],
+      "siteTitles": [
+        "いたしん!"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "妹はVIPPER",
+      "urlPrefixes": [
+        "vipsister23.com/"
+      ],
+      "siteTitles": [
+        "妹はVIPPER"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script[src*=\"img-c.net\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"c_img_param\")",
+        "ins.adsbygoogle",
+        "ins.widget-banner",
+        "script.widget-banner-script",
+        "script[src*=\"widget-view.dmm.co.jp\"]",
+        "script[src*=\"ad-spire.net\"]",
+        "script[src*=\"gssprt.jp\"]",
+        "script:contains(\"gnsrcmd\")",
+        "div[id^=\"div_fam_async\"]",
+        "blockquote:contains(\"おすすめ記事\")",
+        "span:contains(\"この記事はプロモーションが含まれてます\")"
+      ]
+    },
+    {
+      "name": "うしみつ",
+      "urlPrefixes": [
+        "usi32.com/"
+      ],
+      "siteTitles": [
+        "うしみつ"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script[src*=\"i-mobile.co.jp\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"imobile\")",
+        "div.amazon"
+      ]
+    },
+    {
+      "name": "凹凸ちゃんねる",
+      "urlPrefixes": [
+        "hattatu-matome.ldblog.jp/"
+      ],
+      "siteTitles": [
+        "凹凸ちゃんねる"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "script[src*=\"hattatu-matome.ldblog.jp/ad.js\"]",
+        "script[src*=\"kijisitaset.js\"]",
+        "nav#menu-bar",
+        "div.t_s:contains(\"関連記事\")"
+      ]
+    },
+    {
+      "name": "大物Youtuber速報",
+      "urlPrefixes": [
+        "oomonoyoutubersokuhou.blogo.jp/"
+      ],
+      "siteTitles": [
+        "大物Youtuber速報"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "お料理速報",
+      "urlPrefixes": [
+        "oryouri.2chblog.jp/"
+      ],
+      "siteTitles": [
+        "お料理速報"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script[src*=\"rcm.shinobi.jp\"]",
+        "script:contains(\"adstir\")",
+        "div.amazon",
+        "div.contents_rss",
+        "p.contents_rss_text",
+        "div.ninja-recommend-block"
+      ]
+    },
+    {
+      "name": "おーるじゃんる",
+      "urlPrefixes": [
+        "crx7601.com/"
+      ],
+      "siteTitles": [
+        "おーるじゃんる"
+      ],
+      "removeSelectors": [
+        "script[src*=\"dameparts.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"plist_max_view\")"
+      ]
+    },
+    {
+      "name": "ガジェット2ch",
+      "urlPrefixes": [
+        "gadget2ch.com/"
+      ],
+      "siteTitles": [
+        "ガジェット2ch"
+      ],
+      "removeSelectors": [
+        "ins.adsbygoogle"
+      ],
+      "engine": {
+        "bodySelector": "div.entry-content",
+        "titleSelector": "h1.entry-title"
+      }
+    },
+    {
+      "name": "ガハろぐNews",
+      "urlPrefixes": [
+        "gahalog.2chblog.jp/"
+      ],
+      "siteTitles": [
+        "ガハろぐNews"
+      ],
+      "removeSelectors": [
+        "script[src*=\"img-c.net\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"c_img_param\")"
+      ]
+    },
+    {
+      "name": "ガールズVIPまとめ",
+      "urlPrefixes": [
+        "girlsvip-matome.com/"
+      ],
+      "siteTitles": [
+        "ガールズVIPまとめ"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"decodeURIComponent\")"
+      ]
+    },
+    {
+      "name": "カオスちゃんねる",
+      "urlPrefixes": [
+        "chaos2ch.com/"
+      ],
+      "siteTitles": [
+        "カオスちゃんねる"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "キニ速",
+      "urlPrefixes": [
+        "blog.livedoor.jp/kinisoku/"
+      ],
+      "siteTitles": [
+        "キニ速"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "気になる芸能まとめ",
+      "urlPrefixes": [
+        "kininaru-geinou-m.blog.jp/"
+      ],
+      "siteTitles": [
+        "気になる芸能まとめ"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "div.headerafficode"
+      ]
+    },
+    {
+      "name": "キムチ速報",
+      "urlPrefixes": [
+        "kimsoku.com/"
+      ],
+      "siteTitles": [
+        "キムチ速報"
+      ],
+      "removeSelectors": [
+        "script:contains(\"decodeURIComponent\")"
+      ]
+    },
+    {
+      "name": "今日速2ch",
+      "urlPrefixes": [
+        "kyousoku.net/"
+      ],
+      "siteTitles": [
+        "今日速2ch"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script[src*=\"kyousoku.net/js/\"]"
+      ]
+    },
+    {
+      "name": "筋肉速報",
+      "urlPrefixes": [
+        "kinsoku.blog.jp/"
+      ],
+      "siteTitles": [
+        "筋肉速報"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script[src*=\"img-c.net\"]",
+        "script[src*=\"dameparts.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"c_img_param\")",
+        "div.amazon",
+        "script:contains(\"pbanner_max_view\")",
+        "script:contains(\"plist_max_view\")"
+      ]
+    },
+    {
+      "name": "芸能人ニュース速報",
+      "urlPrefixes": [
+        "blog.livedoor.jp/sky_wing2010-geinou/"
+      ],
+      "siteTitles": [
+        "芸能人ニュース速報"
+      ],
+      "removeSelectors": [
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "芸能人の気になる噂",
+      "urlPrefixes": [
+        "blog.livedoor.jp/uwasainfo/"
+      ],
+      "siteTitles": [
+        "芸能人の気になる噂"
+      ],
+      "removeSelectors": [
+        "script[src*=\"img-c.net\"]",
+        "script[src*=\"dameparts.com\"]",
+        "script[src*=\"permalink-system.com\"]",
+        "script[src*=\"matomeantena.com\"]",
+        "script[src*=\"rcm.shinobi.jp\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"irss_conf\")",
+        "script:contains(\"c_img_param\")",
+        "div.ninja-recommend-block"
+      ]
+    },
+    {
+      "name": "結婚・恋愛ニュースぷらす",
+      "urlPrefixes": [
+        "blog.livedoor.jp/kekkongo/"
+      ],
+      "siteTitles": [
+        "結婚・恋愛ニュースぷらす"
+      ],
+      "removeSelectors": [
+        "script[src*=\"matomeantena.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"irss_conf\")",
+        "script:contains(\"rakuten_design\")",
+        "script[src*=\"affiliate.rakuten.co.jp\"]"
+      ]
+    },
+    {
+      "name": "ゴールデンタイムズ",
+      "urlPrefixes": [
+        "blog.livedoor.jp/goldennews/"
+      ],
+      "siteTitles": [
+        "ゴールデンタイムズ"
+      ],
+      "removeSelectors": [
+        "script[src*=\"img-c.net\"]",
+        "script:contains(\"c_img_param\")",
+        "script:contains(\"in_article_cd\")",
+        "div.sp_kizi_recommend",
+        "script[src*=\"blog.livedoor.jp/goldennews/js/\"]"
+      ]
+    },
+    {
+      "name": "コノユビ",
+      "urlPrefixes": [
+        "konoyubitomare.jp/"
+      ],
+      "siteTitles": [
+        "コノユビ"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "div.amazon",
+        "script[src*=\"konoyubitomare.jp/Amazon\"]"
+      ]
+    },
+    {
+      "name": "ジャンプ速報",
+      "urlPrefixes": [
+        "jumpsokuhou.com/"
+      ],
+      "siteTitles": [
+        "ジャンプ速報"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script[src*=\"/js/common.js\"]"
+      ]
+    },
+    {
+      "name": "JUMP速報",
+      "urlPrefixes": [
+        "jumpsokuhou.blog.jp/"
+      ],
+      "siteTitles": [
+        "JUMP速報"
+      ],
+      "removeSelectors": [
+        "script[src*=\"img-c.net\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"c_img_param\")",
+        "div[class*=\"blz_rss_\"]",
+        "script[src*=\"blozoo.info\"]",
+        "script:contains(\"blzP=\")",
+        "script:contains(\"googletag\")",
+        "blockquote:contains(\"おすすめ記事\")",
+        "blockquote:contains(\"人気記事\")"
+      ]
+    },
+    {
+      "name": "常識的に考えた",
+      "urlPrefixes": [
+        "blog.livedoor.jp/jyoushiki43/"
+      ],
+      "siteTitles": [
+        "常識的に考えた"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")"
+      ]
+    },
+    {
+      "name": "資格ちゃんねる",
+      "urlPrefixes": [
+        "shikaku2ch.doorblog.jp/"
+      ],
+      "siteTitles": [
+        "資格ちゃんねる"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")"
+      ]
+    },
+    {
+      "name": "スコールちゃんねる",
+      "urlPrefixes": [
+        "squallchannel.com/"
+      ],
+      "siteTitles": [
+        "スコールちゃんねる"
+      ],
+      "removeSelectors": [
+        "script[src*=\"img-c.net\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"c_img_param\")",
+        "iframe[src*=\"sqa.html\"]"
+      ]
+    },
+    {
+      "name": "ダイエット速報",
+      "urlPrefixes": [
+        "blog.livedoor.jp/diet2channel/"
+      ],
+      "siteTitles": [
+        "ダイエット速報"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "div.ninja_onebutton",
+        "span.ninja_onebutton_hidden",
+        "iframe[src*=\"midlink_diet2ch\"]",
+        "script[src*=\"blog.livedoor.jp/diet2channel/js/\"]",
+        "script:contains(\"shorturl\")",
+        "div[style*=\"#FF596A\"]"
+      ]
+    },
+    {
+      "name": "大艦巨砲主義!",
+      "urlPrefixes": [
+        "taikankyohou.com/"
+      ],
+      "siteTitles": [
+        "大艦巨砲主義!"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")"
+      ]
+    },
+    {
+      "name": "ツイッター速報",
+      "urlPrefixes": [
+        "tsuisoku.com/"
+      ],
+      "siteTitles": [
+        "ツイッター速報"
+      ],
+      "removeSelectors": [
+        "script:contains(\"decodeURIComponent\")"
+      ]
+    },
+    {
+      "name": "2MONKEYS.JP",
+      "urlPrefixes": [
+        "2monkeys.jp/"
+      ],
+      "siteTitles": [
+        "2MONKEYS.JP"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "iframe[src*=\"richlink.blogsys.jp\"]"
+      ]
+    },
+    {
+      "name": "登山ちゃんねる",
+      "urlPrefixes": [
+        "tozanchannel.blog.jp/"
+      ],
+      "siteTitles": [
+        "登山ちゃんねる"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script[src*=\"img-c.net\"]",
+        "script[src*=\"dameparts.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"c_img_param\")",
+        "script:contains(\"plist_max_view\")"
+      ]
+    },
+    {
+      "name": "なんJクエスト",
+      "urlPrefixes": [
+        "inutomo11.com/"
+      ],
+      "siteTitles": [
+        "なんJクエスト"
+      ],
+      "removeSelectors": [
+        "script[src*=\"matome.xvps.jp\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"var w=window;w.img\")"
+      ]
+    },
+    {
+      "name": "なんJ政治ネタまとめ",
+      "urlPrefixes": [
+        "j-seiji.blog.jp/"
+      ],
+      "siteTitles": [
+        "なんJ政治ネタまとめ"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")"
+      ]
+    },
+    {
+      "name": "なんJやきう関係ない部",
+      "urlPrefixes": [
+        "kankeinai.blog.jp/"
+      ],
+      "siteTitles": [
+        "なんJやきう関係ない部"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script[src*=\"permalink-system.com\"]",
+        "script:contains(\"adstir\")",
+        "script[src*=\"i2i.jp\"]"
+      ]
+    },
+    {
+      "name": "なんJワールド",
+      "urlPrefixes": [
+        "nanj-world.blog.jp/"
+      ],
+      "siteTitles": [
+        "なんJワールド"
+      ],
+      "removeSelectors": [
+        "script[src*=\"permalink-system.com\"]",
+        "script[src*=\"rcm.shinobi.jp\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "div.ninja-recommend-block",
+        "nav#menu-bar"
+      ]
+    },
+    {
+      "name": "2chコピペ保存道場",
+      "urlPrefixes": [
+        "2chcopipe.com/"
+      ],
+      "siteTitles": [
+        "2chコピペ保存道場"
+      ],
+      "removeSelectors": [
+        "ins.adsbygoogle",
+        "ins.widget-banner",
+        "script.widget-banner-script",
+        "script[src*=\"widget-view.dmm.com\"]",
+        "script:contains(\"decodeURIComponent\")"
+      ]
+    },
+    {
+      "name": "ニュース30over",
+      "urlPrefixes": [
+        "news30over.com/"
+      ],
+      "siteTitles": [
+        "ニュース30over"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script[src*=\"lamp-shade.net\"]"
+      ]
+    },
+    {
+      "name": "NEWSまとめもりー",
+      "urlPrefixes": [
+        "akb48matomemory.com/"
+      ],
+      "siteTitles": [
+        "NEWSまとめもりー"
+      ],
+      "removeSelectors": [
+        "script[src*=\"img-c.net\"]",
+        "script[src*=\"dameparts.com\"]",
+        "script[src*=\"permalink-system.com\"]",
+        "script[src*=\"matomeantena.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"irss_conf\")",
+        "script:contains(\"c_img_param\")",
+        "script:contains(\"pbanner_max_view\")",
+        "div.t_b:contains(\"中間おすすめ記事\")"
+      ]
+    },
+    {
+      "name": "ニュー速VIPワイド",
+      "urlPrefixes": [
+        "news4wide.net/"
+      ],
+      "siteTitles": [
+        "ニュー速VIPワイド"
+      ],
+      "removeSelectors": [
+        "div[class^=\"ad_\"]",
+        "div[class^=\"ads_\"]",
+        "div[id^=\"ad_\"]",
+        "div[id^=\"ads_\"]",
+        "div[class*=\"ad__\"]",
+        "div.popular_article_pick_up",
+        "div.pager-set--ad",
+        "div.bookmark",
+        "center",
+        "ins",
+        "iframe"
+      ],
+      "engine": {
+        "bodySelector": "div.article-body",
+        "titleSelector": ".article-title"
+      }
+    },
+    {
+      "name": "ネギ速",
+      "urlPrefixes": [
+        "negisoku.com/"
+      ],
+      "siteTitles": [
+        "ネギ速"
+      ],
+      "removeSelectors": [
+        "script[src*=\"matome.xvps.jp\"]",
+        "script:contains(\"var w=window;w.img\")"
+      ]
+    },
+    {
+      "name": "ネタめし.com",
+      "urlPrefixes": [
+        "netamesi.com/"
+      ],
+      "siteTitles": [
+        "ネタめし.com"
+      ],
+      "removeSelectors": [
+        "div.ninja-recommend-block",
+        "ins.adsbygoogle",
+        "span:contains(\"この記事も読まれています\")"
+      ],
+      "engine": {
+        "bodySelector": "div.article__content",
+        "titleSelector": ".article__title"
+      }
+    },
+    {
+      "name": "働く大人の非常識",
+      "urlPrefixes": [
+        "hatarakuhijoshiki.livedoor.blog/"
+      ],
+      "siteTitles": [
+        "働く大人の非常識"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "script[src*=\"hatarakuhijoshiki.livedoor.blog/js/\"]"
+      ]
+    },
+    {
+      "name": "働くモノニュース",
+      "urlPrefixes": [
+        "workingnews117.com/"
+      ],
+      "siteTitles": [
+        "働くモノニュース"
+      ],
+      "engine": {
+        "bodySelector": "div.entry_body",
+        "titleSelector": "h2"
+      }
+    },
+    {
+      "name": "ハムスター速報",
+      "urlPrefixes": [
+        "hamusoku.com/"
+      ],
+      "siteTitles": [
+        "ハムスター速報"
+      ],
+      "removeSelectors": [
+        "script[src*=\"googlesyndication.com\"]",
+        "script:contains(\"adsbygoogle\")",
+        "ins.adsbygoogle"
+      ]
+    },
+    {
+      "name": "VIPPER速報",
+      "urlPrefixes": [
+        "vippers.jp/"
+      ],
+      "siteTitles": [
+        "VIPPER速報"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script[src*=\"/js/common1.js\"]",
+        "script[src*=\"/js/common2.js\"]",
+        "nav#menu-bar"
+      ]
+    },
+    {
+      "name": "BIPブログ",
+      "urlPrefixes": [
+        "bipblog.com/"
+      ],
+      "siteTitles": [
+        "BIPブログ"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script[src*=\"/js/common.js\"]"
+      ]
+    },
+    {
+      "name": "PCパーツまとめ",
+      "urlPrefixes": [
+        "blog.livedoor.jp/bluejay01-review/"
+      ],
+      "siteTitles": [
+        "PCパーツまとめ"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")"
+      ]
+    },
+    {
+      "name": "ふぇー速",
+      "urlPrefixes": [
+        "fesoku.net/"
+      ],
+      "siteTitles": [
+        "ふぇー速"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "不思議.net",
+      "urlPrefixes": [
+        "world-fusigi.net/"
+      ],
+      "siteTitles": [
+        "不思議.net"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script[src*=\"i-mobile.co.jp\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"imobile\")",
+        "div.amazon",
+        "div[class^=\"im-\"]"
+      ]
+    },
+    {
+      "name": "マジキチ速報",
+      "urlPrefixes": [
+        "majikichi.com/"
+      ],
+      "siteTitles": [
+        "マジキチ速報"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "mashlife通信",
+      "urlPrefixes": [
+        "mashlife.doorblog.jp/"
+      ],
+      "siteTitles": [
+        "mashlife通信"
+      ],
+      "removeSelectors": [
+        "script[src*=\"img-c.net\"]",
+        "script[src*=\"dameparts.com\"]",
+        "script[src*=\"rcm.shinobi.jp\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"c_img_param\")",
+        "div.ninja-recommend-block",
+        "script:contains(\"pbanner_max_view\")"
+      ]
+    },
+    {
+      "name": "まとめたニュース",
+      "urlPrefixes": [
+        "matometanews.com/"
+      ],
+      "siteTitles": [
+        "まとめたニュース"
+      ],
+      "removeSelectors": [
+        "script[src*=\"matomeantena.com\"]",
+        "script[src*=\"blogroll.livedoor.net\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")",
+        "script:contains(\"irss_conf\")",
+        "script:contains(\"blogroll\")",
+        "div.blogroll-entry",
+        "a.AMbanner",
+        "script[src*=\"solty.biz\"]"
+      ]
+    },
+    {
+      "name": "モナニュース",
+      "urlPrefixes": [
+        "mona-news.com/"
+      ],
+      "siteTitles": [
+        "モナニュース"
+      ],
+      "removeSelectors": [
+        "script[src*=\"smp.js\"]",
+        "script[src*=\"ad-k\"]",
+        "script:contains(\"decodeURIComponent\")"
+      ]
+    },
+    {
+      "name": "もみあげチャ〜シュ〜",
+      "urlPrefixes": [
+        "michaelsan.livedoor.biz/"
+      ],
+      "siteTitles": [
+        "もみあげチャ〜シュ〜"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "ライフハックちゃんねる弐式",
+      "urlPrefixes": [
+        "lifehack2ch.livedoor.biz/"
+      ],
+      "siteTitles": [
+        "ライフハックちゃんねる弐式"
+      ],
+      "removeSelectors": [
+        "script:contains(\"adstir\")",
+        "script[src*=\"adsenselite.js\"]"
+      ]
+    },
+    {
+      "name": "ラビット速報",
+      "urlPrefixes": [
+        "rabitsokuhou.2chblog.jp/"
+      ],
+      "siteTitles": [
+        "ラビット速報"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "script:contains(\"gsspcln\")"
+      ]
+    },
+    {
+      "name": "理想ちゃんねる",
+      "urlPrefixes": [
+        "ideal2ch.livedoor.biz/"
+      ],
+      "siteTitles": [
+        "理想ちゃんねる"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "div.amazon"
+      ]
+    },
+    {
+      "name": "りぷらい速報",
+      "urlPrefixes": [
+        "repsoku.net/"
+      ],
+      "siteTitles": [
+        "りぷらい速報"
+      ],
+      "removeSelectors": [
+        "ins.adsbygoogle"
+      ],
+      "engine": {
+        "bodySelector": "div.entry-body",
+        "titleSelector": "header.entry-header h1"
+      }
+    },
+    {
+      "name": "流速VIP",
+      "urlPrefixes": [
+        "ryusoku.com/"
+      ],
+      "siteTitles": [
+        "流速VIP"
+      ],
+      "removeSelectors": [
+        "script[src*=\"ad-stir.com\"]",
+        "script:contains(\"adstir\")",
+        "iframe[src*=\"embed-bottom.html\"]"
+      ]
     }
   ]
 }

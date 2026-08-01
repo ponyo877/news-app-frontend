@@ -30,9 +30,13 @@ describe('matchSiteRule', () => {
     expect(
       matchSiteRule(bundledRuleSet, 'http://blog.livedoor.jp/nwknews/archives/1.html', '')?.name,
     ).toBe('哲学ニュース');
-    // ルール未定義の同居ブログ(痛いニュース)は誤マッチしない
+    // 同居ブログ(痛いニュース)は自分のルールにマッチし、他ブログを誤マッチしない
     expect(
-      matchSiteRule(bundledRuleSet, 'http://blog.livedoor.jp/dqnplus/archives/1.html', ''),
+      matchSiteRule(bundledRuleSet, 'http://blog.livedoor.jp/dqnplus/archives/1.html', '')?.name,
+    ).toBe('痛いニュース(ノ∀`)');
+    // ルール未定義の同居ブログは誤マッチしない
+    expect(
+      matchSiteRule(bundledRuleSet, 'http://blog.livedoor.jp/no-such-blog/archives/1.html', ''),
     ).toBeUndefined();
   });
 

@@ -1,0 +1,340 @@
+{
+  "sites": [
+    {
+      "name": "IT速報",
+      "blogUrl": "http://blog.livedoor.jp/itsoku/",
+      "rssUrl": "http://blog.livedoor.jp/itsoku/index.rdf"
+    },
+    {
+      "name": "いきぬき2ちゃんねる",
+      "blogUrl": "https://ikinuki2ch.blog.jp/",
+      "rssUrl": "https://ikinuki2ch.blog.jp/index.rdf"
+    },
+    {
+      "name": "痛いニュース(ノ∀`)",
+      "blogUrl": "https://itainews.com/",
+      "rssUrl": "https://itainews.com/index.rdf",
+      "existingTitle": "痛いニュース"
+    },
+    {
+      "name": "いたしん!",
+      "blogUrl": "https://itaishinja.com/",
+      "rssUrl": "https://itaishinja.com/index.rdf"
+    },
+    {
+      "name": "妹はVIPPER",
+      "blogUrl": "http://vipsister23.com/",
+      "rssUrl": "http://vipsister23.com/index.rdf"
+    },
+    {
+      "name": "うしみつ",
+      "blogUrl": "http://usi32.com/",
+      "rssUrl": "http://usi32.com/index.rdf"
+    },
+    {
+      "name": "凹凸ちゃんねる",
+      "blogUrl": "https://hattatu-matome.ldblog.jp/",
+      "rssUrl": "https://hattatu-matome.ldblog.jp/index.rdf"
+    },
+    {
+      "name": "大物Youtuber速報",
+      "blogUrl": "https://oomonoyoutubersokuhou.blogo.jp/",
+      "rssUrl": "https://oomonoyoutubersokuhou.blogo.jp/index.rdf"
+    },
+    {
+      "name": "お料理速報",
+      "blogUrl": "https://oryouri.2chblog.jp/",
+      "rssUrl": "https://oryouri.2chblog.jp/index.rdf"
+    },
+    {
+      "name": "おーるじゃんる",
+      "blogUrl": "https://crx7601.com/",
+      "rssUrl": "https://crx7601.com/index.rdf"
+    },
+    {
+      "name": "ガジェット2ch",
+      "blogUrl": "https://www.gadget2ch.com/",
+      "rssUrl": "https://www.gadget2ch.com/feed"
+    },
+    {
+      "name": "ガハろぐNews",
+      "blogUrl": "https://gahalog.2chblog.jp/",
+      "rssUrl": "https://gahalog.2chblog.jp/index.rdf"
+    },
+    {
+      "name": "ガールズVIPまとめ",
+      "blogUrl": "https://girlsvip-matome.com/",
+      "rssUrl": "https://girlsvip-matome.com/index.rdf"
+    },
+    {
+      "name": "カオスちゃんねる",
+      "blogUrl": "http://chaos2ch.com/",
+      "rssUrl": "http://chaos2ch.com/index.rdf"
+    },
+    {
+      "name": "キニ速",
+      "blogUrl": "http://blog.livedoor.jp/kinisoku/",
+      "rssUrl": "http://blog.livedoor.jp/kinisoku/index.rdf"
+    },
+    {
+      "name": "気になる芸能まとめ",
+      "blogUrl": "https://kininaru-geinou-m.blog.jp/",
+      "rssUrl": "https://kininaru-geinou-m.blog.jp/index.rdf"
+    },
+    {
+      "name": "キムチ速報",
+      "blogUrl": "http://kimsoku.com/",
+      "rssUrl": "http://kimsoku.com/index.rdf"
+    },
+    {
+      "name": "今日速2ch",
+      "blogUrl": "http://kyousoku.net/",
+      "rssUrl": "http://kyousoku.net/index.rdf"
+    },
+    {
+      "name": "筋肉速報",
+      "blogUrl": "http://kinsoku.blog.jp/",
+      "rssUrl": "http://kinsoku.blog.jp/index.rdf"
+    },
+    {
+      "name": "芸能人ニュース速報",
+      "blogUrl": "http://blog.livedoor.jp/sky_wing2010-geinou/",
+      "rssUrl": "http://blog.livedoor.jp/sky_wing2010-geinou/index.rdf"
+    },
+    {
+      "name": "芸能人の気になる噂",
+      "blogUrl": "http://blog.livedoor.jp/uwasainfo/",
+      "rssUrl": "http://blog.livedoor.jp/uwasainfo/index.rdf"
+    },
+    {
+      "name": "結婚・恋愛ニュースぷらす",
+      "blogUrl": "http://blog.livedoor.jp/kekkongo/",
+      "rssUrl": "http://blog.livedoor.jp/kekkongo/index.rdf"
+    },
+    {
+      "name": "ゴールデンタイムズ",
+      "blogUrl": "http://blog.livedoor.jp/goldennews/",
+      "rssUrl": "http://blog.livedoor.jp/goldennews/index.rdf"
+    },
+    {
+      "name": "コノユビ",
+      "blogUrl": "http://konoyubitomare.jp/",
+      "rssUrl": "http://konoyubitomare.jp/index.rdf"
+    },
+    {
+      "name": "ジャンプ速報",
+      "blogUrl": "http://jumpsokuhou.com/",
+      "rssUrl": "http://jumpsokuhou.com/index.rdf"
+    },
+    {
+      "name": "JUMP速報",
+      "blogUrl": "https://jumpsokuhou.blog.jp/",
+      "rssUrl": "https://jumpsokuhou.blog.jp/index.rdf"
+    },
+    {
+      "name": "常識的に考えた",
+      "blogUrl": "http://blog.livedoor.jp/jyoushiki43/",
+      "rssUrl": "http://blog.livedoor.jp/jyoushiki43/index.rdf"
+    },
+    {
+      "name": "資格ちゃんねる",
+      "blogUrl": "https://shikaku2ch.doorblog.jp/",
+      "rssUrl": "https://shikaku2ch.doorblog.jp/index.rdf"
+    },
+    {
+      "name": "スコールちゃんねる",
+      "blogUrl": "http://squallchannel.com/",
+      "rssUrl": "http://squallchannel.com/index.rdf"
+    },
+    {
+      "name": "ダイエット速報",
+      "blogUrl": "http://blog.livedoor.jp/diet2channel/",
+      "rssUrl": "http://blog.livedoor.jp/diet2channel/index.rdf"
+    },
+    {
+      "name": "大艦巨砲主義!",
+      "blogUrl": "https://taikankyohou.com/",
+      "rssUrl": "https://taikankyohou.com/index.rdf"
+    },
+    {
+      "name": "ツイッター速報",
+      "blogUrl": "https://tsuisoku.com/",
+      "rssUrl": "https://tsuisoku.com/index.rdf"
+    },
+    {
+      "name": "2MONKEYS.JP",
+      "blogUrl": "http://www.2monkeys.jp/",
+      "rssUrl": "http://www.2monkeys.jp/index.rdf"
+    },
+    {
+      "name": "哲学ニュースnwk",
+      "blogUrl": "https://nwknews.jp/",
+      "rssUrl": "https://nwknews.jp/index.rdf",
+      "existingTitle": "哲学ニュース"
+    },
+    {
+      "name": "登山ちゃんねる",
+      "blogUrl": "https://tozanchannel.blog.jp/",
+      "rssUrl": "https://tozanchannel.blog.jp/index.rdf"
+    },
+    {
+      "name": "なんJクエスト",
+      "blogUrl": "https://inutomo11.com/",
+      "rssUrl": "https://inutomo11.com/index.rdf"
+    },
+    {
+      "name": "なんJ政治ネタまとめ",
+      "blogUrl": "https://j-seiji.blog.jp/",
+      "rssUrl": "https://j-seiji.blog.jp/index.rdf"
+    },
+    {
+      "name": "なんJやきう関係ない部",
+      "blogUrl": "https://kankeinai.blog.jp/",
+      "rssUrl": "https://kankeinai.blog.jp/index.rdf"
+    },
+    {
+      "name": "なんJワールド",
+      "blogUrl": "https://nanj-world.blog.jp/",
+      "rssUrl": "https://nanj-world.blog.jp/index.rdf"
+    },
+    {
+      "name": "2chコピペ保存道場",
+      "blogUrl": "http://2chcopipe.com/",
+      "rssUrl": "http://2chcopipe.com/index.rdf"
+    },
+    {
+      "name": "ニュース30over",
+      "blogUrl": "https://www.news30over.com/",
+      "rssUrl": "https://www.news30over.com/index.rdf"
+    },
+    {
+      "name": "NEWSまとめもりー",
+      "blogUrl": "http://www.akb48matomemory.com/",
+      "rssUrl": "http://www.akb48matomemory.com/index.rdf"
+    },
+    {
+      "name": "ニュー速クオリティ",
+      "blogUrl": "https://news4vip.livedoor.biz/",
+      "rssUrl": "https://news4vip.livedoor.biz/index.rdf",
+      "existingTitle": "ニュー速クオリティ"
+    },
+    {
+      "name": "ニュー速VIPワイド",
+      "blogUrl": "http://news4wide.net/",
+      "rssUrl": "http://news4wide.net/index.rdf",
+      "note": "⚠️ 同名サイトは現存せず。旧「ニュー速VIPワイドガイド」=現「VIPワイドガイド」を第一候補として掲載(RSS検証済・HTTPS非対応)。代替候補: ニュー速VIPブログ http://blog.livedoor.jp/insidears/index.rdf (検証済)"
+    },
+    {
+      "name": "ネギ速",
+      "blogUrl": "https://www.negisoku.com/",
+      "rssUrl": "https://www.negisoku.com/index.rdf"
+    },
+    {
+      "name": "ネタめし.com",
+      "blogUrl": "http://www.netamesi.com/",
+      "rssUrl": "http://www.netamesi.com/index.rdf"
+    },
+    {
+      "name": "働く大人の非常識",
+      "blogUrl": "https://hatarakuhijoshiki.livedoor.blog/",
+      "rssUrl": "https://hatarakuhijoshiki.livedoor.blog/index.rdf"
+    },
+    {
+      "name": "働くモノニュース",
+      "blogUrl": "http://workingnews117.com/",
+      "rssUrl": "http://workingnews117.com/?xml"
+    },
+    {
+      "name": "ハムスター速報",
+      "blogUrl": "https://hamusoku.com/",
+      "rssUrl": "https://hamusoku.com/index.rdf"
+    },
+    {
+      "name": "VIPPER速報",
+      "blogUrl": "http://vippers.jp/",
+      "rssUrl": "http://vippers.jp/index.rdf"
+    },
+    {
+      "name": "VIPPERな俺",
+      "blogUrl": "http://blog.livedoor.jp/news23vip/",
+      "rssUrl": "http://blog.livedoor.jp/news23vip/index.rdf",
+      "existingTitle": "VIPPERな俺"
+    },
+    {
+      "name": "BIPブログ",
+      "blogUrl": "http://bipblog.com/",
+      "rssUrl": "http://bipblog.com/index.rdf"
+    },
+    {
+      "name": "PCパーツまとめ",
+      "blogUrl": "http://blog.livedoor.jp/bluejay01-review/",
+      "rssUrl": "http://blog.livedoor.jp/bluejay01-review/index.rdf"
+    },
+    {
+      "name": "暇人\\(^o^)/速報",
+      "blogUrl": "http://himasoku.com/",
+      "rssUrl": "http://himasoku.com/index.rdf",
+      "existingTitle": "暇人速報"
+    },
+    {
+      "name": "ふぇー速",
+      "blogUrl": "http://fesoku.net/",
+      "rssUrl": "http://fesoku.net/index.rdf"
+    },
+    {
+      "name": "不思議.net",
+      "blogUrl": "http://world-fusigi.net/",
+      "rssUrl": "http://world-fusigi.net/index.rdf"
+    },
+    {
+      "name": "マジキチ速報",
+      "blogUrl": "https://majikichi.com/",
+      "rssUrl": "https://majikichi.com/index.rdf"
+    },
+    {
+      "name": "mashlife通信",
+      "blogUrl": "https://mashlife.doorblog.jp/",
+      "rssUrl": "https://mashlife.doorblog.jp/index.rdf"
+    },
+    {
+      "name": "まとめたニュース",
+      "blogUrl": "http://matometanews.com/",
+      "rssUrl": "http://matometanews.com/index.rdf"
+    },
+    {
+      "name": "モナニュース",
+      "blogUrl": "https://mona-news.com/",
+      "rssUrl": "https://mona-news.com/index.rdf"
+    },
+    {
+      "name": "もみあげチャ〜シュ〜",
+      "blogUrl": "https://michaelsan.livedoor.biz/",
+      "rssUrl": "https://michaelsan.livedoor.biz/index.rdf"
+    },
+    {
+      "name": "ライフハックちゃんねる弐式",
+      "blogUrl": "https://lifehack2ch.livedoor.biz/",
+      "rssUrl": "https://lifehack2ch.livedoor.biz/index.rdf"
+    },
+    {
+      "name": "ラビット速報",
+      "blogUrl": "https://rabitsokuhou.2chblog.jp/",
+      "rssUrl": "https://rabitsokuhou.2chblog.jp/index.rdf"
+    },
+    {
+      "name": "理想ちゃんねる",
+      "blogUrl": "https://ideal2ch.livedoor.biz/",
+      "rssUrl": "https://ideal2ch.livedoor.biz/index.rdf"
+    },
+    {
+      "name": "りぷらい速報",
+      "blogUrl": "https://repsoku.net/",
+      "rssUrl": "https://repsoku.net/feed"
+    },
+    {
+      "name": "流速VIP",
+      "blogUrl": "http://ryusoku.com/",
+      "rssUrl": "http://ryusoku.com/index.rdf"
+    }
+  ]
+}
