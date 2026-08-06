@@ -1,6 +1,9 @@
 # 「まとめくん」React Native リプレイス — 残作業まとめ
 
-最終更新: 2026-08-07(**1.45 は両OSとも公開済み** — Android 8/6・iOS 8/7。残るはサイト拡充 Step 3 のみ)
+最終更新: 2026-08-07(**サイト拡充プロジェクト完走** 🎉)
+- 1.45 両OS公開済み(Android 8/6・iOS 8/7)
+- Step 3 完了: 69サイト登録・アイコン61件配信・scraper-rules.json v3配信・新サイト記事のクロール開始を確認
+- 残フォロー: Step 4の実機確認(下記)/フィード不通サイトの棚卸し(1日後に記事0のサイトを確認)/backend `d517eff`(PUTステータス検証)の次回デプロイ
 - Android: 内部テスト実機確認済み → 製品版・完全公開で審査送信(8/6)
 - iOS: TestFlight実機確認済み → 1.45審査提出(8/6、最大48時間)
 - 公開後: docs/SITE-EXPANSION.md の Step 3(seed -upload → SQL → scraper-rules.json配信)を実行

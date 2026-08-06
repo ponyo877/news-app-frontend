@@ -29,7 +29,12 @@
    DB登録するまでアプリの見た目・動作は一切変わらないため AdMob 審査には影響しない
 3. iOS も同様に提出(スクレイパー変更はレビューに影響しない)
 
-### Step 3: サイト一括登録(拡張コード入りアプリの公開後)
+### Step 3: サイト一括登録(拡張コード入りアプリの公開後)✅ 2026-08-07 完了
+
+実施記録: sitesテーブル69件・アイコン61件を/static/へ配信・scraper-rules.json v3配信済み。
+初回実行時、`/var/www/static`(bindマウント)へのnginx(uid 101)書き込み権限がなく
+WebDAV PUTが全件Permission deniedになる問題を`chmod 777`で解消した(appはPUTステータス未検証で
+200を返していた → backend-refactor `d517eff` で修正済み。**次回backendデプロイ時に取り込むこと**)。
 
 ```bash
 # 3-1. アイコンをアップロードしてSQL生成(backend-refactorリポジトリで)
