@@ -137,9 +137,8 @@ const config: ExpoConfig = {
         },
         // iOS deploymentTargetはSDK既定(16.4+)に従う。
         // 旧版は16.0だったがExpo SDK 57の下限が16.4のため、iOS 16.0-16.3端末は更新対象外になる
-        // Firebase iOS SDKはstatic frameworksが必須。react-native-google-mobile-ads側も
-        // static構成に対応している(公式のExpo+RNFirebase併用レシピと同じ)
-        ...(hasFirebaseConfig ? { ios: { useFrameworks: 'static' as const } } : {}),
+        // 注意: RNFirebase v26はFirebase iOS SDKをSPMで解決するため、useFrameworks: static を
+        // 設定してはいけない(「SPM + static linkage is not supported」でpod installが失敗する)
       },
     ],
     [
