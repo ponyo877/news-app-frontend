@@ -27,30 +27,31 @@ export function buildMenuItems(appVersion: string, showAdsPrivacy: boolean): Men
   const adsPrivacyItem: MenuItem[] = showAdsPrivacy
     ? [{ icon: 'ads-click', title: '広告のプライバシー設定', action: { type: 'adsPrivacy' } }]
     : [];
+  // ストアレビューで「設定画面の項目名が英語表記」と指摘されたため日本語化(2026-08)
   return [
-    { icon: 'select-all', title: 'Select Site', action: { type: 'selectSites' } },
+    { icon: 'select-all', title: '表示サイトの選択', action: { type: 'selectSites' } },
     ...adsPrivacyItem,
     {
       icon: 'privacy-tip',
-      title: 'Privacy Policy',
-      action: { type: 'webview', title: 'Privacy Policy', url: PRIVACY_POLICY_URL },
+      title: 'プライバシーポリシー',
+      action: { type: 'webview', title: 'プライバシーポリシー', url: PRIVACY_POLICY_URL },
     },
     {
       icon: 'privacy-tip',
-      title: 'EULA',
-      action: { type: 'webview', title: 'EULA', url: EULA_URL },
+      title: '利用規約(EULA)',
+      action: { type: 'webview', title: '利用規約(EULA)', url: EULA_URL },
     },
     {
       icon: 'email',
-      title: 'Contact Us',
-      action: { type: 'webview', title: 'Contact Us', url: CONTACT_FORM_URL },
+      title: 'お問い合わせ',
+      action: { type: 'webview', title: 'お問い合わせ', url: CONTACT_FORM_URL },
     },
     {
       icon: 'email',
-      title: 'Help & Feedback',
-      action: { type: 'webview', title: 'Help & Feedback', url: HELP_FORM_URL },
+      title: 'ヘルプ・フィードバック',
+      action: { type: 'webview', title: 'ヘルプ・フィードバック', url: HELP_FORM_URL },
     },
     // 旧版は「App Version: 1.41」ハードコード。実バージョンを表示するよう是正
-    { icon: 'arrow-circle-up', title: `App Version: ${appVersion}`, action: { type: 'none' } },
+    { icon: 'arrow-circle-up', title: `アプリバージョン: ${appVersion}`, action: { type: 'none' } },
   ];
 }
