@@ -142,9 +142,7 @@ const config: ExpoConfig = {
   plugins: [
     'expo-dev-client',
     // Firebase設定ファイルがあるときのみネイティブ組み込みを行う(analyticsはapp同梱のためplugin不要)
-    ...(hasFirebaseConfig
-      ? (['@react-native-firebase/app', '@react-native-firebase/crashlytics', withRNFirebaseDisableSPM] as const)
-      : []),
+    ...(hasFirebaseConfig ? ['@react-native-firebase/app', '@react-native-firebase/crashlytics'] : []),
     [
       'expo-build-properties',
       {
@@ -191,4 +189,5 @@ const config: ExpoConfig = {
   ],
 };
 
-export default config;
+// 関数プラグインはExpoConfig型のplugins配列に載らないため、エクスポート時に適用する
+export default hasFirebaseConfig ? withRNFirebaseDisableSPM(config) : config;
