@@ -1,6 +1,8 @@
-import { existsSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 
 import type { ExpoConfig } from 'expo/config';
+import { withDangerousMod, type ConfigPlugin } from 'expo/config-plugins';
 
 // AdMob: 既存ストアアプリと同一のアプリID(変更禁止)
 const ADMOB_ANDROID_APP_ID = 'ca-app-pub-6803082941924637~1899149618';
@@ -12,6 +14,22 @@ const ADMOB_IOS_APP_ID = 'ca-app-pub-6803082941924637~3022699020';
 const GOOGLE_SERVICES_ANDROID = './google-services.json';
 const GOOGLE_SERVICES_IOS = './GoogleService-Info.plist';
 const hasFirebaseConfig = existsSync(GOOGLE_SERVICES_ANDROID) && existsSync(GOOGLE_SERVICES_IOS);
+
+// RNFirebase v26のSPM解決はdynamic linkage必須で、Expoの静的構成では
+// 「SPM + static linkage is not supported」でpod installが失敗する。
+// SPMを無効化してCocoaPods配布のFirebaseに落とす(useFrameworks: static とセットの実績構成)
+const withRNFirebaseDisableSPM: ConfigPlugin = (config) =>
+  withDangerousMod(config, [
+    'ios',
+    (cfg) => {
+      const podfilePath = join(cfg.modRequest.platformProjectRoot, 'Podfile');
+      const podfile = readFileSync(podfilePath, 'utf8');
+      if (!podfile.includes('$RNFirebaseDisableSPM')) {
+        writeFileSync(podfilePath, `$RNFirebaseDisableSPM = true\n${podfile}`);
+      }
+      return cfg;
+    },
+  ]);
 
 // 旧Info.plistの50件を移植(pluginは自動注入しないため明示指定が必要)。
 // 旧plistに混入していた末尾スペースは正規化済み
@@ -124,7 +142,9 @@ const config: ExpoConfig = {
   plugins: [
     'expo-dev-client',
     // Firebase設定ファイルがあるときのみネイティブ組み込みを行う(analyticsはapp同梱のためplugin不要)
-    ...(hasFirebaseConfig ? ['@react-native-firebase/app', '@react-native-firebase/crashlytics'] : []),
+    ...(hasFirebaseConfig
+      ? (['@react-native-firebase/app', '@react-native-firebase/crashlytics', withRNFirebaseDisableSPM] as const)
+      : []),
     [
       'expo-build-properties',
       {
@@ -137,8 +157,9 @@ const config: ExpoConfig = {
         },
         // iOS deploymentTargetはSDK既定(16.4+)に従う。
         // 旧版は16.0だったがExpo SDK 57の下限が16.4のため、iOS 16.0-16.3端末は更新対象外になる
-        // 注意: RNFirebase v26はFirebase iOS SDKをSPMで解決するため、useFrameworks: static を
-        // 設定してはいけない(「SPM + static linkage is not supported」でpod installが失敗する)
+        // Firebase(CocoaPods配布・SPM無効)はstatic frameworksが必要。
+        // withRNFirebaseDisableSPM とセットで従来から実績のある構成にしている
+        ...(hasFirebaseConfig ? { ios: { useFrameworks: 'static' as const } } : {}),
       },
     ],
     [
