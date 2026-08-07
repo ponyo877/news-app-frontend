@@ -1,8 +1,17 @@
+import { existsSync } from 'fs';
+
 import type { ExpoConfig } from 'expo/config';
 
 // AdMob: 既存ストアアプリと同一のアプリID(変更禁止)
 const ADMOB_ANDROID_APP_ID = 'ca-app-pub-6803082941924637~1899149618';
 const ADMOB_IOS_APP_ID = 'ca-app-pub-6803082941924637~3022699020';
+
+// Firebase(Analytics + Crashlytics)。設定ファイル2点をFirebaseコンソールから
+// ダウンロードしてリポジトリ直下に置くと有効化される(docs/RELEASE.md参照)。
+// 未配置でもビルド・動作は従来どおり(src/lib/analytics.ts が no-op に落ちる)
+const GOOGLE_SERVICES_ANDROID = './google-services.json';
+const GOOGLE_SERVICES_IOS = './GoogleService-Info.plist';
+const hasFirebaseConfig = existsSync(GOOGLE_SERVICES_ANDROID) && existsSync(GOOGLE_SERVICES_IOS);
 
 // 旧Info.plistの50件を移植(pluginは自動注入しないため明示指定が必要)。
 // 旧plistに混入していた末尾スペースは正規化済み
@@ -62,7 +71,7 @@ const SK_AD_NETWORK_ITEMS = [
 const config: ExpoConfig = {
   name: 'まとめくん',
   slug: 'matome-kun',
-  version: '1.45',
+  version: '1.46',
   extra: {
     eas: { projectId: '2d486ee4-ba33-45bd-ba1b-a2d421d7de97' },
   },
@@ -73,7 +82,8 @@ const config: ExpoConfig = {
     // 既存App Storeアプリと同一(ハイフン)。Androidと文字列が異なる点に注意
     bundleIdentifier: 'com.matomebeta-app',
     // 旧版の最終build 42より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)。
-    buildNumber: '46',
+    buildNumber: '47',
+    ...(hasFirebaseConfig ? { googleServicesFile: GOOGLE_SERVICES_IOS } : {}),
     supportsTablet: true,
     requireFullScreen: true,
     infoPlist: {
@@ -103,7 +113,8 @@ const config: ExpoConfig = {
     // 既存Playアプリと同一(アンダースコア)
     package: 'com.matomebeta_app',
     // Play製品版の最新vc44より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)。
-    versionCode: 48,
+    versionCode: 49,
+    ...(hasFirebaseConfig ? { googleServicesFile: GOOGLE_SERVICES_ANDROID } : {}),
     adaptiveIcon: {
       foregroundImage: './assets/app/adaptive-foreground.png',
       backgroundColor: '#E0AEE7',
@@ -112,6 +123,8 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-dev-client',
+    // Firebase設定ファイルがあるときのみネイティブ組み込みを行う(analyticsはapp同梱のためplugin不要)
+    ...(hasFirebaseConfig ? ['@react-native-firebase/app', '@react-native-firebase/crashlytics'] : []),
     [
       'expo-build-properties',
       {
@@ -124,6 +137,9 @@ const config: ExpoConfig = {
         },
         // iOS deploymentTargetはSDK既定(16.4+)に従う。
         // 旧版は16.0だったがExpo SDK 57の下限が16.4のため、iOS 16.0-16.3端末は更新対象外になる
+        // Firebase iOS SDKはstatic frameworksが必須。react-native-google-mobile-ads側も
+        // static構成に対応している(公式のExpo+RNFirebase併用レシピと同じ)
+        ...(hasFirebaseConfig ? { ios: { useFrameworks: 'static' as const } } : {}),
       },
     ],
     [

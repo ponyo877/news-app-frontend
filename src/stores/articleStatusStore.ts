@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 
+import { logEvent } from '@/lib/analytics';
 import { zustandStorage } from '@/stores/mmkv';
 
 // 記事のフラグ(既読/お気に入り/履歴)を記事IDで正規化して一元管理する。
@@ -20,6 +21,9 @@ export interface HistoryEntry extends ArticleMeta {
   viewedAt: number;
 }
 
+// 履歴の保持上限。persistは更新のたびにストア全体をMMKVへ書くため、無制限は書き込み劣化に直結する
+const HISTORY_LIMIT = 500;
+
 interface ArticleStatusState {
   readIds: Record<string, true>;
   favorites: Record<string, ArticleMeta>;
@@ -34,11 +38,15 @@ export const useArticleStatusStore = create<ArticleStatusState>()(
       readIds: {},
       favorites: {},
       history: [],
-      // 既読化+履歴追加(旧版と同じく重複排除なし・上限なし)
+      // 既読化+履歴追加。同一記事は最新閲覧のみ残し、全体を上限件数に丸める。
+      // (旧版は重複排除も上限もなく、ヘビーユーザーほど配列肥大で遅くなっていた)
       markRead: (article) =>
         set((s) => ({
           readIds: { ...s.readIds, [article.id]: true },
-          history: [...s.history, { ...article, viewedAt: Date.now() }],
+          history: [
+            ...s.history.filter((entry) => entry.id !== article.id),
+            { ...article, viewedAt: Date.now() },
+          ].slice(-HISTORY_LIMIT),
         })),
       toggleFavorite: (article) =>
         set((s) => {
@@ -48,6 +56,7 @@ export const useArticleStatusStore = create<ArticleStatusState>()(
           } else {
             favorites[article.id] = article;
           }
+          logEvent('favorite', { added: !s.favorites[article.id], site: article.sitetitle });
           return { favorites };
         }),
     }),

@@ -16,6 +16,7 @@ import {
   postComment,
   searchArticles,
 } from '@/api/endpoints';
+import { logEvent } from '@/lib/analytics';
 import { useSiteFilterStore } from '@/stores/siteFilterStore';
 import { useUserStore } from '@/stores/userStore';
 
@@ -92,6 +93,9 @@ export function usePostComment(articleId: string) {
         throw new Error('inappropriate');
       }
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: queryKeys.comments(articleId) }),
+    onSuccess: () => {
+      logEvent('comment_post');
+      void client.invalidateQueries({ queryKey: queryKeys.comments(articleId) });
+    },
   });
 }

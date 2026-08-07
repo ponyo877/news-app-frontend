@@ -23,10 +23,27 @@ describe('articleStatusStore', () => {
     expect(s.history[0]?.id).toBe('a1');
   });
 
-  it('markReadは旧版同様に履歴の重複を許す', () => {
+  it('markReadは同一記事を重複させず最新閲覧として末尾に置く', () => {
+    const other: ArticleMeta = { ...article, id: 'a2', titles: '別の記事' };
     useArticleStatusStore.getState().markRead(article);
+    useArticleStatusStore.getState().markRead(other);
     useArticleStatusStore.getState().markRead(article);
-    expect(useArticleStatusStore.getState().history).toHaveLength(2);
+    const history = useArticleStatusStore.getState().history;
+    expect(history).toHaveLength(2);
+    // 再閲覧した記事が末尾(=履歴表示の先頭)に来る
+    expect(history[1]?.id).toBe('a1');
+    expect(history[0]?.id).toBe('a2');
+  });
+
+  it('markReadは履歴を上限500件に丸める', () => {
+    for (let i = 0; i < 510; i++) {
+      useArticleStatusStore.getState().markRead({ ...article, id: `id-${i}` });
+    }
+    const history = useArticleStatusStore.getState().history;
+    expect(history).toHaveLength(500);
+    // 古い方から削られる(最古のid-0〜id-9が消え、最新のid-509が残る)
+    expect(history[0]?.id).toBe('id-10');
+    expect(history[499]?.id).toBe('id-509');
   });
 
   it('toggleFavoriteで追加と削除がトグルする', () => {

@@ -4,6 +4,7 @@ import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-nativ
 
 import { RankingPeriod } from '@/api/endpoints';
 import { usePopularArticles } from '@/api/queries';
+import { ErrorState } from '@/components/ErrorState';
 import { NewsCard } from '@/components/NewsCard';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { colors } from '@/theme/colors';
@@ -19,6 +20,16 @@ interface PopularListProps {
 // インフィード広告は入れない(広告はHomeの「新着」のみ)
 export function PopularList({ period, renderLeading, onPressMenu }: PopularListProps) {
   const query = usePopularArticles(period);
+
+  // 旧実装はエラー時も !query.data で永遠にスピナーが回り続けていた
+  if (query.isError) {
+    return (
+      <ErrorState
+        message={'読み込みに失敗しました。\n通信環境をご確認ください。'}
+        onRetry={() => void query.refetch()}
+      />
+    );
+  }
 
   if (query.isLoading || !query.data) {
     return (

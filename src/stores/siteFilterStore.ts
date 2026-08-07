@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { logEvent } from '@/lib/analytics';
 import { zustandStorage } from '@/stores/mmkv';
 
 // 非表示(ブロック)にしたサイトID。旧版の mySkipIDs.csv に相当。
@@ -16,17 +17,23 @@ export const useSiteFilterStore = create<SiteFilterState>()(
     (set) => ({
       blockedSiteIds: [],
       blockSite: (siteId) =>
-        set((s) =>
-          s.blockedSiteIds.includes(siteId)
-            ? s
-            : { blockedSiteIds: [...s.blockedSiteIds, siteId] },
-        ),
+        set((s) => {
+          if (s.blockedSiteIds.includes(siteId)) {
+            return s;
+          }
+          logEvent('site_block', { site_id: siteId, blocked: true });
+          return { blockedSiteIds: [...s.blockedSiteIds, siteId] };
+        }),
       toggleSite: (siteId) =>
-        set((s) => ({
-          blockedSiteIds: s.blockedSiteIds.includes(siteId)
-            ? s.blockedSiteIds.filter((id) => id !== siteId)
-            : [...s.blockedSiteIds, siteId],
-        })),
+        set((s) => {
+          const blocked = !s.blockedSiteIds.includes(siteId);
+          logEvent('site_block', { site_id: siteId, blocked });
+          return {
+            blockedSiteIds: blocked
+              ? [...s.blockedSiteIds, siteId]
+              : s.blockedSiteIds.filter((id) => id !== siteId),
+          };
+        }),
       setBlockedSiteIds: (ids) => set({ blockedSiteIds: ids }),
     }),
     { name: 'site-filter', storage: createJSONStorage(() => zustandStorage) },

@@ -16,11 +16,13 @@ import { WebView } from 'react-native-webview';
 
 import { incrementView } from '@/api/endpoints';
 import { useSimilarArticles } from '@/api/queries';
+import { ErrorState } from '@/components/ErrorState';
 import { ArticleHeaderActions } from '@/features/article/ArticleHeaderActions';
 import { RelatedArticlesSheet } from '@/features/article/RelatedArticlesSheet';
 import { useArticleHtml } from '@/features/article/useArticleHtml';
 import { CommentPanel } from '@/features/comments/CommentPanel';
 import { bannerAdUnitId } from '@/lib/ads';
+import { logEvent } from '@/lib/analytics';
 import type { RootStackParamList } from '@/navigation/types';
 import { useArticleStatusStore } from '@/stores/articleStatusStore';
 import { colors } from '@/theme/colors';
@@ -51,6 +53,16 @@ export function ArticleScreen({ route, navigation }: Props) {
     // 既読化+履歴追加+閲覧数はマウント時に1回(履歴カード経由でも同一挙動)
     markRead(article);
     incrementView(article.id);
+    // 中核イベント: どのサイトの記事がどれだけ読まれているか
+    logEvent('article_open', { site: article.sitetitle, article_id: article.id });
+    const openedAt = Date.now();
+    return () => {
+      // 滞在秒数つきの読了イベント(離脱の質を見る)
+      logEvent('article_read_done', {
+        site: article.sitetitle,
+        seconds: Math.round((Date.now() - openedAt) / 1000),
+      });
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -69,6 +81,17 @@ export function ArticleScreen({ route, navigation }: Props) {
       ),
     });
   }, [navigation, article, isExpanded, related.length, isRelatedOpen]);
+
+  // 取得失敗(タイムアウト含む)。旧実装は data===undefined のまま無限スピナーだった。
+  // この分岐では広告バナーを描画しないため、中央の再読み込みボタンはAdMob隣接制約に抵触しない
+  if (htmlQuery.isError) {
+    return (
+      <ErrorState
+        message={'記事を読み込めませんでした。\nサイトが混み合っているか、\n通信環境に問題がある可能性があります。'}
+        onRetry={() => void htmlQuery.refetch()}
+      />
+    );
+  }
 
   if (htmlQuery.isLoading || htmlQuery.data === undefined) {
     return (

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "595509297360",
+    "project_id": "matome-kun",
+    "storage_bucket": "matome-kun.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:595509297360:android:0d4bf7be0158bd0e695ed5",
+        "android_client_info": {
+          "package_name": "com.matomebeta_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsEtRE7R4RtXQkYSBGfVisdpKXjfZnMKI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

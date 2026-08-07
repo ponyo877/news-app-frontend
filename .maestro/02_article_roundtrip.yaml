@@ -10,9 +10,12 @@ appId: com.matomebeta_app
 # リスト上部の記事カードをタップ(座標ベース)
 - tapOn:
     point: '50%, 35%'
+# 1.44でコメント開閉はヘッダーのアイコンボタンに移動した(accessibilityLabelで特定)
 - extendedWaitUntil:
     visible: 'コメントを開く'
     timeout: 15000
 - tapOn: 'コメントを開く'
-- assertVisible: '記事を開く'
+# 開くとラベルが「コメントを閉じる」に切り替わり、入力欄が現れる
+- assertVisible: 'コメントを閉じる'
+- assertVisible: 'コメントを書く ✍'
 - back

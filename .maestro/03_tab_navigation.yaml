@@ -9,8 +9,9 @@ appId: com.matomebeta_app
 - tapOn: 'MyPage'
 - assertVisible: 'History'
 - assertVisible: 'Favorite'
+# 設定メニューは1.45で日本語化済み(ストアレビュー指摘対応)
 - tapOn: 'Setting'
-- assertVisible: 'Profile'
-- assertVisible: 'Select Site'
+- assertVisible: 'Edit Name'
+- assertVisible: '表示サイトの選択'
 - tapOn: 'Home'
 - assertVisible: 'for You'

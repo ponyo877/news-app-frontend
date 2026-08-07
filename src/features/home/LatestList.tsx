@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { useLatestArticles } from '@/api/queries';
+import { ErrorState } from '@/components/ErrorState';
 import { FeedAdCard } from '@/components/FeedAdCard';
 import { NewsCard } from '@/components/NewsCard';
 import { withFeedAds } from '@/lib/feedAds';
@@ -32,6 +33,16 @@ export function LatestList({ onPressMenu }: LatestListProps) {
       <View style={styles.center}>
         <ActivityIndicator color={colors.textPrimary} />
       </View>
+    );
+  }
+
+  // エラー時に無言の空リストを出さない(1ページ目の失敗のみ。2ページ目以降の失敗は取得済み分を表示)
+  if (query.isError && articles.length === 0) {
+    return (
+      <ErrorState
+        message={'読み込みに失敗しました。\n通信環境をご確認ください。'}
+        onRetry={() => void query.refetch()}
+      />
     );
   }
 

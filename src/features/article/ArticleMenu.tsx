@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
+import { logEvent } from '@/lib/analytics';
 import { articleReportUrl } from '@/lib/reportForms';
 import type { RootNavigation } from '@/navigation/types';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
@@ -20,6 +21,7 @@ export function ArticleMenu({
 
   const share = async () => {
     setOpen(false);
+    logEvent('share', { site: article.sitetitle });
     // 旧FlutterShare: title + "title: X" + "URL: Y" と同内容
     await Share.share({
       title: article.titles,

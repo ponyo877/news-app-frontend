@@ -1,12 +1,15 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TextInput, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 
 import { useSearchArticles } from '@/api/queries';
+import { EmptyMessage } from '@/components/EmptyMessage';
+import { ErrorState } from '@/components/ErrorState';
 import { NewsCard } from '@/components/NewsCard';
 import { useArticleActionSheet } from '@/features/article/useArticleActionSheet';
 import { useDebouncedValue } from '@/features/search/useDebouncedValue';
+import { logEvent } from '@/lib/analytics';
 import { colors } from '@/theme/colors';
 import { fontFamily } from '@/theme/typography';
 
@@ -17,6 +20,45 @@ export function SearchScreen() {
   const query = useSearchArticles(debouncedKeyword);
   const { openSheet, sheet } = useArticleActionSheet();
 
+  useEffect(() => {
+    if (debouncedKeyword !== '') {
+      logEvent('search');
+    }
+  }, [debouncedKeyword]);
+
+  const renderResults = () => {
+    if (debouncedKeyword === '') {
+      return <EmptyMessage message="キーワードで記事を検索できます" />;
+    }
+    if (query.isError) {
+      return (
+        <ErrorState
+          message={'検索に失敗しました。\n通信環境をご確認ください。'}
+          onRetry={() => void query.refetch()}
+        />
+      );
+    }
+    if (query.isLoading) {
+      return (
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.textPrimary} />
+        </View>
+      );
+    }
+    const results = query.data ?? [];
+    if (results.length === 0) {
+      return <EmptyMessage message="一致する記事が見つかりませんでした" />;
+    }
+    return (
+      <FlashList
+        data={results}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
+        renderItem={({ item }) => <NewsCard article={item} onPressMenu={openSheet} />}
+        keyboardShouldPersistTaps="handled"
+      />
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.inputWrap}>
@@ -25,24 +67,12 @@ export function SearchScreen() {
           style={styles.input}
           value={keyword}
           onChangeText={setKeyword}
+          placeholder="キーワードで検索"
           placeholderTextColor={colors.textDisabled}
           autoCorrect={false}
         />
       </View>
-      <View style={styles.results}>
-        {query.isLoading ? (
-          <View style={styles.center}>
-            <ActivityIndicator color={colors.textPrimary} />
-          </View>
-        ) : (
-          <FlashList
-            data={query.data ?? []}
-            keyExtractor={(item, index) => `${item.id}-${index}`}
-            renderItem={({ item }) => <NewsCard article={item} onPressMenu={openSheet} />}
-            keyboardShouldPersistTaps="handled"
-          />
-        )}
-      </View>
+      <View style={styles.results}>{renderResults()}</View>
       {sheet}
     </View>
   );
