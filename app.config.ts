@@ -89,7 +89,7 @@ const SK_AD_NETWORK_ITEMS = [
 const config: ExpoConfig = {
   name: 'まとめくん',
   slug: 'matome-kun',
-  version: '1.46',
+  version: '1.47',
   extra: {
     eas: { projectId: '2d486ee4-ba33-45bd-ba1b-a2d421d7de97' },
   },
@@ -100,7 +100,7 @@ const config: ExpoConfig = {
     // 既存App Storeアプリと同一(ハイフン)。Androidと文字列が異なる点に注意
     bundleIdentifier: 'com.matomebeta-app',
     // 旧版の最終build 42より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)。
-    buildNumber: '47',
+    buildNumber: '48',
     ...(hasFirebaseConfig ? { googleServicesFile: GOOGLE_SERVICES_IOS } : {}),
     supportsTablet: true,
     requireFullScreen: true,
@@ -131,7 +131,7 @@ const config: ExpoConfig = {
     // 既存Playアプリと同一(アンダースコア)
     package: 'com.matomebeta_app',
     // Play製品版の最新vc44より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)。
-    versionCode: 49,
+    versionCode: 50,
     ...(hasFirebaseConfig ? { googleServicesFile: GOOGLE_SERVICES_ANDROID } : {}),
     adaptiveIcon: {
       foregroundImage: './assets/app/adaptive-foreground.png',
@@ -141,6 +141,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-dev-client',
+    'expo-notifications',
     // Firebase設定ファイルがあるときのみネイティブ組み込みを行う(analyticsはapp同梱のためplugin不要)
     ...(hasFirebaseConfig ? ['@react-native-firebase/app', '@react-native-firebase/crashlytics'] : []),
     [

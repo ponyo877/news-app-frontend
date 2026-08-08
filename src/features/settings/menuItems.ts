@@ -14,6 +14,7 @@ export type MenuAction =
   | { type: 'selectSites' }
   | { type: 'webview'; title: string; url: string }
   | { type: 'adsPrivacy' }
+  | { type: 'digestToggle' }
   | { type: 'none' };
 
 export interface MenuItem {
@@ -30,6 +31,8 @@ export function buildMenuItems(appVersion: string, showAdsPrivacy: boolean): Men
   // ストアレビューで「設定画面の項目名が英語表記」と指摘されたため日本語化(2026-08)
   return [
     { icon: 'select-all', title: '表示サイトの選択', action: { type: 'selectSites' } },
+    // 通知タイプ別ON/OFF(オプトアウト導線がないと低評価レビューに直結する)
+    { icon: 'notifications', title: '人気記事の通知(朝・夜)', action: { type: 'digestToggle' } },
     ...adsPrivacyItem,
     {
       icon: 'privacy-tip',

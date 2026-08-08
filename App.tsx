@@ -17,11 +17,16 @@ import { InfoDialog } from '@/components/InfoDialog';
 import { initializeAds } from '@/lib/ads';
 import { logError } from '@/lib/analytics';
 import { bootstrapUser } from '@/lib/bootstrap';
+import { configureNotificationHandler, syncPushTokenIfGranted } from '@/lib/notifications';
 import { RootNavigator } from '@/navigation/RootNavigator';
+import { useNotificationStore } from '@/stores/notificationStore';
 
 // フォント読み込みが終わるまでスプラッシュを保持する。
 // 従来は制御していなかったため「スプラッシュが消えた後の白画面」が起動のたびに見えていた
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// フォアグラウンド受信時の通知表示方法(通知タップの遷移はRootNavigator側)
+configureNotificationHandler();
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -41,6 +46,8 @@ export default function App() {
         // 起動処理の失敗でアプリを止めない(次回起動時に再試行される)
         logError(error, 'bootstrapUser');
       });
+    // 許諾済み端末のみ: トークンローテーションに追随してサーバへ再登録
+    void syncPushTokenIfGranted(useNotificationStore.getState().digestEnabled);
   }, []);
 
   useEffect(() => {

@@ -64,6 +64,29 @@ export async function postComment(
   return { ok: res.ok };
 }
 
+export interface PostDeviceTokenParams {
+  expotoken: string;
+  devicehash: string;
+  platform: string;
+  digest: boolean;
+}
+
+// POST /v1/user/token — プッシュ通知トークンの登録・設定更新(同一トークンはupsert)
+export async function postDeviceToken({
+  expotoken,
+  devicehash,
+  platform,
+  digest,
+}: PostDeviceTokenParams): Promise<boolean> {
+  const res = await postForm('/v1/user/token', {
+    expotoken,
+    devicehash,
+    platform,
+    digest: String(digest),
+  });
+  return res.ok;
+}
+
 export interface PostUserParams {
   devicehash: string;
   name?: string;

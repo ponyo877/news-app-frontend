@@ -2,12 +2,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as Application from 'expo-application';
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { isAdsPrivacyOptionsRequired, showAdsPrivacyOptionsForm } from '@/lib/ads';
 import { ProfileCard } from '@/features/settings/ProfileCard';
 import { MenuItem, buildMenuItems } from '@/features/settings/menuItems';
+import { logEvent } from '@/lib/analytics';
+import { registerPushToken, requestPermissionAndRegister } from '@/lib/notifications';
 import type { RootNavigation } from '@/navigation/types';
+import { useNotificationStore } from '@/stores/notificationStore';
 import { colors } from '@/theme/colors';
 import { fontFamily } from '@/theme/typography';
 
@@ -15,12 +18,26 @@ import { fontFamily } from '@/theme/typography';
 export function SettingsScreen() {
   const navigation = useNavigation<RootNavigation>();
   const [showAdsPrivacy, setShowAdsPrivacy] = useState(false);
+  const digestEnabled = useNotificationStore((s) => s.digestEnabled);
 
   useEffect(() => {
     void isAdsPrivacyOptionsRequired().then(setShowAdsPrivacy);
   }, []);
 
   const menuItems = buildMenuItems(Application.nativeApplicationVersion ?? '-', showAdsPrivacy);
+
+  // 設定画面からの明示操作なので、未許諾端末ではここでOSプロンプトを出してよい。
+  // OFFはサーバ側の配信対象からも外す(digest=falseで上書き登録)
+  const onToggleDigest = (value: boolean) => {
+    useNotificationStore.getState().setDigestEnabled(value);
+    useNotificationStore.getState().setPromptDone();
+    logEvent('digest_toggle', { enabled: String(value) });
+    if (value) {
+      void requestPermissionAndRegister(true);
+    } else {
+      void registerPushToken(false);
+    }
+  };
 
   const onPressItem = (item: MenuItem) => {
     switch (item.action.type) {
@@ -53,16 +70,24 @@ export function SettingsScreen() {
             <Pressable
               style={styles.row}
               onPress={() => onPressItem(item)}
-              disabled={item.action.type === 'none'}
+              disabled={item.action.type === 'none' || item.action.type === 'digestToggle'}
             >
               <MaterialIcons name={item.icon} size={24} color={colors.textPrimary} />
               <Text style={styles.title}>{item.title}</Text>
-              {item.action.type !== 'none' && (
-                <MaterialIcons
-                  name="keyboard-arrow-right"
-                  size={24}
-                  color={colors.textSecondary}
+              {item.action.type === 'digestToggle' ? (
+                <Switch
+                  value={digestEnabled}
+                  onValueChange={onToggleDigest}
+                  trackColor={{ true: colors.blueGrey }}
                 />
+              ) : (
+                item.action.type !== 'none' && (
+                  <MaterialIcons
+                    name="keyboard-arrow-right"
+                    size={24}
+                    color={colors.textSecondary}
+                  />
+                )
               )}
             </Pressable>
           )}
