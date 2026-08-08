@@ -102,7 +102,7 @@ const config: ExpoConfig = {
     // 既存App Storeアプリと同一(ハイフン)。Androidと文字列が異なる点に注意
     bundleIdentifier: 'com.matomebeta-app',
     // 旧版の最終build 42より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)。
-    buildNumber: '49',
+    buildNumber: '50',
     ...(hasFirebaseConfig ? { googleServicesFile: GOOGLE_SERVICES_IOS } : {}),
     // Universal Links(/.well-known/apple-app-site-associationは配信済み)。
     // ios/は未コミット=EASリモートprebuildなのでこの宣言だけでentitlementsに反映される
@@ -136,7 +136,7 @@ const config: ExpoConfig = {
     // 既存Playアプリと同一(アンダースコア)
     package: 'com.matomebeta_app',
     // Play製品版の最新vc44より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)。
-    versionCode: 51,
+    versionCode: 52,
     ...(hasFirebaseConfig ? { googleServicesFile: GOOGLE_SERVICES_ANDROID } : {}),
     adaptiveIcon: {
       foregroundImage: './assets/app/adaptive-foreground.png',
