@@ -85,6 +85,12 @@ DAU = 既存ユーザーの再活性化 + (新規獲得数 × 定着率)
 | `search` | keyword有無 | 検索の実需 |
 | `share` / `favorite` / `site_block` | site_id | 機能利用率 |
 | `notification_open`(Phase 1〜) | type | 通知の呼び戻し効果 |
+| `deeplink_open`(Phase 2〜) | article_id | 共有リンク経由の流入 |
+| `share`(Phase 2〜 from追加) | site, from(header/list_sheet) | シェア導線の効き |
+| `article_open`(Phase 2〜 from追加) | site, article_id, from | 導線内訳(for You評価の中核) |
+| `read_end_reached`(Phase 2〜) | site | 記事を最後まで読んだ率 |
+| `onboarding_done`(Phase 2〜) | selected_count, skipped | 初回サイト選択の完了率 |
+| `font_scale` / `ng_word` / `review_prompt`(Phase 2〜) | scale / action / read_count | 機能利用率 |
 
 ### 2-2. バックエンド緊急修理(いずれも数行〜数十行、10倍トラフィックの前提条件)
 
@@ -300,3 +306,42 @@ DAU = 既存ユーザーの再活性化 + (新規獲得数 × 定着率)
 - [x] 1.47 ストア提出完了(2026-08-08): Android → Play internal / iOS → TestFlight。FCM V1キー・APNsキー(V4S7K968ZP)登録済みで両OS送信可能。残りは実機確認→本番昇格のみ
 - [ ] 通知タイプ第2弾: 急上昇速報(閲覧数の増分検知)— ダイジェストのCTR計測後に判断
 - 出口条件の計測: 許諾率(notification_permission)・CTR(notification_open ÷ 送信数)・通知経由セッション
+
+## 11. Phase 2 実装状況(2026-08-08)
+
+**「定着する体験」9機能を実装・デプロイ完了。1.48 として両ストアへ提出。**
+
+### 推薦基盤(Cloudflare・月額$0で検証開始)
+- [x] `news-app-infra/workers/recs/` — Workers AI bge-m3(日本語対応・1024次元)+ Vectorize Free
+- [x] 取り込みはVMの `recs-ingest.timer`(5分毎)→ `POST /internal/ingest`(CRON_TOKEN保護)。
+      Workers Freeのcron枠(5個)が他プロジェクトで満杯のための回避策
+- [x] `POST /recs/foryou`(人単位: 時間減衰ユーザーベクトルのtopK)/ `POST /recs/related`(人×記事: 0.7記事+0.3人)
+- [x] 保持48時間(Free 5M次元制約)。**Paid昇格($5/月)は `RETENTION_MS` を14日に変えるだけ**。
+      クエリ枠30M/月superação(≈DAU 300)が昇格トリガー
+- [x] 検証済み: 別サイトの同一トピック記事を1位検出する精度
+
+### R1(backend/infra、デプロイ・検証済み)
+- [x] 共有着地ページ `GET /a/{id}` — OGP付きSSR(go:embed)、スマートバナー、`matomekun://`、
+      Cache-Control自己管理(200=CFエッジ1日/404=no-store)。CF Cache Rule「landing-cache」でHIT確認
+- [x] `GET /v1/article/meta/{id}`(ディープリンク着地のID→メタ復元)
+- [x] Universal Links/App Links: AASA+assetlinks.json配信(Apple CDN取り込み・Google API検証済み)。
+      assetlinksにはPlayアプリ署名鍵とEASアップロード鍵のSHA-256を両方登録
+- [x] コメントerr握り潰しバグ修正(DB障害でも200が返っていた)
+
+### R2(アプリ1.48、テスト249件通過)
+- [x] for You本物化: recs第一候補+端末内リランク縮退(`lib/forYou.ts`)。旧daily複製を廃止
+- [x] ⚡関連記事 = 人×記事推薦に置換(BERT封印の後継)。記事末尾到達で⚡点灯
+- [x] シェア1タップ化(ヘッダー+一覧シート)、着地URL化、ArticleMenuからShare撤去
+- [x] ディープリンク: RN標準Linkingで受けて通知タップと同じpendingArticle機構に合流。
+      scheme=matomekun、associatedDomains、intentFilters(AndroidはManifest直編集が正)
+- [x] オンボーディング1画面(サイト選択→preferredSiteIds。自動ブロックはしない。停止サイト除外)
+- [x] NGワード(上限50・NFKC部分一致)+ブロックの全タブ適用(`useVisibleArticles`)
+- [x] 文字サイズS/M/L/XL(Android textZoom / iOS text-size-adjust。ArticleMenu内ピル)
+- [x] 新着サイト別バランシング(ページ内上限5・連続2。並べ替えのみ)
+- [x] ストアレビュー依頼(既読10本+3日+1回だけ)
+- [x] 日本語化統一・コメントエラー実文言化(backendにNG検査は存在しなかった)
+
+### 残タスク(1.49以降)
+- [ ] オフラインキャッシュ(persistQueryClient。起動経路変更のため単独リリース)
+- [ ] Vectorize Paid昇格判断(from=foryouのCTRを1〜2週間観測後)
+- [ ] Apex @ DNSレコードの復元(元の値が不明のまま)
