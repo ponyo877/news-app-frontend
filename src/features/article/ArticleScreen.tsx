@@ -47,8 +47,10 @@ export function ArticleScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isRelatedOpen, setIsRelatedOpen] = useState(false);
-  // 記事末尾まで読んだら⚡をハイライトして「次のおすすめ」へ誘導する(下部UIはAdMob制約で不可)
+  // 記事末尾まで読んだら「この記事を読んだあなたへ」シートを自動表示する
+  // (シートはヘッダー直下から降りるためAdMob下部制約に抵触しない)
   const [reachedEnd, setReachedEnd] = useState(false);
+  const autoOpenedRef = useRef(false);
   const webViewRef = useRef<WebView>(null);
   const fontPercent = percentOf(useFontSizeStore((s) => s.scale));
 
@@ -102,6 +104,14 @@ export function ArticleScreen({ route, navigation }: Props) {
       webViewRef.current?.injectJavaScript(fontScaleScript(fontPercent));
     }
   }, [fontPercent]);
+
+  useEffect(() => {
+    // 記事を最後まで読んだら1回だけ自動でおすすめを開く(閉じたら再表示しない)
+    if (reachedEnd && related.length > 0 && !autoOpenedRef.current) {
+      autoOpenedRef.current = true;
+      setIsRelatedOpen(true);
+    }
+  }, [reachedEnd, related.length]);
 
   // 取得失敗(タイムアウト含む)。旧実装は data===undefined のまま無限スピナーだった。
   // この分岐では広告バナーを描画しないため、中央の再読み込みボタンはAdMob隣接制約に抵触しない

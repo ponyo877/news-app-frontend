@@ -36,7 +36,7 @@ export function HomeScreen() {
             tabBarLabel: ({ color }) => (
               <View style={styles.forYouLabel}>
                 <MaterialIcons name="recommend" size={30} color={color} />
-                <Text style={[styles.forYouText, { color }]}>for You</Text>
+                <Text style={[styles.forYouText, { color }]}>あなたへ</Text>
               </View>
             ),
           }}

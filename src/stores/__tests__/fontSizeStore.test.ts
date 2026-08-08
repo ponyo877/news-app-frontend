@@ -18,9 +18,9 @@ describe('fontSizeStore', () => {
 });
 
 describe('fontScaleScript', () => {
-  it('percentが埋め込まれ、末尾がtrue;(RN WebViewの作法)', () => {
+  it('zoom倍率が埋め込まれ、末尾がtrue;(RN WebViewの作法)', () => {
     const script = fontScaleScript(115);
-    expect(script).toContain("'115%'");
+    expect(script).toContain("zoom='1.15'");
     expect(script.endsWith('true;')).toBe(true);
   });
 });

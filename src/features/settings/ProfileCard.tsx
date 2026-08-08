@@ -35,7 +35,7 @@ export function ProfileCard() {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.heading}>Profile</Text>
+      <Text style={styles.heading}>プロフィール</Text>
       <View style={styles.row}>
         <Pressable style={styles.avatarOuter} onPress={() => navigation.navigate('SelectAvatar')}>
           <Image source={avatarSource(avatarId)} style={styles.avatar} />
@@ -57,7 +57,7 @@ export function ProfileCard() {
             <Text style={styles.name}>{name}</Text>
           )}
           <Pressable style={styles.editButton} onPress={toggleEdit}>
-            <Text style={styles.editLabel}>{isEdit ? 'Update Name' : 'Edit Name'}</Text>
+            <Text style={styles.editLabel}>{isEdit ? '名前を保存' : '名前を変更'}</Text>
           </Pressable>
         </View>
       </View>
