@@ -297,6 +297,6 @@ DAU = 既存ユーザーの再活性化 + (新規獲得数 × 定着率)
 - [x] frontend: プレ許諾ダイアログ(記事3本読了後にタブへ戻った瞬間・1回だけ)→ OSプロンプト
 - [x] frontend: 設定画面「人気記事の通知(朝・夜)」トグル(OFFはサーバ配信対象からも除外)
 - [x] frontend: 通知タップ(kill起動含む)→ 記事画面直行 + `notification_open` / `notification_permission` / `notification_prompt` / `digest_toggle` 計測
-- [ ] 1.47 ストア提出 → 本番昇格(1.46は内部テストのまま1.47に置換)
+- [x] 1.47 ストア提出完了(2026-08-08): Android → Play internal / iOS → TestFlight。FCM V1キー・APNsキー(V4S7K968ZP)登録済みで両OS送信可能。残りは実機確認→本番昇格のみ
 - [ ] 通知タイプ第2弾: 急上昇速報(閲覧数の増分検知)— ダイジェストのCTR計測後に判断
 - 出口条件の計測: 許諾率(notification_permission)・CTR(notification_open ÷ 送信数)・通知経由セッション
