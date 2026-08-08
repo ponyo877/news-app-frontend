@@ -201,6 +201,11 @@ export function RootNavigator() {
         <Stack.Screen
           name="Article"
           component={ArticleScreen}
+          // 記事IDごとに別画面として扱う。これがないと、記事画面内から別記事へ
+          // navigateしたとき(読了おすすめ・関連記事)がパラメータ更新扱いになり、
+          // 再マウントされず前の記事のstate(シート開閉・読了検知)と
+          // マウント時副作用(既読化・閲覧数・article_open計測)がすべて持ち越し/欠落する
+          getId={({ params }) => params.article.id}
           options={({ route }) => ({ title: route.params.article.titles })}
         />
         <Stack.Screen
