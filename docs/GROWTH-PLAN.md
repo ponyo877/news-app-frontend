@@ -281,5 +281,22 @@ DAU = 既存ユーザーの再活性化 + (新規獲得数 × 定着率)
 - [x] frontend: Firebase Analytics + Crashlytics 導入、イベント8種実装 → ⏳ Firebaseプロジェクト作成(手順4)
 - [x] frontend: 履歴上限・エラー状態UI・fetchHtmlタイムアウト・スプラッシュ制御・ErrorBoundary
 - [x] frontend: Maestro E2E修復・バージョン1.46同期(lint/typecheck/test 208件全通過)
-- [ ] ストア: プライバシー申告更新 → **1.46 としてビルド・提出**(手順5・6)
+- [x] ストア: プライバシー申告更新 → **1.46 としてビルド・提出**(手順5・6)— 2026-08-08 Android internal / iOS TestFlight 提出済み
 - [ ] 計測開始1週間後: ベースラインDAU・リテンションを本ドキュメントに記録し、Phase 1 の詳細設計へ(手順7)
+
+## 10. Phase 1 実装状況(2026-08-08)
+
+**プッシュ通知エンジン v1(ダイジェスト)実装・デプロイ完了。**
+
+- [x] backend: `device_tokens` テーブル + `POST /v1/user/token`(upsert・Expoトークン形式バリデーション)
+- [x] backend: `POST /v1/notification/digest`(CronGuard保護)— 人気1位記事を全許諾端末へExpo Push送信
+  - daily→weekly→monthly フォールバック / DeviceNotRegistered トークン自動削除 / 100件チャンク
+  - 通知dataに記事メタ一式(一覧APIと同形式)を積み、アプリがタップで記事画面を直接開ける
+- [x] インフラ: `digest.timer`(朝7時・夜19時 JST)をOCIに設置・有効化。`iac/setup.sh` にも組込
+- [x] frontend 1.47: expo-notifications 導入・起動時トークン同期(許諾済み端末のみ)
+- [x] frontend: プレ許諾ダイアログ(記事3本読了後にタブへ戻った瞬間・1回だけ)→ OSプロンプト
+- [x] frontend: 設定画面「人気記事の通知(朝・夜)」トグル(OFFはサーバ配信対象からも除外)
+- [x] frontend: 通知タップ(kill起動含む)→ 記事画面直行 + `notification_open` / `notification_permission` / `notification_prompt` / `digest_toggle` 計測
+- [ ] 1.47 ストア提出 → 本番昇格(1.46は内部テストのまま1.47に置換)
+- [ ] 通知タイプ第2弾: 急上昇速報(閲覧数の増分検知)— ダイジェストのCTR計測後に判断
+- 出口条件の計測: 許諾率(notification_permission)・CTR(notification_open ÷ 送信数)・通知経由セッション
