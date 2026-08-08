@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { articleReportUrl } from '@/lib/reportForms';
+import { shareArticle } from '@/lib/share';
 import type { RootNavigation } from '@/navigation/types';
 import { ArticleMeta, useArticleFlags, useArticleStatusStore } from '@/stores/articleStatusStore';
 import { useSiteFilterStore } from '@/stores/siteFilterStore';
@@ -12,7 +13,7 @@ import { colors } from '@/theme/colors';
 import { fontFamily, radius } from '@/theme/typography';
 
 // 記事カードのmore_vertメニュー(旧newsDetail BottomSheet相当)。
-// Favorite / Block this site / Report this article の3ボタン横並び。
+// 共有 / お気に入り / サイト非表示 / 記事を報告 の4ボタン横並び。
 export function useArticleActionSheet() {
   const [article, setArticle] = useState<ArticleMeta | null>(null);
 
@@ -37,17 +38,28 @@ function ArticleActionSheet({ article, onClose }: { article: ArticleMeta; onClos
 
   const actions = [
     {
+      key: 'share',
+      icon: 'share' as const,
+      iconColor: colors.black,
+      label: '共有',
+      onPress: () => {
+        // 閉じてから共有(iOSのモーダル競合回避。ArticleMenuと同パターン)
+        onClose();
+        void shareArticle(article, 'list_sheet');
+      },
+    },
+    {
       key: 'favorite',
       icon: favoriteFlg ? ('favorite' as const) : ('favorite-border' as const),
       iconColor: favoriteFlg ? '#F44336' : colors.black,
-      label: 'Favorite',
+      label: 'お気に入り',
       onPress: () => toggleFavorite(article),
     },
     {
       key: 'block',
       icon: 'block' as const,
       iconColor: colors.black,
-      label: 'Block this site',
+      label: 'サイト非表示',
       onPress: () => {
         blockSite(article.siteID);
         // 旧版のgetPost(true)相当: ブロック反映のため新着を再取得
@@ -58,11 +70,11 @@ function ArticleActionSheet({ article, onClose }: { article: ArticleMeta; onClos
       key: 'report',
       icon: 'report' as const,
       iconColor: colors.black,
-      label: 'Report this article',
+      label: '記事を報告',
       onPress: () => {
         onClose();
         navigation.navigate('NormalWebView', {
-          title: 'Report this article',
+          title: '記事の報告',
           url: articleReportUrl(article.titles, article.url),
         });
       },
@@ -101,7 +113,9 @@ const styles = StyleSheet.create({
   },
   action: {
     alignItems: 'center',
-    width: 110,
+    // 4ボタンでも小型端末(375pt)に収まるようflex化
+    flex: 1,
+    maxWidth: 110,
   },
   circle: {
     width: 60,

@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { useSites } from '@/api/queries';
+import { isActiveSite } from '@/lib/sites';
 import { useSiteFilterStore } from '@/stores/siteFilterStore';
 import { colors } from '@/theme/colors';
 import { fontFamily, sizes } from '@/theme/typography';
@@ -21,6 +22,8 @@ import { fontFamily, sizes } from '@/theme/typography';
 // サイト数増(8→約70)に伴い、表示中件数と一括切り替えをヘッダーに置く
 export function SelectSitesScreen() {
   const sitesQuery = useSites();
+  // マウント時に1回だけ確定(レンダー純度の維持)
+  const [mountedAt] = useState(() => Date.now());
   const { blockedSiteIds, toggleSite, setBlockedSiteIds } = useSiteFilterStore();
   const queryClient = useQueryClient();
 
@@ -38,7 +41,8 @@ export function SelectSitesScreen() {
     );
   }
 
-  const sites = sitesQuery.data;
+  // クロール停止サイト(サイト側休止・30日以上更新なし)は選択肢から外す
+  const sites = sitesQuery.data.filter((site) => isActiveSite(site, mountedAt));
   const visibleCount = sites.filter((site) => !blockedSiteIds.includes(site.id)).length;
 
   return (

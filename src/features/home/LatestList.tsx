@@ -7,6 +7,8 @@ import { ErrorState } from '@/components/ErrorState';
 import { FeedAdCard } from '@/components/FeedAdCard';
 import { NewsCard } from '@/components/NewsCard';
 import { withFeedAds } from '@/lib/feedAds';
+import { balanceSitePage } from '@/lib/siteBalance';
+import { useVisibleArticles } from '@/lib/useVisibleArticles';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { colors } from '@/theme/colors';
 
@@ -18,10 +20,13 @@ interface LatestListProps {
 // 旧版のitemBuilder内getPost(false)呼び出しはonEndReachedに置き換え(多重リクエスト是正)
 export function LatestList({ onPressMenu }: LatestListProps) {
   const query = useLatestArticles();
-  const articles = useMemo(
-    () => (query.data?.pages ?? []).flatMap((page) => page.data),
+  const rawArticles = useMemo(
+    // ページ単位のサイト別バランシング(上位3サイト48%占有の緩和。並べ替えのみで記事は失わない)
+    () => (query.data?.pages ?? []).flatMap((page) => balanceSitePage(page.data)),
     [query.data],
   );
+  // NGワード(サイトブロックはサーバのskipIDsでも効くが二重で無害)
+  const articles = useVisibleArticles(rawArticles);
   // 一定間隔でインフィード広告を差し込む(記事画面の常時バナーの置き換え)
   const entries = useMemo(
     () => withFeedAds(articles, (article, index) => `${article.id}-${index}`),
@@ -56,7 +61,7 @@ export function LatestList({ onPressMenu }: LatestListProps) {
         item.type === 'ad' ? (
           <FeedAdCard />
         ) : (
-          <NewsCard article={item.article} onPressMenu={onPressMenu} />
+          <NewsCard article={item.article} source="latest" onPressMenu={onPressMenu} />
         )
       }
       onEndReached={() => {

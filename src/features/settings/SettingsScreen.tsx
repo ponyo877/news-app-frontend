@@ -44,6 +44,9 @@ export function SettingsScreen() {
       case 'selectSites':
         navigation.navigate('SelectSites');
         break;
+      case 'ngWords':
+        navigation.navigate('NgWords');
+        break;
       case 'webview':
         navigation.navigate('NormalWebView', {
           title: item.action.title,

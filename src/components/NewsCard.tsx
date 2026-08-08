@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Thumbnail } from '@/components/Thumbnail';
-import type { RootNavigation } from '@/navigation/types';
+import type { ArticleOpenFrom, RootNavigation } from '@/navigation/types';
 import { ArticleMeta, useArticleFlags } from '@/stores/articleStatusStore';
 import { colors } from '@/theme/colors';
 import { fontFamily, fontSize } from '@/theme/typography';
@@ -16,10 +16,12 @@ interface NewsCardProps {
   leading?: ReactNode;
   // 既読/お気に入り表現を持たない履歴カード(旧NewsHistoryCard相当)
   plain?: boolean;
+  // article_openの導線内訳(どのリストから開かれたか)。全リストがNewsCard経由のためここが唯一の伝搬点
+  source?: ArticleOpenFrom;
   onPressMenu?: (article: ArticleMeta, favoriteFlg: boolean) => void;
 }
 
-export function NewsCard({ article, leading, plain = false, onPressMenu }: NewsCardProps) {
+export function NewsCard({ article, leading, plain = false, source, onPressMenu }: NewsCardProps) {
   const navigation = useNavigation<RootNavigation>();
   const flags = useArticleFlags(article.id);
   const readFlg = !plain && flags.readFlg;
@@ -31,7 +33,7 @@ export function NewsCard({ article, leading, plain = false, onPressMenu }: NewsC
   return (
     <Pressable
       style={styles.card}
-      onPress={() => navigation.navigate('Article', { article })}
+      onPress={() => navigation.navigate('Article', { article, from: source })}
       android_ripple={{ color: colors.white10 }}
     >
       <View style={styles.leading}>{leading ?? <Thumbnail uri={article.image} />}</View>

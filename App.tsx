@@ -7,19 +7,19 @@ import {
 import { QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { queryClient } from '@/api/queries';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { InfoDialog } from '@/components/InfoDialog';
 import { initializeAds } from '@/lib/ads';
 import { logError } from '@/lib/analytics';
 import { bootstrapUser } from '@/lib/bootstrap';
 import { configureNotificationHandler, syncPushTokenIfGranted } from '@/lib/notifications';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useReviewStore } from '@/stores/reviewStore';
 
 // フォント読み込みが終わるまでスプラッシュを保持する。
 // 従来は制御していなかったため「スプラッシュが消えた後の白画面」が起動のたびに見えていた
@@ -36,16 +36,16 @@ export default function App() {
   });
   // フォント読み込み失敗時はシステムフォントで起動を続行する(白画面で固まるより良い)
   const appReady = fontsLoaded || fontError != null;
-  const [showFirstLaunchDialog, setShowFirstLaunchDialog] = useState(false);
 
   useEffect(() => {
     void initializeAds();
-    bootstrapUser()
-      .then((result) => setShowFirstLaunchDialog(result.isFirstLaunch))
-      .catch((error) => {
-        // 起動処理の失敗でアプリを止めない(次回起動時に再試行される)
-        logError(error, 'bootstrapUser');
-      });
+    // 初回起動の案内はオンボーディング画面(RootNavigator側で表示)に吸収した
+    bootstrapUser().catch((error) => {
+      // 起動処理の失敗でアプリを止めない(次回起動時に再試行される)
+      logError(error, 'bootstrapUser');
+    });
+    // レビュー依頼の起点時刻(初回起動 or 1.48更新後の初起動)
+    useReviewStore.getState().ensureInstallAt();
     // 許諾済み端末のみ: トークンローテーションに追随してサーバへ再登録
     void syncPushTokenIfGranted(useNotificationStore.getState().digestEnabled);
   }, []);
@@ -67,12 +67,6 @@ export default function App() {
           <ErrorBoundary>
             <RootNavigator />
           </ErrorBoundary>
-          <InfoDialog
-            visible={showFirstLaunchDialog}
-            title="ユーザ名とアイコンが設定できます"
-            message="設定画面からユーザ名とアイコンを設定してください。"
-            onClose={() => setShowFirstLaunchDialog(false)}
-          />
           <StatusBar style="light" />
         </QueryClientProvider>
       </SafeAreaProvider>

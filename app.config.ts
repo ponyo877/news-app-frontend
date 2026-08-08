@@ -89,7 +89,9 @@ const SK_AD_NETWORK_ITEMS = [
 const config: ExpoConfig = {
   name: 'まとめくん',
   slug: 'matome-kun',
-  version: '1.47',
+  version: '1.48',
+  // 共有着地ページ(matome.folks-chat.com/a/{id})の「アプリで開く」用スキーム
+  scheme: 'matomekun',
   extra: {
     eas: { projectId: '2d486ee4-ba33-45bd-ba1b-a2d421d7de97' },
   },
@@ -100,8 +102,11 @@ const config: ExpoConfig = {
     // 既存App Storeアプリと同一(ハイフン)。Androidと文字列が異なる点に注意
     bundleIdentifier: 'com.matomebeta-app',
     // 旧版の最終build 42より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)。
-    buildNumber: '48',
+    buildNumber: '49',
     ...(hasFirebaseConfig ? { googleServicesFile: GOOGLE_SERVICES_IOS } : {}),
+    // Universal Links(/.well-known/apple-app-site-associationは配信済み)。
+    // ios/は未コミット=EASリモートprebuildなのでこの宣言だけでentitlementsに反映される
+    associatedDomains: ['applinks:matome.folks-chat.com'],
     supportsTablet: true,
     requireFullScreen: true,
     infoPlist: {
@@ -131,17 +136,36 @@ const config: ExpoConfig = {
     // 既存Playアプリと同一(アンダースコア)
     package: 'com.matomebeta_app',
     // Play製品版の最新vc44より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)。
-    versionCode: 50,
+    versionCode: 51,
     ...(hasFirebaseConfig ? { googleServicesFile: GOOGLE_SERVICES_ANDROID } : {}),
     adaptiveIcon: {
       foregroundImage: './assets/app/adaptive-foreground.png',
       backgroundColor: '#E0AEE7',
     },
+    // App Links(/.well-known/assetlinks.jsonは配信済み)。
+    // 注意: android/はコミット済みでprebuildが再実行されないため、実際の反映は
+    // AndroidManifest.xmlの直編集が正。ここは将来prebuildし直す時の正本として併記
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        data: [{ scheme: 'https', host: 'matome.folks-chat.com', pathPrefix: '/a' }],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
+    ],
     permissions: ['com.google.android.gms.permission.AD_ID'],
   },
   plugins: [
     'expo-dev-client',
-    'expo-notifications',
+    [
+      'expo-notifications',
+      {
+        // Androidのステータスバー通知アイコンは白シルエット必須(カラー画像だと白四角になる)。
+        // adaptive-foregroundの白背景を透明化して生成した(吹き出し+笑顔)
+        icon: './assets/app/notification-icon.png',
+        color: '#E0AEE7',
+      },
+    ],
     // Firebase設定ファイルがあるときのみネイティブ組み込みを行う(analyticsはapp同梱のためplugin不要)
     ...(hasFirebaseConfig ? ['@react-native-firebase/app', '@react-native-firebase/crashlytics'] : []),
     [

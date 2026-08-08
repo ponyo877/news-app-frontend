@@ -1,7 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { ArticleMenu } from '@/features/article/ArticleMenu';
+import { shareArticle } from '@/lib/share';
 import type { RootNavigation } from '@/navigation/types';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { colors } from '@/theme/colors';
@@ -14,6 +15,8 @@ interface ArticleHeaderActionsProps {
   // 関連記事が0件のときは⚡を出さない(旧版のFAB表示条件と同じ)
   hasRelated: boolean;
   relatedOpen: boolean;
+  // 記事末尾まで読んだら⚡を点灯して「次のおすすめ」へ誘導する
+  relatedHighlighted?: boolean;
   onToggleRelated: () => void;
 }
 
@@ -30,6 +33,7 @@ export function ArticleHeaderActions({
   onToggleComments,
   hasRelated,
   relatedOpen,
+  relatedHighlighted = false,
   onToggleRelated,
 }: ArticleHeaderActionsProps) {
   return (
@@ -45,7 +49,7 @@ export function ArticleHeaderActions({
           <MaterialIcons
             name="bolt"
             size={26}
-            color={relatedOpen ? colors.amber : colors.textPrimary}
+            color={relatedOpen || relatedHighlighted ? colors.amber : colors.textPrimary}
           />
         </Pressable>
       )}
@@ -62,6 +66,18 @@ export function ArticleHeaderActions({
           color={colors.textPrimary}
         />
       </Pressable>
+      <Pressable
+        hitSlop={8}
+        onPress={() => void shareArticle(article, 'header')}
+        accessibilityRole="button"
+        accessibilityLabel="記事を共有"
+      >
+        <MaterialIcons
+          name={Platform.OS === 'ios' ? 'ios-share' : 'share'}
+          size={24}
+          color={colors.textPrimary}
+        />
+      </Pressable>
       <ArticleMenu article={article} navigation={navigation} />
     </View>
   );
@@ -71,6 +87,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    // 最大4アイコン(⚡💬共有⋮)が長い記事タイトルと共存できるよう少し詰める
+    gap: 14,
   },
 });

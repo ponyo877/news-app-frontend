@@ -37,13 +37,13 @@ export const TAB_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
   Setting: 'settings',
 };
 
-// 旧TabItemのtitle(表示名)。ルート名と異なるのはMy Pageのみ
+// 表示名のみ日本語(キー=ルート名はGA4 screen_viewの連続性のため不変)
 const TAB_TITLES: Record<string, string> = {
-  Ranking: 'Ranking',
-  Search: 'Search',
-  Home: 'Home',
-  MyPage: 'My Page',
-  Setting: 'Setting',
+  Ranking: 'ランキング',
+  Search: '検索',
+  Home: 'ホーム',
+  MyPage: 'マイページ',
+  Setting: '設定',
 };
 
 export function ConvexTabBar({ state, navigation, position }: MaterialTopTabBarProps) {

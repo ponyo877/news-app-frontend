@@ -17,7 +17,7 @@ export function RelatedArticlesSheet({ articles }: { articles: Article[] }) {
         renderItem={({ item }) => (
           <View style={{ width: width * 0.6 }}>
             {/* 旧版はpublishedAtに""を渡していた(日時非表示・メニュー非表示) */}
-            <NewsCard article={{ ...item, publishedAt: '' }} />
+            <NewsCard article={{ ...item, publishedAt: '' }} source="similar" />
           </View>
         )}
       />

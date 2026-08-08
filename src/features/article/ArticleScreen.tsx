@@ -1,6 +1,6 @@
 import { useHeaderHeight } from '@react-navigation/elements';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,16 +15,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
 import { incrementView } from '@/api/endpoints';
-import { useSimilarArticles } from '@/api/queries';
+import { useRelatedArticles } from '@/api/queries';
 import { ErrorState } from '@/components/ErrorState';
 import { ArticleHeaderActions } from '@/features/article/ArticleHeaderActions';
+import { fontScaleScript } from '@/features/article/fontScale';
 import { RelatedArticlesSheet } from '@/features/article/RelatedArticlesSheet';
 import { useArticleHtml } from '@/features/article/useArticleHtml';
+import { useVisibleArticles } from '@/lib/useVisibleArticles';
 import { CommentPanel } from '@/features/comments/CommentPanel';
 import { bannerAdUnitId } from '@/lib/ads';
 import { logEvent } from '@/lib/analytics';
 import type { RootStackParamList } from '@/navigation/types';
 import { useArticleStatusStore } from '@/stores/articleStatusStore';
+import { percentOf, useFontSizeStore } from '@/stores/fontSizeStore';
 import { colors } from '@/theme/colors';
 import { fontFamily, radius } from '@/theme/typography';
 
@@ -38,29 +41,39 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Article'>;
 // 「ナビゲーションと誤認する配置」として違反を指摘された。操作系はすべて
 // ヘッダー(ArticleHeaderActions)に集約し、広告の上はクリアランス帯として空ける。
 export function ArticleScreen({ route, navigation }: Props) {
-  const { article } = route.params;
+  const { article, from } = route.params;
   const markRead = useArticleStatusStore((s) => s.markRead);
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isRelatedOpen, setIsRelatedOpen] = useState(false);
+  // 記事末尾まで読んだら⚡をハイライトして「次のおすすめ」へ誘導する(下部UIはAdMob制約で不可)
+  const [reachedEnd, setReachedEnd] = useState(false);
+  const webViewRef = useRef<WebView>(null);
+  const fontPercent = percentOf(useFontSizeStore((s) => s.scale));
 
   const htmlQuery = useArticleHtml(article.url, article.sitetitle);
-  const similarQuery = useSimilarArticles(article.id);
-  const related = similarQuery.data ?? [];
+  // 人×今読んでいる記事の推薦(Cloudflare)。旧similar(BERT・封印中)の後継
+  const relatedQuery = useRelatedArticles(article.id);
+  const related = useVisibleArticles(relatedQuery.data ?? []);
 
   useEffect(() => {
     // 既読化+履歴追加+閲覧数はマウント時に1回(履歴カード経由でも同一挙動)
     markRead(article);
     incrementView(article.id);
     // 中核イベント: どのサイトの記事がどれだけ読まれているか
-    logEvent('article_open', { site: article.sitetitle, article_id: article.id });
+    logEvent('article_open', {
+      site: article.sitetitle,
+      article_id: article.id,
+      from: from ?? 'unknown',
+    });
     const openedAt = Date.now();
     return () => {
       // 滞在秒数つきの読了イベント(離脱の質を見る)
       logEvent('article_read_done', {
         site: article.sitetitle,
         seconds: Math.round((Date.now() - openedAt) / 1000),
+        from: from ?? 'unknown',
       });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -76,11 +89,19 @@ export function ArticleScreen({ route, navigation }: Props) {
           onToggleComments={() => setIsExpanded((expanded) => !expanded)}
           hasRelated={related.length > 0}
           relatedOpen={isRelatedOpen}
+          relatedHighlighted={reachedEnd}
           onToggleRelated={() => setIsRelatedOpen((open) => !open)}
         />
       ),
     });
-  }, [navigation, article, isExpanded, related.length, isRelatedOpen]);
+  }, [navigation, article, isExpanded, related.length, isRelatedOpen, reachedEnd]);
+
+  useEffect(() => {
+    // iOSは表示中のWebViewへ注入で反映(Androidはprop textZoomの変更で再描画される)
+    if (Platform.OS === 'ios') {
+      webViewRef.current?.injectJavaScript(fontScaleScript(fontPercent));
+    }
+  }, [fontPercent]);
 
   // 取得失敗(タイムアウト含む)。旧実装は data===undefined のまま無限スピナーだった。
   // この分岐では広告バナーを描画しないため、中央の再読み込みボタンはAdMob隣接制約に抵触しない
@@ -110,8 +131,23 @@ export function ArticleScreen({ route, navigation }: Props) {
       <View style={styles.articleArea}>
         <View style={styles.webViewClip}>
           <WebView
+            ref={webViewRef}
             source={{ html: htmlQuery.data, baseUrl: article.url }}
             javaScriptEnabled
+            // 文字サイズ: Androidはネイティブのズーム、iOSは初期注入+変更時injectJavaScript
+            textZoom={fontPercent}
+            injectedJavaScript={Platform.OS === 'ios' ? fontScaleScript(fontPercent) : undefined}
+            onScroll={({ nativeEvent }) => {
+              const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
+              if (contentOffset.y + layoutMeasurement.height >= contentSize.height - 32) {
+                setReachedEnd((was) => {
+                  if (!was) {
+                    logEvent('read_end_reached', { site: article.sitetitle });
+                  }
+                  return true;
+                });
+              }
+            }}
             // hrefは剥奪済みだが、万一のページ遷移を遮断する保険
             onShouldStartLoadWithRequest={(req) =>
               req.url === article.url || req.url === 'about:blank'

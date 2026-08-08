@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { usePostComment } from '@/api/queries';
+import { PostCommentErrorKind, usePostComment } from '@/api/queries';
 import { colors } from '@/theme/colors';
 import { fontFamily, sizes } from '@/theme/typography';
 
@@ -10,6 +10,12 @@ interface CommentComposerProps {
   articleId: string;
   onError: (message: string) => void;
 }
+
+const POST_ERROR_MESSAGES: Record<PostCommentErrorKind, string> = {
+  network: '通信に失敗しました\n電波の良い場所で再度お試しください',
+  server: 'サーバーが混み合っています\n時間をおいて再度お試しください',
+  rejected: 'コメントを投稿できませんでした\n内容をご確認ください',
+};
 
 // コメント入力欄(旧buildChatComposer): 高さ60白背景、丸角入力+送信ボタン、50文字制限
 export function CommentComposer({ articleId, onError }: CommentComposerProps) {
@@ -23,7 +29,13 @@ export function CommentComposer({ articleId, onError }: CommentComposerProps) {
     }
     postComment.mutate(message, {
       onSuccess: () => setText(''),
-      onError: () => onError('コメントに不適切な表現が含まれていたようです\n修正してください'),
+      // 以前は全エラーを「不適切な表現」と表示していたが、backendにNGワード検査は
+      // 存在せず、実際はネットワーク/サーバ障害が大半だった(誤爆の解消)
+      onError: (error) =>
+        onError(
+          POST_ERROR_MESSAGES[error.message as PostCommentErrorKind] ??
+            POST_ERROR_MESSAGES.rejected,
+        ),
     });
   };
 

@@ -6,6 +6,7 @@ import {
   Site,
   articleListSchema,
   articlePageSchema,
+  articleSchema,
   commentListSchema,
   siteListSchema,
 } from '@/api/schemas';
@@ -34,9 +35,10 @@ export async function searchArticles(keyword: string): Promise<Article[]> {
   return articleListSchema.parse(json).data;
 }
 
-export async function fetchSimilar(articleId: string): Promise<Article[]> {
-  const json = await getJson(`/v1/article/similar/${articleId}`);
-  return articleListSchema.parse(json).data;
+// GET /v1/article/meta/:id — ディープリンク着地時のID→記事メタ復元(通知dataと同キー体系)
+export async function fetchArticleMeta(articleId: string): Promise<Article> {
+  const json = await getJson(`/v1/article/meta/${articleId}`);
+  return articleSchema.parse(json);
 }
 
 // 閲覧数インクリメント(fire-and-forget、旧版と同挙動)
@@ -54,14 +56,13 @@ export async function fetchComments(articleId: string): Promise<Comment[]> {
   return commentListSchema.parse(json).data;
 }
 
-// 非200は旧版どおり「不適切な表現」扱いにするため ok を返す
+// statusを素通しし、呼び出し側(usePostComment)がエラー種別を判定する
 export async function postComment(
   articleId: string,
   message: string,
   devicehash: string,
-): Promise<{ ok: boolean }> {
-  const res = await postForm(`/v1/comment/${articleId}`, { message, devicehash });
-  return { ok: res.ok };
+): Promise<{ ok: boolean; status: number }> {
+  return postForm(`/v1/comment/${articleId}`, { message, devicehash });
 }
 
 export interface PostDeviceTokenParams {

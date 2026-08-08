@@ -9,6 +9,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { NewsCard } from '@/components/NewsCard';
 import { useArticleActionSheet } from '@/features/article/useArticleActionSheet';
 import { useDebouncedValue } from '@/features/search/useDebouncedValue';
+import { useVisibleArticles } from '@/lib/useVisibleArticles';
 import { logEvent } from '@/lib/analytics';
 import { colors } from '@/theme/colors';
 import { fontFamily } from '@/theme/typography';
@@ -18,6 +19,8 @@ export function SearchScreen() {
   const [keyword, setKeyword] = useState('');
   const debouncedKeyword = useDebouncedValue(keyword.trim());
   const query = useSearchArticles(debouncedKeyword);
+  // サイトブロック+NGワードの適用(検索はサーバフィルタが無い)
+  const results = useVisibleArticles(query.data ?? []);
   const { openSheet, sheet } = useArticleActionSheet();
 
   useEffect(() => {
@@ -45,7 +48,6 @@ export function SearchScreen() {
         </View>
       );
     }
-    const results = query.data ?? [];
     if (results.length === 0) {
       return <EmptyMessage message="一致する記事が見つかりませんでした" />;
     }
@@ -53,7 +55,7 @@ export function SearchScreen() {
       <FlashList
         data={results}
         keyExtractor={(item, index) => `${item.id}-${index}`}
-        renderItem={({ item }) => <NewsCard article={item} onPressMenu={openSheet} />}
+        renderItem={({ item }) => <NewsCard article={item} source="search" onPressMenu={openSheet} />}
         keyboardShouldPersistTaps="handled"
       />
     );

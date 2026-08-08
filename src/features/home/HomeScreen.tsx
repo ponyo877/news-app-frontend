@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { PillTabBar } from '@/components/PillTabBar';
 import { LatestList } from '@/features/home/LatestList';
-import { PopularList } from '@/features/home/PopularList';
+import { ForYouList } from '@/features/home/ForYouList';
 import { useArticleActionSheet } from '@/features/article/useArticleActionSheet';
 import { colors } from '@/theme/colors';
 import { innerTabScreenOptions } from '@/theme/innerTabs';
@@ -41,7 +41,7 @@ export function HomeScreen() {
             ),
           }}
         >
-          {() => <PopularList period="daily" onPressMenu={openSheet} />}
+          {() => <ForYouList onPressMenu={openSheet} />}
         </Tab.Screen>
       </Tab.Navigator>
       {sheet}

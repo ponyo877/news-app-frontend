@@ -11,10 +11,11 @@ import { fontFamily, fontSize } from '@/theme/typography';
 
 const Tab = createMaterialTopTabNavigator();
 
+// labelのみ日本語(name=ルート名はGA4 screen_viewの連続性のため不変)
 const PERIODS: { name: string; label: string; period: RankingPeriod }[] = [
-  { name: 'Daily', label: 'Daily', period: 'daily' },
-  { name: 'Weekly', label: 'Weekly', period: 'weekly' },
-  { name: 'Monthly', label: 'Monthly', period: 'monthly' },
+  { name: 'Daily', label: '日間', period: 'daily' },
+  { name: 'Weekly', label: '週間', period: 'weekly' },
+  { name: 'Monthly', label: '月間', period: 'monthly' },
 ];
 
 // Rankingタブ(旧RankingPostScreen): Daily/Weekly/Monthlyの3タブ、

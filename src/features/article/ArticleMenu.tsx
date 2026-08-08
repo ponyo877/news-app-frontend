@@ -1,15 +1,19 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Modal, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { logEvent } from '@/lib/analytics';
 import { articleReportUrl } from '@/lib/reportForms';
 import type { RootNavigation } from '@/navigation/types';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
+import { FONT_SCALES, useFontSizeStore } from '@/stores/fontSizeStore';
 import { colors } from '@/theme/colors';
 import { fontFamily } from '@/theme/typography';
 
-// 記事画面ヘッダー右のメニュー(旧PopupMenuButton: Share / Report article problem)
+// 記事画面ヘッダー右のメニュー。
+// 共有は1タップ化のためヘッダー直下のアイコンへ移設済み(share.ts)。
+// 文字サイズはここに置く: ヘッダーのアイコン過密を避けつつ、backdropが
+// 透明なのでピルをタップすると背後のWebViewで即時プレビューできる
 export function ArticleMenu({
   article,
   navigation,
@@ -18,21 +22,13 @@ export function ArticleMenu({
   navigation: RootNavigation;
 }) {
   const [open, setOpen] = useState(false);
-
-  const share = async () => {
-    setOpen(false);
-    logEvent('share', { site: article.sitetitle });
-    // 旧FlutterShare: title + "title: X" + "URL: Y" と同内容
-    await Share.share({
-      title: article.titles,
-      message: `title: ${article.titles}\nURL: ${article.url}`,
-    });
-  };
+  const scale = useFontSizeStore((s) => s.scale);
+  const setScale = useFontSizeStore((s) => s.setScale);
 
   const report = () => {
     setOpen(false);
     navigation.navigate('NormalWebView', {
-      title: 'Report article problem',
+      title: '記事の問題を報告',
       url: articleReportUrl(article.titles, article.url),
     });
   };
@@ -45,13 +41,32 @@ export function ArticleMenu({
       <Modal transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <View style={styles.menu}>
-            <Pressable style={styles.item} onPress={share}>
-              <MaterialIcons name="share" size={20} color={colors.textPrimary} />
-              <Text style={styles.label}>Share</Text>
-            </Pressable>
+            <View style={styles.fontRow}>
+              <Text style={styles.fontRowLabel}>文字サイズ</Text>
+              <View style={styles.pills}>
+                {FONT_SCALES.map((option) => (
+                  <Pressable
+                    key={option.key}
+                    style={[styles.pill, scale === option.key && styles.pillActive]}
+                    onPress={() => {
+                      // メニューは閉じない(背後のWebViewで変更が即プレビューされる)
+                      setScale(option.key);
+                      logEvent('font_scale', { scale: option.key });
+                    }}
+                  >
+                    <Text
+                      style={[styles.pillText, scale === option.key && styles.pillTextActive]}
+                    >
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+            <View style={styles.divider} />
             <Pressable style={styles.item} onPress={report}>
               <MaterialIcons name="report" size={20} color={colors.textPrimary} />
-              <Text style={styles.label}>Report article problem</Text>
+              <Text style={styles.label}>記事の問題を報告</Text>
             </Pressable>
           </View>
         </Pressable>
@@ -76,6 +91,43 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
+  },
+  fontRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  fontRowLabel: {
+    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    fontSize: 12,
+    marginBottom: 8,
+  },
+  pills: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  pill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: colors.white10,
+  },
+  pillActive: {
+    backgroundColor: colors.blueGrey,
+  },
+  pillText: {
+    color: colors.textSecondary,
+    fontFamily: fontFamily.regular,
+    fontSize: 13,
+  },
+  pillTextActive: {
+    color: colors.textPrimary,
+    fontFamily: fontFamily.medium,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.textDisabled,
+    marginVertical: 4,
   },
   item: {
     flexDirection: 'row',

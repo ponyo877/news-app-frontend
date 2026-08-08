@@ -6,6 +6,7 @@ import { FlashList } from '@shopify/flash-list';
 import { EmptyMessage } from '@/components/EmptyMessage';
 import { NewsCard } from '@/components/NewsCard';
 import { PillTabBar } from '@/components/PillTabBar';
+import type { ArticleOpenFrom } from '@/navigation/types';
 import { ArticleMeta, useArticleStatusStore } from '@/stores/articleStatusStore';
 import { colors } from '@/theme/colors';
 import { innerTabScreenOptions } from '@/theme/innerTabs';
@@ -22,10 +23,10 @@ export function MyPageScreen() {
         screenOptions={innerTabScreenOptions}
         tabBar={(props) => <PillTabBar {...props} />}
       >
-        <Tab.Screen name="History" options={{ tabBarLabel: labelRenderer('History') }}>
+        <Tab.Screen name="History" options={{ tabBarLabel: labelRenderer('履歴') }}>
           {() => <HistoryList />}
         </Tab.Screen>
-        <Tab.Screen name="Favorite" options={{ tabBarLabel: labelRenderer('Favorite') }}>
+        <Tab.Screen name="Favorite" options={{ tabBarLabel: labelRenderer('お気に入り') }}>
           {() => <FavoriteList />}
         </Tab.Screen>
       </Tab.Navigator>
@@ -45,7 +46,7 @@ function HistoryList() {
   if (items.length === 0) {
     return <EmptyMessage message="閲覧履歴はありません" />;
   }
-  return <PlainArticleList items={items} />;
+  return <PlainArticleList items={items} source="history" />;
 }
 
 function FavoriteList() {
@@ -54,15 +55,15 @@ function FavoriteList() {
   if (items.length === 0) {
     return <EmptyMessage message="お気に入りはありません" />;
   }
-  return <PlainArticleList items={items} />;
+  return <PlainArticleList items={items} source="favorite" />;
 }
 
-function PlainArticleList({ items }: { items: ArticleMeta[] }) {
+function PlainArticleList({ items, source }: { items: ArticleMeta[]; source: ArticleOpenFrom }) {
   return (
     <FlashList
       data={items}
       keyExtractor={(item, index) => `${item.id}-${index}`}
-      renderItem={({ item }) => <NewsCard article={item} plain />}
+      renderItem={({ item }) => <NewsCard article={item} plain source={source} />}
     />
   );
 }
