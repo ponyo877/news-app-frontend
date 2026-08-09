@@ -377,6 +377,14 @@ DAU = 既存ユーザーの再活性化 + (新規獲得数 × 定着率)
       速度1.0/1.25/1.5/2.0。世代カウンタで速度変更・停止の競合を防止
 - [x] UI: ArticleMenu「読み上げ」→ヘッダー直下のTtsPlayerBar(⚡関連シートと排他)
 - 制約: v1は画面表示中のみ(バックグラウンド再生+ラジオモードはv2)
+- **iOSは `useApplicationAudioSession: false` が必須**(1.49で無音バグ・1.50で修正)。既定のtrueだと
+  AVSpeechSynthesizerがアプリの音声セッションを使うが、本アプリは音声セッションを設定していない
+  ため消音スイッチで無音になる。合成自体は完走するので**進捗だけ進んで聞こえない**症状になり、
+  ログにも何も残らない。falseにするとsynthesizerが再生用セッションを自前で持つ
+- 既知の弱点(未対処): ①`Speech.speak`はネイティブ例外を握り潰す(expo-speech側でPromiseを捨てて
+  いるためonErrorも呼ばれない)②onErrorが次セグメントへ進むだけなので全滅しても「完了」になる
+  ③iOSのgetAvailableVoicesAsyncはSiri音声も返すが再生できず無音になる(voiceIndex 0に当たると
+  記事の大半が無音)④メニューの「読み上げ」はバーを出すだけで自動再生しない
 
 ### 計測(新規イベント)
 `matsuri_open` / `matsuri_toggle` / `tts_start` / `tts_complete` / `tts_rate`

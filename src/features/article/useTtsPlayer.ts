@@ -83,6 +83,11 @@ export function useTtsPlayer(segments: TtsSegment[], site: string) {
           voice: voice.identifier,
           pitch: voice.pitch,
           rate: speakRate,
+          // iOSの消音スイッチ対策。既定(true)ではアプリの音声セッションを使うが、本アプリは
+          // 音声セッションを設定していないためマナーモードで無音になる(合成自体は進むので
+          // 進捗だけが進む)。falseにするとsynthesizerが再生用セッションを自前で持つ。
+          // Androidのオプションには無いフィールドなので無視される
+          useApplicationAudioSession: false,
           onDone: () => speakNext(index + 1),
           onError: () => speakNext(index + 1),
         });
