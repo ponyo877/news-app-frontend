@@ -4,7 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { postDeviceToken } from '@/api/endpoints';
-import { logError, logEvent } from '@/lib/analytics';
+import { logEvent } from '@/lib/analytics';
 import { computeDeviceHash } from '@/lib/deviceHash';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
 
@@ -53,6 +53,13 @@ async function ensureAndroidChannel(): Promise<void> {
   });
 }
 
+// プッシュ登録の失敗は端末・回線の状態で恒常的に起きるため、Crashlyticsのイシューには
+// せず計測イベントに留める(非致命レポートで本物のクラッシュを埋もれさせないため)。
+// 理由はGA4のパラメータ上限100文字に収める
+function errorReason(error: unknown): string {
+  return (error instanceof Error ? error.message : String(error)).slice(0, 100);
+}
+
 // Expo Pushトークンを取得。シミュレータ・取得失敗はnull(呼び出し側は黙ってスキップ)
 async function getExpoPushToken(): Promise<string | null> {
   if (!Device.isDevice) {
@@ -65,7 +72,8 @@ async function getExpoPushToken(): Promise<string | null> {
     const token = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
     return token.data;
   } catch (error) {
-    logError(error, 'getExpoPushToken');
+    // Googleアカウント未設定・Play開発者サービスが古い・通信断で失敗する(端末要因)
+    logEvent('push_token_failed', { step: 'fetch_token', reason: errorReason(error) });
     return null;
   }
 }
@@ -89,7 +97,8 @@ export async function registerPushToken(
       matsuri: matsuriEnabled,
     });
   } catch (error) {
-    logError(error, 'registerPushToken');
+    // fetchの失敗のみここに来る(HTTPエラーは例外にならない)。次回起動で再送される
+    logEvent('push_token_failed', { step: 'register', reason: errorReason(error) });
     return false;
   }
 }

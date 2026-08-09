@@ -1,9 +1,19 @@
-import { parseNotificationArticle } from '@/lib/notifications';
+import { parseNotificationArticle, registerPushToken } from '@/lib/notifications';
+
+const mockGetExpoPushTokenAsync = jest.fn<Promise<{ data: string }>, [unknown?]>();
+const mockLogEvent = jest.fn<void, [string, Record<string, unknown>?]>();
+const mockLogError = jest.fn<void, [unknown, string?]>();
 
 jest.mock('expo-constants', () => ({ expoConfig: null }));
-jest.mock('expo-device', () => ({ isDevice: false }));
-jest.mock('expo-notifications', () => ({}));
+jest.mock('expo-device', () => ({ isDevice: true }));
+jest.mock('expo-notifications', () => ({
+  getExpoPushTokenAsync: (options?: unknown) => mockGetExpoPushTokenAsync(options),
+}));
 jest.mock('@/lib/deviceHash', () => ({ computeDeviceHash: jest.fn() }));
+jest.mock('@/lib/analytics', () => ({
+  logEvent: (name: string, params?: Record<string, unknown>) => mockLogEvent(name, params),
+  logError: (error: unknown, context?: string) => mockLogError(error, context),
+}));
 
 const fullData = {
   type: 'digest',
@@ -47,5 +57,36 @@ describe('parseNotificationArticle', () => {
       sitetitle: '',
       publishedAt: '',
     });
+  });
+});
+
+// 端末要因(Googleアカウント未設定・通信断)の失敗は日常的に起きる。
+// Crashlyticsのイシューにすると本物のクラッシュが埋もれるので、計測イベントに留める
+describe('プッシュトークン取得の失敗', () => {
+  beforeEach(() => {
+    mockGetExpoPushTokenAsync.mockReset();
+    mockLogEvent.mockReset();
+    mockLogError.mockReset();
+  });
+
+  it('Crashlyticsではなく計測イベントとして記録する', async () => {
+    mockGetExpoPushTokenAsync.mockRejectedValue(new Error('FCM Registration failed!'));
+
+    await expect(registerPushToken(true, true)).resolves.toBe(false);
+
+    expect(mockLogError).not.toHaveBeenCalled();
+    expect(mockLogEvent).toHaveBeenCalledWith('push_token_failed', {
+      step: 'fetch_token',
+      reason: 'FCM Registration failed!',
+    });
+  });
+
+  it('理由はGA4の上限100文字に切り詰める', async () => {
+    mockGetExpoPushTokenAsync.mockRejectedValue(new Error('あ'.repeat(300)));
+
+    await registerPushToken(true, true);
+
+    const params = mockLogEvent.mock.calls[0]?.[1];
+    expect(String(params?.reason)).toHaveLength(100);
   });
 });
