@@ -18,6 +18,7 @@ interface ArticleHeaderActionsProps {
   // 記事末尾まで読んだら⚡を点灯して「次のおすすめ」へ誘導する
   relatedHighlighted?: boolean;
   onToggleRelated: () => void;
+  onStartTts: () => void;
 }
 
 // 記事画面ヘッダー右の操作クラスタ。
@@ -35,6 +36,7 @@ export function ArticleHeaderActions({
   relatedOpen,
   relatedHighlighted = false,
   onToggleRelated,
+  onStartTts,
 }: ArticleHeaderActionsProps) {
   return (
     <View style={styles.row}>
@@ -78,7 +80,7 @@ export function ArticleHeaderActions({
           color={colors.textPrimary}
         />
       </Pressable>
-      <ArticleMenu article={article} navigation={navigation} />
+      <ArticleMenu article={article} navigation={navigation} onStartTts={onStartTts} />
     </View>
   );
 }

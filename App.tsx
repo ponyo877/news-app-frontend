@@ -47,7 +47,8 @@ export default function App() {
     // レビュー依頼の起点時刻(初回起動 or 1.48更新後の初起動)
     useReviewStore.getState().ensureInstallAt();
     // 許諾済み端末のみ: トークンローテーションに追随してサーバへ再登録
-    void syncPushTokenIfGranted(useNotificationStore.getState().digestEnabled);
+    const notificationPrefs = useNotificationStore.getState();
+    void syncPushTokenIfGranted(notificationPrefs.digestEnabled, notificationPrefs.matsuriEnabled);
   }, []);
 
   useEffect(() => {

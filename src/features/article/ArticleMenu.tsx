@@ -17,13 +17,20 @@ import { fontFamily } from '@/theme/typography';
 export function ArticleMenu({
   article,
   navigation,
+  onStartTts,
 }: {
   article: ArticleMeta;
   navigation: RootNavigation;
+  onStartTts: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const scale = useFontSizeStore((s) => s.scale);
   const setScale = useFontSizeStore((s) => s.setScale);
+
+  const startTts = () => {
+    setOpen(false);
+    onStartTts();
+  };
 
   const report = () => {
     setOpen(false);
@@ -63,6 +70,11 @@ export function ArticleMenu({
                 ))}
               </View>
             </View>
+            <View style={styles.divider} />
+            <Pressable style={styles.item} onPress={startTts}>
+              <MaterialIcons name="headset" size={20} color={colors.textPrimary} />
+              <Text style={styles.label}>読み上げ</Text>
+            </Pressable>
             <View style={styles.divider} />
             <Pressable style={styles.item} onPress={report}>
               <MaterialIcons name="report" size={20} color={colors.textPrimary} />

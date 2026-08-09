@@ -18,10 +18,19 @@ interface NewsCardProps {
   plain?: boolean;
   // article_openの導線内訳(どのリストから開かれたか)。全リストがNewsCard経由のためここが唯一の伝搬点
   source?: ArticleOpenFrom;
+  // 祭りバッジ(この記事を含むクラスタのサイト数。0/undefinedなら非表示)
+  matsuriCount?: number;
   onPressMenu?: (article: ArticleMeta, favoriteFlg: boolean) => void;
 }
 
-export function NewsCard({ article, leading, plain = false, source, onPressMenu }: NewsCardProps) {
+export function NewsCard({
+  article,
+  leading,
+  plain = false,
+  source,
+  matsuriCount,
+  onPressMenu,
+}: NewsCardProps) {
   const navigation = useNavigation<RootNavigation>();
   const flags = useArticleFlags(article.id);
   const readFlg = !plain && flags.readFlg;
@@ -38,6 +47,9 @@ export function NewsCard({ article, leading, plain = false, source, onPressMenu 
     >
       <View style={styles.leading}>{leading ?? <Thumbnail uri={article.image} />}</View>
       <View style={styles.body}>
+        {matsuriCount !== undefined && matsuriCount >= 2 && (
+          <Text style={styles.matsuriBadge}>🔥 {matsuriCount}サイトがまとめ中</Text>
+        )}
         <Text
           style={[styles.title, { color: titleColor }, readFlg && styles.titleRead]}
           numberOfLines={3}
@@ -67,6 +79,12 @@ export function NewsCard({ article, leading, plain = false, source, onPressMenu 
 }
 
 const styles = StyleSheet.create({
+  matsuriBadge: {
+    color: colors.amber,
+    fontFamily: fontFamily.medium,
+    fontSize: 11,
+    marginBottom: 2,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

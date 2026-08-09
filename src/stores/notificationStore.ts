@@ -11,8 +11,11 @@ interface NotificationState {
   promptDone: boolean;
   // 人気記事ダイジェスト(朝・夜)を受け取るか。設定画面のトグルと連動
   digestEnabled: boolean;
+  // 祭り速報(複数サイト同時まとめの検知)を受け取るか
+  matsuriEnabled: boolean;
   setPromptDone: () => void;
   setDigestEnabled: (enabled: boolean) => void;
+  setMatsuriEnabled: (enabled: boolean) => void;
 }
 
 export const useNotificationStore = create<NotificationState>()(
@@ -20,8 +23,10 @@ export const useNotificationStore = create<NotificationState>()(
     (set) => ({
       promptDone: false,
       digestEnabled: true,
+      matsuriEnabled: true,
       setPromptDone: () => set({ promptDone: true }),
       setDigestEnabled: (digestEnabled) => set({ digestEnabled }),
+      setMatsuriEnabled: (matsuriEnabled) => set({ matsuriEnabled }),
     }),
     { name: 'notification', storage: createJSONStorage(() => zustandStorage) },
   ),

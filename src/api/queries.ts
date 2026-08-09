@@ -15,7 +15,7 @@ import {
   postComment,
   searchArticles,
 } from '@/api/endpoints';
-import { fetchRelated, recentReadIds } from '@/api/recs';
+import { fetchMatsuri, fetchRelated, recentReadIds } from '@/api/recs';
 import { logEvent } from '@/lib/analytics';
 import { useSiteFilterStore } from '@/stores/siteFilterStore';
 import { useUserStore } from '@/stores/userStore';
@@ -70,6 +70,16 @@ export function useRelatedArticles(articleId: string) {
   return useQuery({
     queryKey: queryKeys.related(articleId),
     queryFn: () => fetchRelated(articleId, recentReadIds()),
+    retry: 1,
+  });
+}
+
+// アクティブな祭り一覧(新着バッジ・ホームヘッダー🔥・MatsuriScreenで共有)
+export function useMatsuri() {
+  return useQuery({
+    queryKey: ['matsuri'],
+    queryFn: fetchMatsuri,
+    staleTime: 5 * 60_000,
     retry: 1,
   });
 }

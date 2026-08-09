@@ -1,6 +1,6 @@
 import { useHeaderHeight } from '@react-navigation/elements';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -20,8 +20,11 @@ import { ErrorState } from '@/components/ErrorState';
 import { ArticleHeaderActions } from '@/features/article/ArticleHeaderActions';
 import { fontScaleScript } from '@/features/article/fontScale';
 import { RelatedArticlesSheet } from '@/features/article/RelatedArticlesSheet';
+import { TtsPlayerBar } from '@/features/article/TtsPlayerBar';
+import { useTtsPlayer } from '@/features/article/useTtsPlayer';
 import { useArticleHtml } from '@/features/article/useArticleHtml';
 import { useVisibleArticles } from '@/lib/useVisibleArticles';
+import { buildTtsScript } from '@/scraper/ttsScript';
 import { CommentPanel } from '@/features/comments/CommentPanel';
 import { bannerAdUnitId } from '@/lib/ads';
 import { logEvent } from '@/lib/analytics';
@@ -55,6 +58,13 @@ export function ArticleScreen({ route, navigation }: Props) {
   const fontPercent = percentOf(useFontSizeStore((s) => s.scale));
 
   const htmlQuery = useArticleHtml(article.url, article.sitetitle);
+  // 読み上げ(文字色で読み手が変わる)。セグメント生成はHTML確定時に1回
+  const [isTtsOpen, setIsTtsOpen] = useState(false);
+  const ttsSegments = useMemo(
+    () => (htmlQuery.data ? buildTtsScript(htmlQuery.data) : []),
+    [htmlQuery.data],
+  );
+  const tts = useTtsPlayer(ttsSegments, article.sitetitle);
   // 人×今読んでいる記事の推薦(Cloudflare)。旧similar(BERT・封印中)の後継
   const relatedQuery = useRelatedArticles(article.id);
   const related = useVisibleArticles(relatedQuery.data ?? []);
@@ -93,6 +103,11 @@ export function ArticleScreen({ route, navigation }: Props) {
           relatedOpen={isRelatedOpen}
           relatedHighlighted={reachedEnd}
           onToggleRelated={() => setIsRelatedOpen((open) => !open)}
+          onStartTts={() => {
+            // 関連シートと排他(どちらもヘッダー直下の同じレイヤーに出るため)
+            setIsRelatedOpen(false);
+            setIsTtsOpen(true);
+          }}
         />
       ),
     });
@@ -169,9 +184,25 @@ export function ArticleScreen({ route, navigation }: Props) {
           )}
         </View>
         {/* 関連記事はヘッダー直下から降りる。広告から最も遠い位置に置くため上寄せにした */}
-        {isRelatedOpen && (
+        {isRelatedOpen && !isTtsOpen && (
           <View style={styles.relatedSheet}>
             <RelatedArticlesSheet articles={related} />
+          </View>
+        )}
+        {isTtsOpen && (
+          <View style={styles.relatedSheet}>
+            <TtsPlayerBar
+              status={tts.status}
+              segmentIndex={tts.segmentIndex}
+              total={tts.total}
+              rate={tts.rate}
+              onToggle={() => (tts.status === 'playing' ? tts.pause() : tts.play())}
+              onCycleRate={tts.cycleRate}
+              onClose={() => {
+                tts.stop();
+                setIsTtsOpen(false);
+              }}
+            />
           </View>
         )}
       </View>

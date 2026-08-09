@@ -70,6 +70,7 @@ export interface PostDeviceTokenParams {
   devicehash: string;
   platform: string;
   digest: boolean;
+  matsuri: boolean;
 }
 
 // POST /v1/user/token — プッシュ通知トークンの登録・設定更新(同一トークンはupsert)
@@ -78,12 +79,14 @@ export async function postDeviceToken({
   devicehash,
   platform,
   digest,
+  matsuri,
 }: PostDeviceTokenParams): Promise<boolean> {
   const res = await postForm('/v1/user/token', {
     expotoken,
     devicehash,
     platform,
     digest: String(digest),
+    matsuri: String(matsuri),
   });
   return res.ok;
 }

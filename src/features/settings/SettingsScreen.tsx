@@ -19,6 +19,7 @@ export function SettingsScreen() {
   const navigation = useNavigation<RootNavigation>();
   const [showAdsPrivacy, setShowAdsPrivacy] = useState(false);
   const digestEnabled = useNotificationStore((s) => s.digestEnabled);
+  const matsuriEnabled = useNotificationStore((s) => s.matsuriEnabled);
 
   useEffect(() => {
     void isAdsPrivacyOptionsRequired().then(setShowAdsPrivacy);
@@ -29,13 +30,26 @@ export function SettingsScreen() {
   // 設定画面からの明示操作なので、未許諾端末ではここでOSプロンプトを出してよい。
   // OFFはサーバ側の配信対象からも外す(digest=falseで上書き登録)
   const onToggleDigest = (value: boolean) => {
-    useNotificationStore.getState().setDigestEnabled(value);
-    useNotificationStore.getState().setPromptDone();
+    const store = useNotificationStore.getState();
+    store.setDigestEnabled(value);
+    store.setPromptDone();
     logEvent('digest_toggle', { enabled: String(value) });
     if (value) {
-      void requestPermissionAndRegister(true);
+      void requestPermissionAndRegister(true, store.matsuriEnabled);
     } else {
-      void registerPushToken(false);
+      void registerPushToken(false, store.matsuriEnabled);
+    }
+  };
+
+  const onToggleMatsuri = (value: boolean) => {
+    const store = useNotificationStore.getState();
+    store.setMatsuriEnabled(value);
+    store.setPromptDone();
+    logEvent('matsuri_toggle', { enabled: String(value) });
+    if (value) {
+      void requestPermissionAndRegister(store.digestEnabled, true);
+    } else {
+      void registerPushToken(store.digestEnabled, false);
     }
   };
 
@@ -73,7 +87,11 @@ export function SettingsScreen() {
             <Pressable
               style={styles.row}
               onPress={() => onPressItem(item)}
-              disabled={item.action.type === 'none' || item.action.type === 'digestToggle'}
+              disabled={
+                item.action.type === 'none' ||
+                item.action.type === 'digestToggle' ||
+                item.action.type === 'matsuriToggle'
+              }
             >
               <MaterialIcons name={item.icon} size={24} color={colors.textPrimary} />
               <Text style={styles.title}>{item.title}</Text>
@@ -81,6 +99,12 @@ export function SettingsScreen() {
                 <Switch
                   value={digestEnabled}
                   onValueChange={onToggleDigest}
+                  trackColor={{ true: colors.blueGrey }}
+                />
+              ) : item.action.type === 'matsuriToggle' ? (
+                <Switch
+                  value={matsuriEnabled}
+                  onValueChange={onToggleMatsuri}
                   trackColor={{ true: colors.blueGrey }}
                 />
               ) : (

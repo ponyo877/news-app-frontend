@@ -7,9 +7,13 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef, useState } from 'react';
-import { Linking } from 'react-native';
+import { Linking , Pressable } from 'react-native';
+
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { fetchArticleMeta } from '@/api/endpoints';
+import { useMatsuri } from '@/api/queries';
+import { MatsuriScreen } from '@/features/matsuri/MatsuriScreen';
 import { NotificationPromptDialog } from '@/components/NotificationPromptDialog';
 import { ArticleScreen } from '@/features/article/ArticleScreen';
 import { OnboardingScreen } from '@/features/onboarding/OnboardingScreen';
@@ -48,6 +52,9 @@ const NOTIFICATION_PROMPT_READ_COUNT = 3;
 
 export function RootNavigator() {
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
+  // アクティブな祭りがあるときだけホームヘッダーに🔥を出す
+  const matsuriQuery = useMatsuri();
+  const hasMatsuri = (matsuriQuery.data?.length ?? 0) > 0;
   const routeNameRef = useRef<string | undefined>(undefined);
   // ナビゲーション準備前(kill状態から通知/リンクタップで起動)に届いた遷移先の待避場所
   const pendingArticleRef = useRef<{ article: ArticleMeta; from: ArticleOpenFrom } | null>(null);
@@ -153,7 +160,8 @@ export function RootNavigator() {
     setShowNotificationPrompt(false);
     useNotificationStore.getState().setPromptDone();
     logEvent('notification_prompt', { action: 'accept' });
-    void requestPermissionAndRegister(useNotificationStore.getState().digestEnabled);
+    const prefs = useNotificationStore.getState();
+    void requestPermissionAndRegister(prefs.digestEnabled, prefs.matsuriEnabled);
   };
 
   const onDeclineNotification = () => {
@@ -196,7 +204,22 @@ export function RootNavigator() {
         <Stack.Screen
           name="MainTabs"
           component={MainTabs}
-          options={{ title: '😁まとめくん😁', headerTitleAlign: 'center' }}
+          options={{
+            title: '😁まとめくん😁',
+            headerTitleAlign: 'center',
+            headerRight: hasMatsuri
+              ? () => (
+                  <Pressable
+                    hitSlop={8}
+                    onPress={() => navigationRef.navigate('Matsuri')}
+                    accessibilityRole="button"
+                    accessibilityLabel="進行中の祭りを見る"
+                  >
+                    <MaterialIcons name="local-fire-department" size={26} color={colors.amber} />
+                  </Pressable>
+                )
+              : undefined,
+          }}
         />
         <Stack.Screen
           name="Article"
@@ -227,6 +250,11 @@ export function RootNavigator() {
           name="NgWords"
           component={NgWordScreen}
           options={{ title: 'NGワード設定' }}
+        />
+        <Stack.Screen
+          name="Matsuri"
+          component={MatsuriScreen}
+          options={{ title: '🔥 いま祭りのスレ' }}
         />
         <Stack.Screen
           name="Onboarding"

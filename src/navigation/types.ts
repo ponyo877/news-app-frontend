@@ -12,7 +12,8 @@ export type ArticleOpenFrom =
   | 'history'
   | 'favorite'
   | 'notification'
-  | 'deeplink';
+  | 'deeplink'
+  | 'matsuri';
 
 export type RootStackParamList = {
   MainTabs: undefined;
@@ -22,6 +23,7 @@ export type RootStackParamList = {
   SelectAvatar: undefined;
   NgWords: undefined;
   Onboarding: undefined;
+  Matsuri: undefined;
 };
 
 export type RootNavigation = NativeStackNavigationProp<RootStackParamList>;

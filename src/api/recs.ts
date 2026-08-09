@@ -46,3 +46,31 @@ export function fetchForYou(recentArticleIds: string[]): Promise<Article[]> {
 export function fetchRelated(articleId: string, recentArticleIds: string[]): Promise<Article[]> {
   return postRecs('/recs/related', { articleId, recentArticleIds });
 }
+
+// 祭り(複数サイトが同一スレを一斉にまとめたクラスタ)
+export interface MatsuriCluster {
+  clusterId: string;
+  siteCount: number;
+  articles: Article[];
+}
+
+export async function fetchMatsuri(): Promise<MatsuriCluster[]> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RECS_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${RECS_BASE_URL}/recs/matsuri`, { signal: controller.signal });
+    if (!res.ok) {
+      throw new ApiError(res.status, `GET /recs/matsuri failed (${res.status})`);
+    }
+    const body = (await res.json()) as {
+      data: { clusterId: string; siteCount: number; articles: unknown }[] | null;
+    };
+    return (body.data ?? []).map((cluster) => ({
+      clusterId: cluster.clusterId,
+      siteCount: cluster.siteCount,
+      articles: articleListSchema.parse({ data: cluster.articles }).data,
+    }));
+  } finally {
+    clearTimeout(timer);
+  }
+}

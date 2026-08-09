@@ -16,6 +16,7 @@ export type MenuAction =
   | { type: 'webview'; title: string; url: string }
   | { type: 'adsPrivacy' }
   | { type: 'digestToggle' }
+  | { type: 'matsuriToggle' }
   | { type: 'none' };
 
 export interface MenuItem {
@@ -35,6 +36,7 @@ export function buildMenuItems(appVersion: string, showAdsPrivacy: boolean): Men
     { icon: 'visibility-off', title: 'NGワード設定', action: { type: 'ngWords' } },
     // 通知タイプ別ON/OFF(オプトアウト導線がないと低評価レビューに直結する)
     { icon: 'notifications', title: '人気記事の通知(朝・夜)', action: { type: 'digestToggle' } },
+    { icon: 'local-fire-department', title: '祭り速報の通知', action: { type: 'matsuriToggle' } },
     ...adsPrivacyItem,
     {
       icon: 'privacy-tip',

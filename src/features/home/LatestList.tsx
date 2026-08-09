@@ -2,7 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useMemo } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
 
-import { useLatestArticles } from '@/api/queries';
+import { useLatestArticles, useMatsuri } from '@/api/queries';
 import { ErrorState } from '@/components/ErrorState';
 import { FeedAdCard } from '@/components/FeedAdCard';
 import { NewsCard } from '@/components/NewsCard';
@@ -20,6 +20,17 @@ interface LatestListProps {
 // 旧版のitemBuilder内getPost(false)呼び出しはonEndReachedに置き換え(多重リクエスト是正)
 export function LatestList({ onPressMenu }: LatestListProps) {
   const query = useLatestArticles();
+  // 祭りバッジ(記事ID→クラスタのサイト数)。クラスタは高々10件なのでマップは軽い
+  const matsuriQuery = useMatsuri();
+  const matsuriCountById = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const cluster of matsuriQuery.data ?? []) {
+      for (const clusterArticle of cluster.articles) {
+        map.set(clusterArticle.id, cluster.siteCount);
+      }
+    }
+    return map;
+  }, [matsuriQuery.data]);
   const rawArticles = useMemo(
     // ページ単位のサイト別バランシング(上位3サイト48%占有の緩和。並べ替えのみで記事は失わない)
     () => (query.data?.pages ?? []).flatMap((page) => balanceSitePage(page.data)),
@@ -61,7 +72,12 @@ export function LatestList({ onPressMenu }: LatestListProps) {
         item.type === 'ad' ? (
           <FeedAdCard />
         ) : (
-          <NewsCard article={item.article} source="latest" onPressMenu={onPressMenu} />
+          <NewsCard
+            article={item.article}
+            source="latest"
+            matsuriCount={matsuriCountById.get(item.article.id)}
+            onPressMenu={onPressMenu}
+          />
         )
       }
       onEndReached={() => {
