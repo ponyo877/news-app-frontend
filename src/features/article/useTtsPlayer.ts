@@ -40,7 +40,11 @@ export function useTtsPlayer(segments: TtsSegment[], site: string) {
       try {
         const available = await Speech.getAvailableVoicesAsync();
         identifiers = available
-          .filter((voice) => voice.language.startsWith('ja'))
+          // Siri音声はspeechVoices()に含まれるがサードパーティアプリからは再生できず、
+          // utteranceは正常に完了するため「進捗だけ進んで無音」になる。
+          // 0番=ナレーター(セグメントの大半)に当たると記事のほぼ全部が無音になる。
+          // 全部除外されても下のpitch差に縮退するので、鳴らなくなることはない
+          .filter((voice) => voice.language.startsWith('ja') && !/siri/i.test(voice.identifier))
           .map((voice) => voice.identifier);
       } catch {
         identifiers = [];

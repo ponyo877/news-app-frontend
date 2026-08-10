@@ -44,6 +44,25 @@ describe('useTtsPlayer', () => {
     });
   });
 
+  // Siri音声は再生できず「進捗だけ進んで無音」になるため声プールに入れない
+  it('iOSのSiri音声を声プールから除外する', async () => {
+    mockGetAvailableVoicesAsync.mockResolvedValue([
+      { identifier: 'com.apple.ttsbundle.siri_Hattori_ja-JP_compact', language: 'ja-JP' },
+      { identifier: 'com.apple.voice.compact.ja-JP.Kyoko', language: 'ja-JP' },
+      { identifier: 'com.apple.voice.compact.en-US.Samantha', language: 'en-US' },
+    ]);
+    const { result } = await renderHook(() => useTtsPlayer(segments, 'テストサイト'));
+
+    await act(() => {
+      result.current.play();
+    });
+
+    await waitFor(() => expect(mockSpeak).toHaveBeenCalledTimes(1));
+    const voice = (mockSpeak.mock.calls[0]?.[1] ?? {}).voice;
+    expect(voice).not.toMatch(/siri/i);
+    expect(voice).toBe('com.apple.voice.compact.ja-JP.Kyoko');
+  });
+
   it('セグメントが空なら再生しない', async () => {
     const { result } = await renderHook(() => useTtsPlayer([], 'テストサイト'));
 

@@ -128,6 +128,16 @@ export function ArticleScreen({ route, navigation }: Props) {
     }
   }, [reachedEnd, related.length]);
 
+  useEffect(() => {
+    // メニューで「読み上げ」を選んだら即再生する(バーを出すだけだと「選んだのに
+    // 始まらない」体験になる)。HTML取得前に開かれてもセグメント確定時にここで拾う。
+    // idle限定なので一時停止中や再生中に巻き戻ることはない
+    if (isTtsOpen && ttsSegments.length > 0 && tts.status === 'idle') {
+      tts.play();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTtsOpen, ttsSegments.length]);
+
   // 取得失敗(タイムアウト含む)。旧実装は data===undefined のまま無限スピナーだった。
   // この分岐では広告バナーを描画しないため、中央の再読み込みボタンはAdMob隣接制約に抵触しない
   if (htmlQuery.isError) {
