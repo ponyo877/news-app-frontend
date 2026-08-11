@@ -48,3 +48,8 @@ yarn-error.*
 src/scraper/__fixtures__/real/
 # 追加候補サイトのHTMLフィクスチャ(npm run fetch-candidatesで取得、コミットしない)
 src/scraper/__fixtures__/candidates/
+
+# ローカルビルドの成果物(EAS無料枠が尽きた月はローカルでipaを作る)
+*.ipa
+*.apk
+*.aab
