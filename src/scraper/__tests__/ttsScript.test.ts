@@ -77,3 +77,73 @@ describe('buildTtsScript', () => {
     expect(segments[0]?.text).toBe('本文だけが読まれます。');
   });
 });
+
+// レスのメタ情報(番号・ハンドル・日時・ID)は読まない。
+// これらは本文と別ノードで交互に並ぶため、読むと1レスごとに事務的な前置きが入る
+describe('スレタイと書き込み本文だけを読む', () => {
+  it('レスヘッダー(番号・名無し・日時・ID)を読み飛ばす', () => {
+    const html = `
+      <div>1 名前：</div>
+      <div>名無しさん＠おーぷん</div>
+      <div>[] 投稿日：26/07/23(木) 01:05:09 ID:D3WQ</div>
+      <div>これは実際の書き込み本文です。</div>
+    `;
+    const segments = buildTtsScript(html);
+    expect(segments.map((s) => s.text)).toEqual(['これは実際の書き込み本文です。']);
+  });
+
+  it('サイトごとに異なる名無しハンドルを読み飛ばす', () => {
+    const html = `
+      <p>1:</p>
+      <p>風吹けば名無し</p>
+      <p>2025/07/29(火) 12:12:28.03</p>
+      <p>それでも動く名無し</p>
+      <p>以下、ニュー速クオリティでお送りします</p>
+      <p>名無しどんぶらこ</p>
+      <p>1 名前：煮卵 ★：2026/07/25(土) 09:19:16.82 ID:tFFy/Iv59.net</p>
+      <p>ちいかわの奴みたい</p>
+    `;
+    const segments = buildTtsScript(html);
+    expect(segments.map((s) => s.text)).toEqual(['ちいかわの奴みたい']);
+  });
+
+  it('嫌儲系のコテハン(名前+地域+キャリア)を読み飛ばす', () => {
+    const html = `
+      <p>ピマリシン(福岡県) [ﾆﾀﾞ]</p>
+      <p>ドナルド・マクドナルド(庭) [OM]</p>
+      <p>すごいリアル</p>
+    `;
+    const segments = buildTtsScript(html);
+    expect(segments.map((s) => s.text)).toEqual(['すごいリアル']);
+  });
+
+  it('記事のメタ情報(投稿者・投稿日時・コメント数)を読み飛ばす', () => {
+    const html = `
+      <h1>【悲報】「蕎麦」とかいう自炊最強のメシ</h1>
+      <div>投稿者：ひまた</div>
+      <div>2025/07/31 23:45</div>
+      <div>コメント72</div>
+      <div>0</div>
+      <div>7月25</div>
+      <p>それでも蕎麦は美味い。</p>
+    `;
+    const segments = buildTtsScript(html);
+    expect(segments.map((s) => s.text)).toEqual([
+      '【悲報】「蕎麦」とかいう自炊最強のメシ',
+      'それでも蕎麦は美味い。',
+    ]);
+  });
+
+  it('本文と同じノードに混ざった日時・IDだけを落として本文は残す', () => {
+    const html = `<p>2026/07/25(土) 09:19:16.82 ID:tFFy/Iv59.net これが本文です。</p>`;
+    const segments = buildTtsScript(html);
+    expect(segments[0]?.text).toBe('これが本文です。');
+  });
+
+  it('日付や「名無し」に言及する本文は読む(メタ判定の誤爆防止)', () => {
+    const long = '名無しさんたちの書き込みを読んでいると、2026年の日本の空気が伝わってくる。';
+    const html = `<p>${long}</p>`;
+    const segments = buildTtsScript(html);
+    expect(segments.map((s) => s.text)).toEqual([long]);
+  });
+});
