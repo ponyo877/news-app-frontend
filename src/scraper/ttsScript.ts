@@ -70,6 +70,17 @@ const METADATA_PATTERNS: RegExp[] = [
   /^コメント\s*\d*$/,
   /^\d{1,2}月\d{0,2}日?$/,
   /^引用元\s*[:：]?\s*[・:：]?$/,
+  // 本文が続かない引用元の見出し(URLはリンクなので別途落ちる)
+  /^(出典元|出典|ソース|元スレ)\s*[:：]?$/,
+  // レスヘッダーを別ノードに分けるサイト向け。「ID」が前のノードに残り、
+  // 「:S5A2HuNc」だけが単体で来る(おーるじゃんる等)
+  /^[:：]\s*[A-Za-z0-9+/]{6,12}$/,
+  // 5chのレベル表記付きハンドル(「警備員[Lv.6][新芽]」)
+  /^[^。、！？!?]*\[Lv\.\d+\][^。、！？!?]*$/,
+  // トリップ付きコテハン(「清純派うさぎ症候群 ◆dKZ7GhxA2I」)
+  /[◆◇][A-Za-z0-9./]{8,12}$/,
+  // 記者ハンドル(「ばーど ★」)。句読点を含む行は本文とみなす
+  /^[^。、！？!?]{0,24}\s★$/,
   // 数字のみ(コメント数・いいね数のカウンタ)
   /^\d{1,6}$/,
 ];
@@ -287,18 +298,30 @@ export function buildTtsScriptWithAnchors(html: string): TtsScript {
   let currentBucket: string | null = null;
   // いま蓄積中のセグメントを構成するテキストノード
   let currentNodes: Text[] = [];
+  // そのうちリンクの外にあるテキストの文字数
+  let currentPlainLength = 0;
 
+  // 丸ごとリンクのセグメントは捨てる。エンジンが当たらないサイトはページ全体が
+  // 読み上げ対象になり、ナビゲーションや人気記事一覧まで読んでしまうため。
+  // レス本文に混ざる>>アンカーや出典URLも同時に落ちる(読んでも意味がない)。
+  // 本文中に一部だけリンクがある行は、リンク外の文字が残るので採用される
   const flush = () => {
     const text = cleanText(currentText);
-    if (text !== '' && !looksLikeAsciiArt(text) && !isMetadata(text)) {
+    if (
+      text !== '' &&
+      currentPlainLength > 0 &&
+      !looksLikeAsciiArt(text) &&
+      !isMetadata(text)
+    ) {
       anchor(currentNodes, rawSegments.length, $);
       rawSegments.push({ text, bucket: currentBucket });
     }
     currentText = '';
     currentNodes = [];
+    currentPlainLength = 0;
   };
 
-  const appendText = (node: Text) => {
+  const appendText = (node: Text, inLink: boolean) => {
     const piece = node.data ?? '';
     if (piece.trim() === '') {
       return;
@@ -312,11 +335,14 @@ export function buildTtsScriptWithAnchors(html: string): TtsScript {
     currentBucket = bucket;
     currentText += piece;
     currentNodes.push(node);
+    if (!inLink) {
+      currentPlainLength += piece.trim().length;
+    }
   };
 
-  const walk = (node: AnyNode) => {
+  const walk = (node: AnyNode, inLink: boolean) => {
     if (isText(node)) {
-      appendText(node);
+      appendText(node, inLink);
       return;
     }
     if (!isTag(node)) {
@@ -330,8 +356,9 @@ export function buildTtsScriptWithAnchors(html: string): TtsScript {
     if (isBlock) {
       flush();
     }
+    const childInLink = inLink || element.tagName === 'a';
     for (const child of element.children ?? []) {
-      walk(child);
+      walk(child, childInLink);
     }
     if (isBlock) {
       flush();
@@ -339,7 +366,7 @@ export function buildTtsScriptWithAnchors(html: string): TtsScript {
   };
 
   for (const node of $.root()[0]?.children ?? []) {
-    walk(node);
+    walk(node, false);
   }
   flush();
 

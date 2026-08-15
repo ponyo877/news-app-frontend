@@ -155,6 +155,36 @@ describe('スレタイと書き込み本文だけを読む', () => {
     const segments = buildTtsScript(html);
     expect(segments.map((s) => s.text)).toEqual([long]);
   });
+
+  it('丸ごとリンクの行は読まない(ナビゲーション・人気記事一覧・出典URL)', () => {
+    const html = `
+      <nav><div><a href="/cat1">国内</a></div><div><a href="/cat2">政治</a></div></nav>
+      <div><a href="/1">【速報】ランキング1位の記事</a></div>
+      <p>これは実際の書き込み本文です。</p>
+      <p>出典元:</p>
+      <p><a href="https://example.com/news/1">https://example.com/news/1</a></p>
+    `;
+    const segments = buildTtsScript(html);
+    expect(segments.map((s) => s.text)).toEqual(['これは実際の書き込み本文です。']);
+  });
+
+  it('本文の一部がリンクの行は読む(リンクを含むレス)', () => {
+    const html = `<p>詳しくは<a href="/faq">こちらのまとめ</a>を見てくれ。</p>`;
+    const segments = buildTtsScript(html);
+    expect(segments.map((s) => s.text)).toEqual(['詳しくはこちらのまとめを見てくれ。']);
+  });
+
+  it('レスヘッダーを分割するサイトのID断片・コテハンを読み飛ばす', () => {
+    const html = `
+      <p>ばーど ★</p>
+      <p>:S5A2HuNc</p>
+      <p>清純派うさぎ症候群 ◆dKZ7GhxA2I</p>
+      <p>警備員[Lv.6][新芽]</p>
+      <p>アルゼンチンなら歓迎</p>
+    `;
+    const segments = buildTtsScript(html);
+    expect(segments.map((s) => s.text)).toEqual(['アルゼンチンなら歓迎']);
+  });
 });
 
 // 読み上げ位置をWebViewに追従させるためのアンカー。
