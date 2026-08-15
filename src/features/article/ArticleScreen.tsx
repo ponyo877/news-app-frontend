@@ -24,7 +24,9 @@ import { TtsPlayerBar } from '@/features/article/TtsPlayerBar';
 import { useTtsPlayer } from '@/features/article/useTtsPlayer';
 import { useArticleHtml } from '@/features/article/useArticleHtml';
 import { useVisibleArticles } from '@/lib/useVisibleArticles';
-import { buildTtsScript } from '@/scraper/ttsScript';
+import { ttsClearScript, ttsFollowScript } from '@/features/article/ttsFollow';
+import { buildTtsScriptWithAnchors } from '@/scraper/ttsScript';
+import type { TtsSegment } from '@/scraper/ttsScript';
 import { CommentPanel } from '@/features/comments/CommentPanel';
 import { bannerAdUnitId } from '@/lib/ads';
 import { logEvent } from '@/lib/analytics';
@@ -35,6 +37,10 @@ import { colors } from '@/theme/colors';
 import { fontFamily, radius } from '@/theme/typography';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Article'>;
+
+// HTML未取得時に使う不変の空配列。毎回新しい配列を作るとuseTtsPlayerの
+// useCallback依存が変わり、再生中のクロージャが作り直されてしまう
+const EMPTY_SEGMENTS: TtsSegment[] = [];
 
 // 記事詳細画面(旧MatomeWebView)。
 // 整形済みHTMLをWebViewで表示し、コメント欄を100%:0⇔50%:50で切り替える。
@@ -58,13 +64,21 @@ export function ArticleScreen({ route, navigation }: Props) {
   const fontPercent = percentOf(useFontSizeStore((s) => s.scale));
 
   const htmlQuery = useArticleHtml(article.url, article.sitetitle);
-  // 読み上げ(文字色で読み手が変わる)。セグメント生成はHTML確定時に1回
+  // 読み上げ(文字色で読み手が変わる)。セグメント生成はHTML確定時に1回。
+  // 同時に各セグメントの起点へアンカーを打ったHTMLも作り、読み上げ中はそちらを表示する
   const [isTtsOpen, setIsTtsOpen] = useState(false);
-  const ttsSegments = useMemo(
-    () => (htmlQuery.data ? buildTtsScript(htmlQuery.data) : []),
+  const ttsScript = useMemo(
+    () => (htmlQuery.data ? buildTtsScriptWithAnchors(htmlQuery.data) : null),
     [htmlQuery.data],
   );
+  const ttsSegments = ttsScript?.segments ?? EMPTY_SEGMENTS;
   const tts = useTtsPlayer(ttsSegments, article.sitetitle);
+  // 追従由来のスクロールを手動操作と誤検知しないための目印。
+  // どちらも描画に影響しないためstateではなくrefで持つ
+  const autoScrollingRef = useRef(false);
+  const followsTtsRef = useRef(true);
+  // 一度でも読み上げを開いたか(閉じたときのハイライト解除を初回マウントで走らせない)
+  const openedTtsRef = useRef(false);
   // 人×今読んでいる記事の推薦(Cloudflare)。旧similar(BERT・封印中)の後継
   const relatedQuery = useRelatedArticles(article.id);
   const related = useVisibleArticles(relatedQuery.data ?? []);
@@ -138,6 +152,40 @@ export function ArticleScreen({ route, navigation }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTtsOpen, ttsSegments.length]);
 
+  useEffect(() => {
+    // 読み上げ位置へスクロールしてハイライトを移す。
+    // 手動スクロール中は追わないが、次のセグメントに進んだ時点で復帰させる
+    if (!isTtsOpen || tts.status !== 'playing') {
+      return;
+    }
+    if (!followsTtsRef.current) {
+      // 手動スクロール後の最初のセグメント送りは追わず、次から復帰する
+      followsTtsRef.current = true;
+      return;
+    }
+    autoScrollingRef.current = true;
+    webViewRef.current?.injectJavaScript(ttsFollowScript(tts.segmentIndex));
+    // smoothスクロールが落ち着くまでonScrollを手動操作と見なさない
+    const timer = setTimeout(() => {
+      autoScrollingRef.current = false;
+    }, 900);
+    return () => clearTimeout(timer);
+  }, [tts.segmentIndex, isTtsOpen, tts.status]);
+
+  useEffect(() => {
+    // 読み上げを閉じたらハイライトを消す。HTMLは差し替えないので、
+    // 解除しないと最後に読んだ箇所が塗られたまま残る。
+    // 初回マウント時は読み込み前のWebViewに注入しても無駄なので開いた後だけ動かす
+    if (isTtsOpen) {
+      openedTtsRef.current = true;
+      return;
+    }
+    if (openedTtsRef.current) {
+      webViewRef.current?.injectJavaScript(ttsClearScript());
+      followsTtsRef.current = true;
+    }
+  }, [isTtsOpen]);
+
   // 取得失敗(タイムアウト含む)。旧実装は data===undefined のまま無限スピナーだった。
   // この分岐では広告バナーを描画しないため、中央の再読み込みボタンはAdMob隣接制約に抵触しない
   if (htmlQuery.isError) {
@@ -167,7 +215,13 @@ export function ArticleScreen({ route, navigation }: Props) {
         <View style={styles.webViewClip}>
           <WebView
             ref={webViewRef}
-            source={{ html: htmlQuery.data, baseUrl: article.url }}
+            // 読み上げの開閉に関わらずアンカー付きHTMLを表示する。
+            // sourceを差し替えるとWebViewが再読み込みされ、読んでいた位置を
+            // 失うため。アンカーは属性とspanだけなので見た目は変わらない
+            source={{
+              html: ttsScript?.html ?? htmlQuery.data,
+              baseUrl: article.url,
+            }}
             javaScriptEnabled
             // 文字サイズ: Androidはネイティブのズーム、iOSは初期注入+変更時injectJavaScript
             textZoom={fontPercent}
@@ -181,6 +235,10 @@ export function ArticleScreen({ route, navigation }: Props) {
                   }
                   return true;
                 });
+              }
+              // 追従由来でないスクロール=手動操作。読み返しを邪魔しないよう追従を止める
+              if (isTtsOpen && !autoScrollingRef.current) {
+                followsTtsRef.current = false;
               }
             }}
             // hrefは剥奪済みだが、万一のページ遷移を遮断する保険

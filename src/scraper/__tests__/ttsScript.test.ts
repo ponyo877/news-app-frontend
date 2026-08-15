@@ -1,4 +1,13 @@
-import { buildTtsScript, colorBucket } from '@/scraper/ttsScript';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { applySiteRules } from '@/scraper/applyRules';
+import { detectEngine } from '@/scraper/engines';
+import { loadDoc } from '@/scraper/htmlLoad';
+import { matchSiteRule } from '@/scraper/ruleMatcher';
+import { bundledRuleSet } from '@/scraper/rulesStore';
+import { serialize, stripLinkHrefs } from '@/scraper/serialize';
+import { buildTtsScript, buildTtsScriptWithAnchors, colorBucket } from '@/scraper/ttsScript';
 
 describe('colorBucket', () => {
   it('近似色は同じバケットにまとまる(#ff0000と#cc0000は赤)', () => {
@@ -145,5 +154,92 @@ describe('スレタイと書き込み本文だけを読む', () => {
     const html = `<p>${long}</p>`;
     const segments = buildTtsScript(html);
     expect(segments.map((s) => s.text)).toEqual([long]);
+  });
+});
+
+// 読み上げ位置をWebViewに追従させるためのアンカー。
+// flushがメタデータやAAを捨てるため「N番目の要素=N番目のセグメント」は成立しない。
+// 採用が確定した時点で採番することで添字と一致させている
+describe('buildTtsScriptWithAnchors', () => {
+  const anchors = (html: string): string[] =>
+    [...html.matchAll(/data-tts="(\d+)"/g)].map((m) => m[1] ?? '');
+
+  it('セグメントの起点要素にdata-ttsを採番する', () => {
+    const html = `
+      <p>最初の段落はそれなりに長い文章です。</p>
+      <p>次の段落もそれなりに長い文章です。</p>
+    `;
+    const { segments, html: out } = buildTtsScriptWithAnchors(html);
+    expect(segments).toHaveLength(2);
+    expect(anchors(out)).toEqual(['0', '1']);
+  });
+
+  it('読み飛ばしたメタデータには採番せず、添字とずれない', () => {
+    const html = `
+      <p>1 名前：</p>
+      <p>風吹けば名無し</p>
+      <p>これは実際の書き込み本文です。</p>
+    `;
+    const { segments, html: out } = buildTtsScriptWithAnchors(html);
+    expect(segments.map((s) => s.text)).toEqual(['これは実際の書き込み本文です。']);
+    // メタデータ2件は採番されず、本文だけが0番になる
+    expect(anchors(out)).toEqual(['0']);
+  });
+
+  it('色替えで同じ要素から複数セグメントが出ても最初の採番を残す', () => {
+    const html = `<p>地の文です。<span style="color:red">赤字のレスです。</span></p>`;
+    const { segments, html: out } = buildTtsScriptWithAnchors(html);
+    expect(segments).toHaveLength(2);
+    // 2件目はspanが起点なので、p(0番)とspan(1番)に分かれる
+    expect(anchors(out)).toEqual(['0', '1']);
+  });
+
+  it('ハイライト用のスタイルをheadへ注入する', () => {
+    const { html } = buildTtsScriptWithAnchors('<p>本文です。</p>');
+    expect(html).toContain('data-tts-current');
+    expect(html).toContain('<style>');
+  });
+
+  it('buildTtsScriptと同じセグメントを返す', () => {
+    const html = `<p>ひとつめの段落です。</p><p>ふたつめの段落です。</p>`;
+    expect(buildTtsScriptWithAnchors(html).segments).toEqual(buildTtsScript(html));
+  });
+});
+
+// 実サイトのHTMLで、採番がセグメント配列の添字と厳密に一致することを確認する。
+// npm run fetch-fixtures 実行後にのみ動く
+const REAL_DIR = join(__dirname, '../__fixtures__/real');
+const fixtures = existsSync(REAL_DIR)
+  ? readdirSync(REAL_DIR)
+      .filter((f) => f.endsWith('.html'))
+      .map((f) => ({ name: f.replace(/\.html$/, ''), path: join(REAL_DIR, f) }))
+  : [];
+const maybeDescribe = fixtures.length > 0 ? describe : describe.skip;
+
+maybeDescribe('実サイトHTMLでのアンカー採番', () => {
+  it.each(fixtures)('$name: 採番が連番で、セグメント数を超えない', async ({ name, path }) => {
+    const raw = readFileSync(path, 'utf8');
+    const sourceUrl = /<!-- source: (.*?) -->/.exec(raw)?.[1] ?? '';
+    const $ = loadDoc(raw);
+    const rule = matchSiteRule(bundledRuleSet, sourceUrl, name.replace(/__\d+$/, ''));
+    const engine = detectEngine($, rule);
+    if (engine) {
+      await engine.prepare($, () => Promise.reject(new Error('no network')), rule);
+      if (rule) {
+        applySiteRules($, rule);
+      }
+      stripLinkHrefs($);
+    }
+    const { segments, html } = buildTtsScriptWithAnchors(engine ? serialize($) : raw);
+    const nums = new Set([...html.matchAll(/data-tts="(\d+)"/g)].map((m) => Number(m[1])));
+
+    expect(segments.length).toBeGreaterThan(0);
+    // すべてのセグメントにアンカーが要る。欠けるとその間だけ追従が止まる
+    const missing = segments.map((_, i) => i).filter((i) => !nums.has(i));
+    expect(missing).toEqual([]);
+    // 採番はセグメントの範囲に収まる
+    for (const n of nums) {
+      expect(n).toBeLessThan(segments.length);
+    }
   });
 });

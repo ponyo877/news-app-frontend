@@ -1,5 +1,6 @@
+import type { CheerioAPI } from 'cheerio/slim';
 import { isTag, isText } from 'domhandler';
-import type { AnyNode, Element } from 'domhandler';
+import type { AnyNode, Element, Text } from 'domhandler';
 
 import { loadDoc } from '@/scraper/htmlLoad';
 
@@ -222,35 +223,100 @@ interface RawSegment {
   bucket: string | null;
 }
 
-// 整形済みHTMLから (テキスト, 色バケット) の列を抽出する。
-// テキストノード単位で色を解決し、同色の連続はブロック境界まで結合する
-export function buildTtsScript(html: string): TtsSegment[] {
+// 読み上げ位置を画面に追従させるためのアンカー属性。
+// WebView側はこの属性でスクロール先とハイライト対象を特定する
+export const TTS_ANCHOR_ATTR = 'data-tts';
+export const TTS_CURRENT_ATTR = 'data-tts-current';
+
+// ハイライトのスタイル。取得元CSSに上書きされないようhead末尾へ足す
+// (serialize.tsのAPP_STYLEと同じ流儀)
+const TTS_STYLE =
+  `<style>[${TTS_CURRENT_ATTR}]{background:rgba(255,193,7,0.35);` +
+  `border-radius:3px;transition:background 0.2s;}</style>`;
+
+export interface TtsScript {
+  segments: TtsSegment[];
+  // 各セグメントの起点要素に data-tts="添字" を付与したHTML
+  html: string;
+}
+
+// セグメントを構成するテキストノードにアンカーを打つ。
+//
+// まとめ記事は <div>文1<br>文2<br>文3</div> のように、ひとつの要素の直下を
+// br で区切る書き方が多い。親要素に属性を付けるだけでは最初の1セグメントしか
+// 追従できないため、そういう場合はテキストノードをspanで包んで個別に印を付ける。
+// 要素の中身がまるごと1セグメントなら、DOMを増やさず親にそのまま付ける
+function anchor(nodes: Text[], index: number, $: CheerioAPI): void {
+  const first = nodes[0];
+  if (!first) {
+    return;
+  }
+  const parent = first.parent && isTag(first.parent) ? first.parent : null;
+  if (!parent) {
+    return;
+  }
+  const onlyChild =
+    nodes.length === 1 &&
+    (parent.children ?? []).filter((c) => !isText(c) || (c.data ?? '').trim() !== '').length === 1;
+  if (onlyChild && parent.attribs?.[TTS_ANCHOR_ATTR] === undefined) {
+    parent.attribs[TTS_ANCHOR_ATTR] = String(index);
+    return;
+  }
+  // テキストノードをspanで包む。元のCSSに影響しないよう属性は印だけに留める
+  for (const node of nodes) {
+    if (!node.parent) {
+      continue;
+    }
+    const span = $(`<span ${TTS_ANCHOR_ATTR}="${index}"></span>`);
+    $(node).replaceWith(span);
+    span.text(node.data ?? '');
+  }
+}
+
+// 整形済みHTMLから (テキスト, 色バケット) の列を抽出し、
+// 同時に各セグメントの起点へアンカーを打ったHTMLを返す。
+// テキストノード単位で色を解決し、同色の連続はブロック境界まで結合する。
+//
+// flushはメタデータ・AAと判定したセグメントを捨てるため、
+// 「N番目の要素=N番目のセグメント」という対応は成立しない。
+// 採用が確定した時点で採番することで、添字とアンカーを一致させている
+export function buildTtsScriptWithAnchors(html: string): TtsScript {
   const $ = loadDoc(html);
   const rawSegments: RawSegment[] = [];
   let currentText = '';
   let currentBucket: string | null = null;
+  // いま蓄積中のセグメントを構成するテキストノード
+  let currentNodes: Text[] = [];
 
   const flush = () => {
     const text = cleanText(currentText);
     if (text !== '' && !looksLikeAsciiArt(text) && !isMetadata(text)) {
+      anchor(currentNodes, rawSegments.length, $);
       rawSegments.push({ text, bucket: currentBucket });
     }
     currentText = '';
+    currentNodes = [];
+  };
+
+  const appendText = (node: Text) => {
+    const piece = node.data ?? '';
+    if (piece.trim() === '') {
+      return;
+    }
+    const parent = node.parent && isTag(node.parent) ? node.parent : null;
+    const bucket = parent ? colorBucket(resolveColor(parent)) : null;
+    // 色が変わったら話者交代なのでフラッシュ
+    if (currentText !== '' && bucket !== currentBucket) {
+      flush();
+    }
+    currentBucket = bucket;
+    currentText += piece;
+    currentNodes.push(node);
   };
 
   const walk = (node: AnyNode) => {
     if (isText(node)) {
-      const parent = node.parent && isTag(node.parent) ? node.parent : null;
-      const bucket = parent ? colorBucket(resolveColor(parent)) : null;
-      const piece = node.data ?? '';
-      if (piece.trim() !== '') {
-        // 色が変わったら話者交代なのでフラッシュ
-        if (currentText !== '' && bucket !== currentBucket) {
-          flush();
-        }
-        currentBucket = bucket;
-        currentText += piece;
-      }
+      appendText(node);
       return;
     }
     if (!isTag(node)) {
@@ -277,7 +343,23 @@ export function buildTtsScript(html: string): TtsSegment[] {
   }
   flush();
 
-  return assignVoices(rawSegments);
+  // 整形済みHTMLはserializeがhead/bodyを付けているのでhead末尾へ足す。
+  // cheerio slimは断片入力にhead/bodyを補完しないため、無い場合は先頭に置く
+  const head = $('head');
+  if (head.length > 0) {
+    head.append(TTS_STYLE);
+  } else {
+    $.root().prepend(TTS_STYLE);
+  }
+  return {
+    segments: assignVoices(rawSegments),
+    html: $.root().html() ?? '',
+  };
+}
+
+// 読み上げスクリプトのみを取り出す。アンカー付きHTMLが要らない呼び出し向け
+export function buildTtsScript(html: string): TtsSegment[] {
+  return buildTtsScriptWithAnchors(html).segments;
 }
 
 // 色の出現順に声を割り当てる(サイトごとの色運用差に頑健)。
