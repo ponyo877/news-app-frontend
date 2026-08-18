@@ -1,6 +1,6 @@
 import { load } from 'cheerio/slim';
 
-import { applySiteRules } from '@/scraper/applyRules';
+import { applyCommonRules, applySiteRules } from '@/scraper/applyRules';
 import { matchSiteRule } from '@/scraper/ruleMatcher';
 import { bundledRuleSet } from '@/scraper/rulesStore';
 import type { SiteRule } from '@/scraper/types';
@@ -85,5 +85,43 @@ describe('applySiteRules(同梱ルール)', () => {
     expect($('a')).toHaveLength(1);
     expect($('a').attr('title')).toBe('画像');
     expect($('br')).toHaveLength(0);
+  });
+});
+
+// 【AdMobポリシー対応】本文中のリンクは全て無効化されるため、
+// ブログサービス由来の誘導ボタン・リンク集が残ると
+// 「押せそうに見えて何も起きない」要素になる(サイトの動作: ナビゲーション)
+describe('applyCommonRules', () => {
+  it('livedoorアプリのフォロー誘導ブロックを落とす(本文は残す)', () => {
+    const $ = load(
+      '<body><div class="ldapp-article"><a class="ldapp-article-link-button" href="http://x">' +
+        'ライブドアアプリでフォローする</a></div><p>本文</p></body>',
+    );
+    applyCommonRules($);
+    expect($('div.ldapp-article')).toHaveLength(0);
+    expect($('body').text()).toContain('本文');
+  });
+
+  it('Bp2アンテナが差し込む外部リンク集を落とす(本文は残す)', () => {
+    const $ = load(
+      '<body><a class="Bp2ArchiveOne" href="http://x">よそのまとめ記事</a>' +
+        '<p id="ArchivePowerdByBottom">powerd by</p><p>本文</p></body>',
+    );
+    applyCommonRules($);
+    expect($('a.Bp2ArchiveOne')).toHaveLength(0);
+    expect($('#ArchivePowerdByBottom')).toHaveLength(0);
+    expect($('body').text()).toContain('本文');
+  });
+
+  // 本文に残ったJSはWebViewで実行され、除去した広告やリンク集を描き直す
+  it('本文のscript/noscriptを落とす', () => {
+    const $ = load(
+      '<body><p>本文</p><script src="https://bp2-antena.com/js/parts/bp2_archive_bottom.js"></script>' +
+        '<noscript><iframe src="ad"></iframe></noscript></body>',
+    );
+    applyCommonRules($);
+    expect($('script')).toHaveLength(0);
+    expect($('noscript')).toHaveLength(0);
+    expect($('body').text()).toContain('本文');
   });
 });

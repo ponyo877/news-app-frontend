@@ -3,6 +3,7 @@ import { isTag, isText } from 'domhandler';
 import type { AnyNode, Element, Text } from 'domhandler';
 
 import { loadDoc } from '@/scraper/htmlLoad';
+import { SOURCE_BLOCK_CLASS } from '@/scraper/serialize';
 
 // スレ読み上げのスクリプト生成(docs/PHASE2.5-DESIGN.md §B)。
 //
@@ -228,6 +229,16 @@ function resolveColor(element: Element): string | null {
 
 const BLOCK_TAGS = new Set(['p', 'div', 'blockquote', 'li', 'h1', 'h2', 'h3', 'h4', 'br', 'tr']);
 const SKIP_TAGS = new Set(['script', 'style', 'head', 'noscript', 'iframe']);
+// アプリが後付けした要素は本文ではないので読み上げない(出典表示など)
+const SKIP_CLASSES = new Set([SOURCE_BLOCK_CLASS]);
+
+function isSkipped(element: Element): boolean {
+  if (SKIP_TAGS.has(element.tagName)) {
+    return true;
+  }
+  const className = element.attribs?.class;
+  return className !== undefined && className.split(/\s+/).some((c) => SKIP_CLASSES.has(c));
+}
 
 interface RawSegment {
   text: string;
@@ -349,7 +360,7 @@ export function buildTtsScriptWithAnchors(html: string): TtsScript {
       return;
     }
     const element = node;
-    if (SKIP_TAGS.has(element.tagName)) {
+    if (isSkipped(element)) {
       return;
     }
     const isBlock = BLOCK_TAGS.has(element.tagName);

@@ -45,7 +45,7 @@ maybeDescribe('実サイトHTML(fetch-fixtures取得分)', () => {
       applySiteRules($, rule);
     }
     stripLinkHrefs($);
-    const output = serialize($);
+    const output = serialize($, { url: sourceUrl, siteName: name });
 
     // 本文が残っていること
     expect($('div.article-body-outer').text().trim().length).toBeGreaterThan(0);

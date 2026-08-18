@@ -1,5 +1,6 @@
 import { scrapeArticle } from '@/scraper';
-import { NOT_FOUND_HTML } from '@/scraper/notFound';
+import { ArticleUnavailableError, articleUnavailableReason } from '@/scraper/errors';
+import { SOURCE_LINK_URL } from '@/scraper/serialize';
 import { buildLivedoorHtml } from '@/scraper/__fixtures__/builders';
 
 function mockFetchOnce(status: number, body: string) {
@@ -9,16 +10,20 @@ function mockFetchOnce(status: number, body: string) {
 afterEach(() => jest.restoreAllMocks());
 
 describe('scrapeArticle', () => {
-  it('404は削除済み記事HTMLを返す', async () => {
+  // 【AdMobポリシー対応】本文の無い画面を「成功」として返すと、
+  // 呼び出し側が広告つきの通常レンダリングに落ちる(errors.ts参照)
+  it('404は例外(gone)を投げる', async () => {
     mockFetchOnce(404, '');
-    const html = await scrapeArticle('http://blog.example/gone', '暇人速報');
-    expect(html).toBe(NOT_FOUND_HTML);
+    const promise = scrapeArticle('http://blog.example/gone', '暇人速報');
+    await expect(promise).rejects.toBeInstanceOf(ArticleUnavailableError);
+    await expect(promise.catch(articleUnavailableReason)).resolves.toBe('gone');
   });
 
-  it('livedoor構造でないページは整形せずそのまま返す', async () => {
+  it('対応エンジンのない構造は例外(unsupported)を投げる', async () => {
     mockFetchOnce(200, '<html><head></head><body><p>plain</p></body></html>');
-    const html = await scrapeArticle('http://other.example/', '暇人速報');
-    expect(html).toContain('plain');
+    const promise = scrapeArticle('http://other.example/', '暇人速報');
+    await expect(promise).rejects.toBeInstanceOf(ArticleUnavailableError);
+    await expect(promise.catch(articleUnavailableReason)).resolves.toBe('unsupported');
   });
 
   it('E2E: 整形+サイトルール+href剥奪まで通しで行う', async () => {
@@ -34,5 +39,14 @@ describe('scrapeArticle', () => {
     expect(html).not.toContain('sidebar junk');
     expect(html).not.toContain('href="http://x.example"');
     expect(html.startsWith('<head>')).toBe(true);
+  });
+
+  it('出典表示と元記事リンクを本文末尾に付ける', async () => {
+    const fixture = buildLivedoorHtml({ bodyContent: '<p>本文</p>' });
+    mockFetchOnce(200, fixture);
+    const html = await scrapeArticle('http://himasoku.com/archives/1.html', '暇人速報');
+    expect(html).toContain('class="app-source"');
+    // 出典リンクだけは剥奪されず、WebView側で外部ブラウザへ渡される
+    expect(html).toContain(`href="${SOURCE_LINK_URL}"`);
   });
 });

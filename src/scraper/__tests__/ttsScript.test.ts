@@ -260,7 +260,9 @@ maybeDescribe('実サイトHTMLでのアンカー採番', () => {
       }
       stripLinkHrefs($);
     }
-    const { segments, html } = buildTtsScriptWithAnchors(engine ? serialize($) : raw);
+    const { segments, html } = buildTtsScriptWithAnchors(
+      engine ? serialize($, { url: sourceUrl, siteName: name }) : raw,
+    );
     const nums = new Set([...html.matchAll(/data-tts="(\d+)"/g)].map((m) => Number(m[1])));
 
     expect(segments.length).toBeGreaterThan(0);

@@ -55,7 +55,7 @@ maybeDescribe('候補サイトHTML(fetch-candidates取得分)', () => {
     await engine!.prepare($, () => Promise.reject(new Error('no network in test')), rule);
     applySiteRules($, rule!);
     stripLinkHrefs($);
-    const output = serialize($);
+    const output = serialize($, { url: sourceUrl, siteName: name });
     if (shouldDump) {
       mkdirSync(OUTPUT_DIR, { recursive: true });
       const withBase = sourceUrl

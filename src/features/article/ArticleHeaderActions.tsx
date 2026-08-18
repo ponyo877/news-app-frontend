@@ -1,7 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { ArticleMenu } from '@/features/article/ArticleMenu';
+import { logEvent } from '@/lib/analytics';
 import { shareArticle } from '@/lib/share';
 import type { RootNavigation } from '@/navigation/types';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
@@ -80,6 +81,19 @@ export function ArticleHeaderActions({
           color={colors.textPrimary}
         />
       </Pressable>
+      {/* 本文中のリンクはすべて無効化してあるため、実際に開ける出典への導線を
+          ここに置く(帰属の明示も兼ねる)。画面下部には決して置かないこと */}
+      <Pressable
+        hitSlop={8}
+        onPress={() => {
+          logEvent('source_open', { site: article.sitetitle, from: 'header' });
+          void Linking.openURL(article.url);
+        }}
+        accessibilityRole="button"
+        accessibilityLabel="元記事を開く"
+      >
+        <MaterialIcons name="open-in-new" size={24} color={colors.textPrimary} />
+      </Pressable>
       <ArticleMenu article={article} navigation={navigation} onStartTts={onStartTts} />
     </View>
   );
@@ -89,7 +103,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    // 最大4アイコン(⚡💬共有⋮)が長い記事タイトルと共存できるよう少し詰める
-    gap: 14,
+    // 最大5アイコン(⚡💬共有↗⋮)が長い記事タイトルと共存できるよう詰める
+    gap: 10,
   },
 });

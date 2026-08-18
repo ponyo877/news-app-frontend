@@ -4,6 +4,38 @@ import { isTag, isText, type AnyNode, type Element } from 'domhandler';
 import { reportSelectorMiss } from '@/scraper/ruleStats';
 import type { AnchorCleanupRule, SiteRule } from '@/scraper/types';
 
+// 全サイト共通で落とす、ブログサービス由来のナビゲーション部品。
+//
+// 【AdMobポリシー対応】本文中のリンクはすべて無効化しているため、
+// 「押せそうに見えて何も起きない」誘導ボタンやリンク集が残っていると
+// 「サイトの動作: ナビゲーション」の *存在しないコンテンツにリンクしている*
+// に該当する。サイト個別ではなくブログサービス共通のパーツなので、
+// defaultRules.json ではなくここで一括して落とす
+const COMMON_REMOVE_SELECTORS = [
+  // 本文に残ったJSはWebView(javaScriptEnabled)で実行され、除去したはずの
+  // 広告やアンテナのリンク集をその場で描き直してしまう。
+  // 整形結果に対する後付けの改変を止めるため、本文のJSは一律で落とす
+  // (汎用エンジンは engines/generic.ts で同じことをしている)。
+  // まとめ表示にJSは不要で、残っているのは広告・計測・レコメンドが大半
+  'script',
+  'noscript',
+  // livedoor Blogの「ライブドアアプリでフォローする」誘導(126/140フィクスチャに存在)
+  'div.ldapp-article',
+  // Bp2アンテナ自動投稿ツールが記事末尾に差し込む、外部アンテナサイトへのリンク集
+  'a.Bp2ArchiveOne',
+  '#ArchivePowerdByBottom',
+  '#Bp2I2iSpTag',
+  '#Bp2ArchiveAdsafe',
+  '#Bp2ArchiveTitleText',
+];
+
+// サイトルールと違い、無い方が普通なのでreportSelectorMissは呼ばない
+export function applyCommonRules($: CheerioAPI): void {
+  for (const selector of COMMON_REMOVE_SELECTORS) {
+    $('body').find(selector).remove();
+  }
+}
+
 // マッチ済みのサイトルールを適用する。ルールは完全なデータ(関数なし)なので
 // リモート配信されたものでもそのまま実行できる
 export function applySiteRules($: CheerioAPI, rule: SiteRule): void {

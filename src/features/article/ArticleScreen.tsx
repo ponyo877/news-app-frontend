@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   StyleSheet,
@@ -25,6 +26,9 @@ import { useTtsPlayer } from '@/features/article/useTtsPlayer';
 import { useArticleHtml } from '@/features/article/useArticleHtml';
 import { useVisibleArticles } from '@/lib/useVisibleArticles';
 import { ttsClearScript, ttsFollowScript } from '@/features/article/ttsFollow';
+import { articleUnavailableReason } from '@/scraper/errors';
+import type { ArticleUnavailableReason } from '@/scraper/errors';
+import { SOURCE_LINK_URL } from '@/scraper/serialize';
 import { buildTtsScriptWithAnchors } from '@/scraper/ttsScript';
 import type { TtsSegment } from '@/scraper/ttsScript';
 import { CommentPanel } from '@/features/comments/CommentPanel';
@@ -32,6 +36,7 @@ import { bannerAdUnitId } from '@/lib/ads';
 import { logEvent } from '@/lib/analytics';
 import type { RootStackParamList } from '@/navigation/types';
 import { useArticleStatusStore } from '@/stores/articleStatusStore';
+import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { percentOf, useFontSizeStore } from '@/stores/fontSizeStore';
 import { colors } from '@/theme/colors';
 import { fontFamily, radius } from '@/theme/typography';
@@ -41,6 +46,47 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Article'>;
 // HTML未取得時に使う不変の空配列。毎回新しい配列を作るとuseTtsPlayerの
 // useCallback依存が変わり、再生中のクロージャが作り直されてしまう
 const EMPTY_SEGMENTS: TtsSegment[] = [];
+
+// WebView内の遷移可否。出典リンクだけは外部ブラウザへ逃がす。
+// WebView内で開くと元サイトを広告ごと表示することになり、整形の意味も失われる。
+// 本文中のhrefは剥奪済みだが、それ以外の遷移は保険として遮断する
+function makeLoadRequestHandler(article: ArticleMeta) {
+  return (req: { url: string }): boolean => {
+    if (req.url === SOURCE_LINK_URL) {
+      logEvent('source_open', { site: article.sitetitle, from: 'footer' });
+      void Linking.openURL(article.url);
+      return false;
+    }
+    return req.url === article.url || req.url === 'about:blank';
+  };
+}
+
+// 本文を出せない理由の説明。まとめサイトの記事は日常的に削除されるが
+// 一覧(RSS由来)には残るため、削除は通信エラーと区別して伝える
+function unavailableMessage(reason: ArticleUnavailableReason | undefined): string {
+  if (reason === 'gone') {
+    return '元記事が削除されたか、\n移動したようです。';
+  }
+  if (reason === 'unsupported') {
+    return 'この記事はまだ表示に\n対応していません。';
+  }
+  return '記事を読み込めませんでした。\nサイトが混み合っているか、\n通信環境に問題がある可能性があります。';
+}
+
+// 【AdMobポリシー対応】本文の無い画面はすべてここに来る。
+// ErrorStateは広告バナーを含まないため、中央の再読み込みボタンは隣接制約に抵触しない。
+// 削除済み・非対応の記事も(旧実装のように案内文HTMLを本文として表示するのではなく)
+// 必ずこの画面に落とすこと
+function ArticleUnavailable({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+  const reason = articleUnavailableReason(error);
+  return (
+    <ErrorState
+      message={unavailableMessage(reason)}
+      // 削除済み・非対応は再試行しても結果が変わらないため再読み込みを出さない
+      onRetry={reason === undefined ? onRetry : undefined}
+    />
+  );
+}
 
 // 記事詳細画面(旧MatomeWebView)。
 // 整形済みHTMLをWebViewで表示し、コメント欄を100%:0⇔50%:50で切り替える。
@@ -64,6 +110,7 @@ export function ArticleScreen({ route, navigation }: Props) {
   const fontPercent = percentOf(useFontSizeStore((s) => s.scale));
 
   const htmlQuery = useArticleHtml(article.url, article.sitetitle);
+  const handleLoadRequest = useMemo(() => makeLoadRequestHandler(article), [article]);
   // 読み上げ(文字色で読み手が変わる)。セグメント生成はHTML確定時に1回。
   // 同時に各セグメントの起点へアンカーを打ったHTMLも作り、読み上げ中はそちらを表示する
   const [isTtsOpen, setIsTtsOpen] = useState(false);
@@ -186,14 +233,10 @@ export function ArticleScreen({ route, navigation }: Props) {
     }
   }, [isTtsOpen]);
 
-  // 取得失敗(タイムアウト含む)。旧実装は data===undefined のまま無限スピナーだった。
-  // この分岐では広告バナーを描画しないため、中央の再読み込みボタンはAdMob隣接制約に抵触しない
+  // 取得失敗(タイムアウト・削除済み・非対応)。旧実装は data===undefined のまま無限スピナーだった
   if (htmlQuery.isError) {
     return (
-      <ErrorState
-        message={'記事を読み込めませんでした。\nサイトが混み合っているか、\n通信環境に問題がある可能性があります。'}
-        onRetry={() => void htmlQuery.refetch()}
-      />
+      <ArticleUnavailable error={htmlQuery.error} onRetry={() => void htmlQuery.refetch()} />
     );
   }
 
@@ -241,10 +284,7 @@ export function ArticleScreen({ route, navigation }: Props) {
                 followsTtsRef.current = false;
               }
             }}
-            // hrefは剥奪済みだが、万一のページ遷移を遮断する保険
-            onShouldStartLoadWithRequest={(req) =>
-              req.url === article.url || req.url === 'about:blank'
-            }
+            onShouldStartLoadWithRequest={handleLoadRequest}
           />
           {/* コメント表示中は記事側タップで100%に復帰(旧GestureDetector相当) */}
           {!isExpanded && (
@@ -281,14 +321,11 @@ export function ArticleScreen({ route, navigation }: Props) {
           <CommentPanel articleId={article.id} />
         </View>
       )}
-      {/* 広告ブロック: 記事の表示面積を最大化するためバナー高さぴったりに詰める。
-          アプリUIとの区別は区切り線・背景色・左端の「広告」ラベルで担保し、
-          下端はセーフエリアを空けてジェスチャー領域と重ならないようにする */}
+      {/* 広告ブロック: アプリUIとの区別を区切り線・背景色・「広告」ラベルで担保し、
+          上下にクリアランスを取ってコンテンツともジェスチャー領域とも接しないようにする */}
       <View style={[styles.adBlock, { paddingBottom: insets.bottom }]}>
+        <Text style={styles.adLabel}>広告</Text>
         <View style={styles.adRow}>
-          {/* バナーは320pt幅。画面幅との差が左右に余るので、そこにラベルを収めて
-              縦方向の高さを増やさない */}
-          <Text style={styles.adLabel}>広告</Text>
           <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
         </View>
       </View>
@@ -331,9 +368,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.appBar,
     borderTopWidth: 1,
     borderTopColor: colors.white10,
-    // バナー(高さ50)にぴったり合わせ、記事の表示面積を最大化する。
-    // 記事のみ表示のときは上がWebViewでタップ要素がないため詰めてよい
-    paddingVertical: 0,
+    // 【AdMobポリシー対応】コンテンツと広告を視覚的に切り離すための帯。
+    // 詰めすぎると「タブバーがあった位置に同じ高さの広告が入れ替わる」構図になり、
+    // ナビゲーションと誤認されうるので上の余白は削らないこと
+    paddingTop: 4,
   },
   adRow: {
     flexDirection: 'row',
@@ -341,9 +379,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   adLabel: {
-    // バナー左の余白に重ねて置き、広告ブロックの高さを増やさない
-    position: 'absolute',
-    left: 8,
+    // バナーの上に置く。絶対配置で左余白へ重ねると、320pt幅の端末で
+    // バナーと重なってしまう
+    marginLeft: 8,
+    marginBottom: 2,
     fontSize: 10,
     lineHeight: 13,
     fontFamily: fontFamily.regular,
