@@ -114,6 +114,8 @@ export function ArticleScreen({ route, navigation }: Props) {
   // 読み上げ(文字色で読み手が変わる)。セグメント生成はHTML確定時に1回。
   // 同時に各セグメントの起点へアンカーを打ったHTMLも作り、読み上げ中はそちらを表示する
   const [isTtsOpen, setIsTtsOpen] = useState(false);
+  // バナーが実際に埋まったか。未配信のとき広告の帯とラベルだけが残るのを防ぐ
+  const [isAdFilled, setIsAdFilled] = useState(false);
   const ttsScript = useMemo(
     () => (htmlQuery.data ? buildTtsScriptWithAnchors(htmlQuery.data) : null),
     [htmlQuery.data],
@@ -235,9 +237,7 @@ export function ArticleScreen({ route, navigation }: Props) {
 
   // 取得失敗(タイムアウト・削除済み・非対応)。旧実装は data===undefined のまま無限スピナーだった
   if (htmlQuery.isError) {
-    return (
-      <ArticleUnavailable error={htmlQuery.error} onRetry={() => void htmlQuery.refetch()} />
-    );
+    return <ArticleUnavailable error={htmlQuery.error} onRetry={() => void htmlQuery.refetch()} />;
   }
 
   if (htmlQuery.isLoading || htmlQuery.data === undefined) {
@@ -322,11 +322,18 @@ export function ArticleScreen({ route, navigation }: Props) {
         </View>
       )}
       {/* 広告ブロック: アプリUIとの区別を区切り線・背景色・「広告」ラベルで担保し、
-          上下にクリアランスを取ってコンテンツともジェスチャー領域とも接しないようにする */}
-      <View style={[styles.adBlock, { paddingBottom: insets.bottom }]}>
-        <Text style={styles.adLabel}>広告</Text>
+          上下にクリアランスを取ってコンテンツともジェスチャー領域とも接しないようにする。
+          配信が無いあいだ(アカウント停止・在庫切れ・オフライン)は帯とラベルを出さず、
+          セーフエリアの余白だけ残す。BannerAdはマウントしたままなのでリクエストは続く */}
+      <View style={[isAdFilled && styles.adBlock, { paddingBottom: insets.bottom }]}>
+        {isAdFilled && <Text style={styles.adLabel}>広告</Text>}
         <View style={styles.adRow}>
-          <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
+          <BannerAd
+            unitId={bannerAdUnitId}
+            size={BannerAdSize.BANNER}
+            onAdLoaded={() => setIsAdFilled(true)}
+            onAdFailedToLoad={() => setIsAdFilled(false)}
+          />
         </View>
       </View>
     </KeyboardAvoidingView>

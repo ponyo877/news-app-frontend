@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 
@@ -13,11 +14,23 @@ import { fontFamily } from '@/theme/typography';
 //   - 上下に区切り線を引き、広告の範囲を明示する
 //   - 背景をappBar色にしてNewsCard(surface)と塗り分ける
 //   - 「広告」ラベルを常時表示する
+//
+// 配信が無いあいだ(アカウント停止・在庫切れ・オフライン)は枠ごと畳む。
+// BannerAdは未配信のとき何も描画しないため、畳まないと区切り線と
+// 「広告」ラベルだけの空枠が記事の間に残る
 export function FeedAdCard() {
+  const [filled, setFilled] = useState(false);
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.label}>広告</Text>
-      <BannerAd unitId={bannerAdUnitId} size={BannerAdSize.BANNER} />
+    // 高さ0にしてもBannerAdはマウントされたままなので広告リクエストは続く
+    <View style={filled ? styles.card : styles.collapsed}>
+      {filled && <Text style={styles.label}>広告</Text>}
+      <BannerAd
+        unitId={bannerAdUnitId}
+        size={BannerAdSize.BANNER}
+        onAdLoaded={() => setFilled(true)}
+        onAdFailedToLoad={() => setFilled(false)}
+      />
     </View>
   );
 }
@@ -31,6 +44,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: colors.white10,
+  },
+  collapsed: {
+    height: 0,
+    overflow: 'hidden',
   },
   label: {
     alignSelf: 'flex-start',
