@@ -60,8 +60,10 @@ const METADATA_PATTERNS: RegExp[] = [
   // 嫌儲系のコテハン(「ピマリシン(福岡県) [ﾆﾀﾞ]」= ランダム名+地域+キャリア)。
   // 末尾の[]付き括弧書きが目印。本文がこの形で終わることはまずない
   /^.{0,24}[（(][^）)]{1,12}[）)]\s*\[[^\]]{1,10}\]$/,
-  // 「以下、○○でお送りします」形式の定型ハンドル(読点を含むので下の判定に掛からない)
-  /^以下、.*でお送りします。?$/,
+  // 「以下、○○がお送りします」形式の定型ハンドル(読点を含むので下の判定に掛からない)。
+  // 助詞はサイトによって「で」「が」に割れる(ラビット速報は
+  // 「以下、？ちゃんねるからVIPがお送りします」)ので、助詞を固定しない
+  /^以下、.*お送りします。?$/,
   // 名無しハンドル。サイトごとに文言が違うが、ハンドルは単体ノードに置かれ句読点を持たない。
   // 「名無しさんたちの書き込みを読むと…」のような本文を巻き込まないよう、
   // 句読点を含む行は本文とみなして除外対象から外す
@@ -85,6 +87,15 @@ const METADATA_PATTERNS: RegExp[] = [
   // 数字のみ(コメント数・いいね数のカウンタ)
   /^\d{1,6}$/,
 ];
+
+// 読み上げる価値のある文字(英数・かな・漢字)を含むか。
+// レスヘッダーを落とした残りの「：」だけ、罫線だけ、といったセグメントを弾く。
+// Hermesでの互換性を考え、Unicodeプロパティ(\p{L})は使わずに文字種を列挙する
+const READABLE_CHAR = /[0-9A-Za-zＡ-Ｚａ-ｚ０-９ぁ-んァ-ヶ一-龥々〆]/;
+
+function hasReadableChar(text: string): boolean {
+  return READABLE_CHAR.test(text);
+}
 
 function isMetadata(text: string): boolean {
   // 長文は本文とみなす(日付で始まる書き込みや、名無しに言及する本文を守る)
@@ -321,6 +332,7 @@ export function buildTtsScriptWithAnchors(html: string): TtsScript {
     if (
       text !== '' &&
       currentPlainLength > 0 &&
+      hasReadableChar(text) &&
       !looksLikeAsciiArt(text) &&
       !isMetadata(text)
     ) {

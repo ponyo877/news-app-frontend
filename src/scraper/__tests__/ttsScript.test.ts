@@ -108,6 +108,7 @@ describe('スレタイと書き込み本文だけを読む', () => {
       <p>2025/07/29(火) 12:12:28.03</p>
       <p>それでも動く名無し</p>
       <p>以下、ニュー速クオリティでお送りします</p>
+      <p>以下、？ちゃんねるからVIPがお送りします</p>
       <p>名無しどんぶらこ</p>
       <p>1 名前：煮卵 ★：2026/07/25(土) 09:19:16.82 ID:tFFy/Iv59.net</p>
       <p>ちいかわの奴みたい</p>
@@ -172,6 +173,16 @@ describe('スレタイと書き込み本文だけを読む', () => {
     const html = `<p>詳しくは<a href="/faq">こちらのまとめ</a>を見てくれ。</p>`;
     const segments = buildTtsScript(html);
     expect(segments.map((s) => s.text)).toEqual(['詳しくはこちらのまとめを見てくれ。']);
+  });
+
+  it('記号だけの行は読まない(レスヘッダーを落とした残りの区切り)', () => {
+    const html = `
+      <p>：</p>
+      <p>―――――</p>
+      <p>ケツを触っただけなのに…</p>
+    `;
+    const segments = buildTtsScript(html);
+    expect(segments.map((s) => s.text)).toEqual(['ケツを触っただけなのに…']);
   });
 
   it('レスヘッダーを分割するサイトのID断片・コテハンを読み飛ばす', () => {
