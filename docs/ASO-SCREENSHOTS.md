@@ -188,80 +188,105 @@ GROWTH-PLAN の目標は新規インストール 8件/月 → 300件/月。
 
 ---
 
-# アプリアイコンの最適化
+# アプリアイコンの最適化（2026-08-20 実施）
 
-## 現状評価（実寸で確認した結果）
+## 実寸で確認してわかったこと
 
-現行アイコンは**オレンジ地に白い笑顔＋吹き出し**（`assets/app/icon-1024.png`、ブランドオレンジ `#F39800`）。
-これを検索結果の実寸に落として確認した。
+旧アイコンは**オレンジ地に白い笑顔＋吹き出し**（ブランドオレンジ `#F39800`）。
+これを実際のマスクとサイズに落として確認した結果、**2つの実害**が見つかった。
 
-| サイズ | 見え方 |
+![before / after](assets/icon-before-after.png)
+
+### 1. Android のアダプティブアイコンが壊れていた（実バグ）
+
+`assets/app/adaptive-foreground.png` が `icon-1024.png` と**バイト単位で同一**だった
+（`magick compare -metric AE` の差分が 0）。
+
+Android のアダプティブアイコンは 108dp の前景のうち**中央 72dp（66.7%）しか表示されない**。
+全面に描いた画像を前景として渡していたため、ランチャーでは外周が切り落とされ、
+**吹き出しがほぼ消え、笑顔が円からはみ出す**状態で表示されていた（上図「Android launcher / before」）。
+
+さらに `adaptiveIcon.backgroundColor` は `#E0AEE7`（淡い紫）で、
+ブランドオレンジでもアプリのダークテーマでもない値が入っていた。前景が不透明だったため
+表示上は見えていなかったが、通知アイコンの色 `notification_icon_color` にも同じ紫が使われており、
+こちらは**ステータスバーで実際に紫に着色されていた**。
+
+### 2. iOS でも吹き出しがマスクに切られていた
+
+吹き出しが 1024px の枠を上にはみ出していたため、iOS の角丸マスク（半径約 229px）で上端が削られ、
+「切れた白い塊」になっていた（上図「iOS mask / before」）。
+
+### 3. 48px でカテゴリが伝わらない
+
+Play の検索結果相当まで落とすと、残るのは笑顔だけになる。
+笑顔＋吹き出しは**チャット／メッセージアプリ**に見え、2ch/5ch まとめのリーダーだと分かる手がかりがない。
+
+## 4案を実際に描いて比較した
+
+方針だけで決めず、SVG で描いて 48px まで落として突き合わせた。
+
+| 案 | 内容 | 48px での結果 |
+|---|---|---|
+| A | 吹き出しを左右対称に2枚配置＋笑顔 | 左右の吹き出しが**耳に見えて猫の顔**と読める。不採用 |
+| B | 吹き出し1枚＋書き込み3本 | **潰れずに読めた**。ただし SMS / メッセージ系の汎用アイコンに酷似。不採用 |
+| F | B＋背面に1枚 | 同上。チャットアプリの読みから抜けられない |
+| **A2** | **左上へ後退する重なり3枚＋笑顔（採用）** | **重なりが残り、笑顔も判別できる** |
+
+> 補足: 事前には「案B は 48px で線が潰れる」と見ていたが、**実際には潰れなかった**。
+> 落選理由は可読性ではなく、汎用のメッセージアプリと見分けがつかないこと。
+
+### A2 を選んだ理由
+
+- **アプリの本質をそのまま形にしている** — 69サイトを横断して同じ話題を1か所に集める。
+  1.49 で入れた話題検知とも符合する
+- **既存の笑顔を残している** — 置き換えではなく発展。インストール済みユーザーが見失わない
+- **48px で成立する** — 重なりのシルエットが残る
+- **どのマスクでも切れない** — iOS の角丸、Android の円・角丸のいずれでも枠内に収まる
+
+なお、アイコン変更のリスクは今なら実質ゼロだった。Play Console の実測で
+月間アクティブ 1 台・インストール 2 件しかない。失うブランド認知が無いうちに切り替えた。
+
+## 実装
+
+原本は SVG で、そこから全解像度を書き出す。
+
+| ファイル | 役割 |
 |---|---|
-| 1024px（提出用） | 笑顔と吹き出しが明瞭。意図どおり |
-| 96px（Play 検索結果相当） | 笑顔は識別できる。**吹き出しは形が曖昧になる** |
-| 48px（一覧・通知相当） | **吹き出しが潰れて白い塊になる**。笑顔だけが残る |
+| `assets/app/design/icon-source.svg` | アイコン原本 |
+| `assets/app/design/notification-source.svg` | 通知アイコン原本（目・口は alpha を抜いて表現） |
+| `scripts/build-icons.sh` | 上記2つから全 PNG / WebP を生成 |
 
-### 問題は3つ
+```bash
+./scripts/build-icons.sh   # 要: brew install librsvg imagemagick
+```
 
-1. **カテゴリが伝わらない** — 笑顔＋吹き出しは「チャット／メッセージアプリ」に見える。
-   2ch/5chまとめのリーダーだと分かる手がかりがない。検索結果で競合と並んだとき、
-   何のアプリか判別できないのは致命的
-2. **吹き出しが上端で切れている** — 1024の枠からはみ出しており、意図的な断ち切りに見えにくい。
-   小さくすると「切れた白い塊」になる
-3. **情報量が笑顔1つ** — 記憶に残るフックがない
+守っている制約:
 
-### 一方で維持すべきもの
+- **要素は2つまで**（重なり・笑顔）。3つ以上は 48px で潰れる
+- **線幅は 1024px 時に 46px 以上**。これ以下だと白同士がつながって塊になる
+- **アダプティブ前景は 70% に縮めて中央配置**（`ADAPTIVE_SCALE`）。全面に描かない
+- **背景は単色オレンジ**。グラデーションは小サイズで濁る
+- 通知アイコンは Android が alpha しか見ないため、**目・口・重なりの境目はすべて透明**
 
-- **オレンジ `#F39800`** — まとめ系アプリは赤・青・黒が多く、暖色は棚で目立つ。差別化として機能している
-- **親しみやすさ** — 2ch/5chまとめという題材の硬さ・とっつきにくさを和らげている
+`android/` と `ios/` は `.gitignore` 済みの prebuild 生成物（Expo CNG）なので、
+正本は `assets/app/*.png`。ビルドのたびにそこから作り直される。
+`build-icons.sh` が `android/` 配下も更新するのは、prebuild を挟まずに
+`npm run android` で確認したいときのため。
 
-## いま変えるべき理由
+## 残っている確認
 
-アイコン変更は通常「既存ユーザーが見失う」リスクを伴うが、**現在の実測値ではそのリスクがほぼ無い**。
+- [ ] 実機／エミュレータでホーム画面のアイコンを目視（iOS シミュレータと Android エミュレータの両方）
+- [ ] 通知を1件出してステータスバーのアイコンが白いシルエットで出ること（紫の着色が消えたこと）
+- [ ] スプラッシュ画面の見え方
+- [ ] ストア掲載アイコンの差し替え（Play Console / App Store Connect）。**次のバージョン提出時に併せて行う**
 
-- 1か月間のアクティブデバイス数: **1**
-- インストール: **2件**（Play Console 実測）
+## 8/22 に scenario.com で別案も見るなら
 
-失うものが無い。むしろ新規獲得（GROWTH-PLAN の目標: 8件/月 → 300件/月）に振り切れる、
-数少ないタイミングにある。
+採用案で確定しているので必須ではない。方向性を広げたいときだけ使う。
 
-## 方向性（推奨は A）
-
-### A. 複数の吹き出しが1つに集まる（推奨）
-
-アプリの本質「**69サイトを横断して、同じ話題を1か所に集める**」をそのまま形にする。
-1.49で実装した話題検知（複数サイトが同じスレをまとめたら検知）とも符合する。
-笑顔を1つ残せば親しみも保てる。
-
-- 大小の吹き出し2〜3個が中央に収束
-- いちばん手前の吹き出しに小さく笑顔
-- 48pxでも「複数のかたまりが1つに寄っている」シルエットは残る
-
-### B. 吹き出し＋スレッドの線
-
-吹き出しの中に横線を数本入れて「書き込みの積み重なり＝スレッド」を示す。
-掲示板らしさは出るが、48pxで線が潰れる懸念がある。
-
-### C. 笑顔＋音波（読み上げ推し）
-
-スクリーンショット1枚目と揃うが、アイコンに機能を詰めると小サイズで破綻しやすい。
-アイコンは「何のアプリか」、スクショは「何ができるか」と役割を分けたい。
-
-## デザイン制約（小サイズで成立させる条件）
-
-- **要素は2つまで**。3つ以上入れると48pxで潰れる
-- **線は太く**（1024pxで最低40px相当）。現行の笑顔の線は細めで、縮小に弱い
-- **枠内に収める**。断ち切りは小サイズで事故になる
-- **背景は単色オレンジのまま**。グラデーションは小サイズで濁る
-- iOS は角丸マスクが自動で掛かる。**四隅から10%は重要要素を置かない**
-
----
-
-## scenario.com へのプロンプト（アイコン）
-
-**注意: 生成結果をそのまま提出しない。** アプリアイコンは幾何学的な精度が要る。
-AIは曲線や対称性を崩すので、**方向性の探索**に使い、確定案はベクターで清書する
-（このリポジトリで SVG を書き起こせる）。
+**生成結果はそのまま提出しない。** アプリアイコンは左右対称・線幅の統一・角丸半径の統一といった
+幾何学的な精度が要る。AI はここを崩すので、**探索に留めて確定案は SVG で清書**し、
+必ず 48px に落として検証する。
 
 共通ネガティブプロンプト:
 
@@ -270,17 +295,7 @@ text, letters, words, japanese characters, numbers, watermark, signature, realis
 3d render, drop shadow, gradient background, thin lines, cluttered, multiple panels, border frame
 ```
 
-### 案A（推奨）: 集まる吹き出し
-
-```
-Flat vector app icon, solid warm orange #F39800 background, three white rounded speech bubbles
-of different sizes converging toward the center and slightly overlapping, the frontmost bubble
-carries a simple smiling face drawn with thick clean strokes, bold minimal geometry,
-generous margins, perfectly centered composition, high contrast, no gradient, no shadow,
-flat design, app store icon, square, crisp edges
-```
-
-### 案A': 集約をより強く（笑顔なし）
+集約をより強く出す方向（笑顔なし）:
 
 ```
 Flat vector app icon, solid warm orange #F39800 background, several white rounded speech bubbles
@@ -289,16 +304,7 @@ bold thick shapes, minimal, symmetrical, generous margins, no gradient, no shado
 flat design, app store icon, square, crisp edges
 ```
 
-### 案B: スレッドの積み重なり
-
-```
-Flat vector app icon, solid warm orange #F39800 background, one large white rounded speech bubble
-containing three short thick horizontal bars suggesting stacked posts, bold geometry,
-very thick strokes, minimal, centered, generous margins, no gradient, no shadow,
-flat design, app store icon, square, crisp edges
-```
-
-### 案C: 笑顔＋音波
+読み上げを出す方向:
 
 ```
 Flat vector app icon, solid warm orange #F39800 background, a white circular smiling face
@@ -307,20 +313,7 @@ suggesting sound, bold minimal geometry, centered, generous margins, no gradient
 flat design, app store icon, square, crisp edges
 ```
 
-## 確定までの進め方
-
-1. 8/22 に scenario.com で A / A' / B / C を各4〜8枚生成し、方向を決める
-2. 選んだ方向を **SVG で清書**（左右対称・線幅の統一・角丸半径の統一をコードで担保）
-3. **48px / 96px に縮小して検証**。ここで潰れたら要素を1つ減らす
-4. 書き出し
-   - `assets/app/icon-1024.png`（1024×1024・角丸なし・透過なし）
-   - `assets/app/adaptive-foreground.png`（Android アダプティブ。**内側66%に収める**）
-   - `assets/app/notification-icon.png`（Android 通知用。**白のシルエットのみ**）
-5. `app.config.ts` の参照は変更不要（同じパスを差し替える）
-6. ストア掲載のアイコンも別途差し替える（Play Console / App Store Connect）
-
-## 変更後に見る指標
+## 効果測定
 
 Play Console 「ストアのパフォーマンス」で、**ストア掲載ページの表示回数に対するインストール率**を
-差し替え前後で比較する。アイコンは検索結果でのタップ率（表示→訪問）に効くため、
-訪問数の変化も併せて見る。
+差し替え前後で比較する。アイコンは検索結果でのタップ率（表示→訪問）に効くため、訪問数の変化も併せて見る。

@@ -1,0 +1,18 @@
+<!-- Androidステータスバー通知アイコン(原本)。24dp相当。
+     Androidはこの画像のalphaだけを見て単色(notification_icon_color)で塗るため、色は効かない。
+     目・口・重なりの境目はすべて「透明」で表現する必要がある。
+     アイコン本体より要素を減らし、重なりは背面1枚だけにしている(24dpでは2枚は潰れる)。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <mask id="cut">
+    <rect width="1024" height="1024" fill="#000"/>
+    <rect x="150" y="190" width="470" height="330" rx="90" fill="#FFF"/>
+    <path id="front" d="M392 336 H742 A104 104 0 0 1 846 440 V644 A104 104 0 0 1 742 748 H520 L400 872 L438 748 H392 A104 104 0 0 1 288 644 V440 A104 104 0 0 1 392 336 Z"
+          fill="#FFF" stroke="#000" stroke-width="52" stroke-linejoin="round"/>
+    <g fill="#000">
+      <circle cx="494" cy="502" r="32"/>
+      <circle cx="660" cy="502" r="32"/>
+    </g>
+    <path d="M490 598 Q577 674 664 598" fill="none" stroke="#000" stroke-width="40" stroke-linecap="round"/>
+  </mask>
+  <rect width="1024" height="1024" fill="#FFFFFF" mask="url(#cut)"/>
+</svg>

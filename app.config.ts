@@ -138,13 +138,17 @@ const config: ExpoConfig = {
     // Play製品版の最新vc44より大きい値。リリースごとに手動で+1する(docs/RELEASE.md参照)。
     versionCode: 57,
     ...(hasFirebaseConfig ? { googleServicesFile: GOOGLE_SERVICES_ANDROID } : {}),
+    // ⚠️ foregroundImage は「中央66.7%しか表示されない」前提で作ること。
+    // 全面に描いたものを渡すとランチャーで外周が切り落とされる(2026-08まで実際にそうで、
+    // icon-1024.png と同一の画像が入っていたため吹き出しがほぼ消えていた)。
+    // 差し替えるときは ./scripts/build-icons.sh を通すこと
     adaptiveIcon: {
       foregroundImage: './assets/app/adaptive-foreground.png',
-      backgroundColor: '#E0AEE7',
+      backgroundColor: '#F39800',
     },
     // App Links(/.well-known/assetlinks.jsonは配信済み)。
-    // 注意: android/はコミット済みでprebuildが再実行されないため、実際の反映は
-    // AndroidManifest.xmlの直編集が正。ここは将来prebuildし直す時の正本として併記
+    // android/ は .gitignore 済みの prebuild 生成物(Expo CNG)なので、ここが唯一の正本。
+    // AndroidManifest.xml を直接編集しても次のビルドで消える
     intentFilters: [
       {
         action: 'VIEW',
@@ -161,9 +165,9 @@ const config: ExpoConfig = {
       'expo-notifications',
       {
         // Androidのステータスバー通知アイコンは白シルエット必須(カラー画像だと白四角になる)。
-        // adaptive-foregroundの白背景を透明化して生成した(吹き出し+笑顔)
+        // assets/app/design/notification-source.svg から生成(目・口はalphaを抜いて表現)
         icon: './assets/app/notification-icon.png',
-        color: '#E0AEE7',
+        color: '#F39800',
       },
     ],
     // Firebase設定ファイルがあるときのみネイティブ組み込みを行う(analyticsはapp同梱のためplugin不要)
