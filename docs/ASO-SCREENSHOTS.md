@@ -185,3 +185,142 @@ playful but premium, minimal, lots of negative space,
 差し替え後、Play Console の「ストアのパフォーマンス」でストア掲載ページの
 **表示回数→インストール率**を差し替え前後で比較する。
 GROWTH-PLAN の目標は新規インストール 8件/月 → 300件/月。
+
+---
+
+# アプリアイコンの最適化
+
+## 現状評価（実寸で確認した結果）
+
+現行アイコンは**オレンジ地に白い笑顔＋吹き出し**（`assets/app/icon-1024.png`、ブランドオレンジ `#F39800`）。
+これを検索結果の実寸に落として確認した。
+
+| サイズ | 見え方 |
+|---|---|
+| 1024px（提出用） | 笑顔と吹き出しが明瞭。意図どおり |
+| 96px（Play 検索結果相当） | 笑顔は識別できる。**吹き出しは形が曖昧になる** |
+| 48px（一覧・通知相当） | **吹き出しが潰れて白い塊になる**。笑顔だけが残る |
+
+### 問題は3つ
+
+1. **カテゴリが伝わらない** — 笑顔＋吹き出しは「チャット／メッセージアプリ」に見える。
+   2ch/5chまとめのリーダーだと分かる手がかりがない。検索結果で競合と並んだとき、
+   何のアプリか判別できないのは致命的
+2. **吹き出しが上端で切れている** — 1024の枠からはみ出しており、意図的な断ち切りに見えにくい。
+   小さくすると「切れた白い塊」になる
+3. **情報量が笑顔1つ** — 記憶に残るフックがない
+
+### 一方で維持すべきもの
+
+- **オレンジ `#F39800`** — まとめ系アプリは赤・青・黒が多く、暖色は棚で目立つ。差別化として機能している
+- **親しみやすさ** — 2ch/5chまとめという題材の硬さ・とっつきにくさを和らげている
+
+## いま変えるべき理由
+
+アイコン変更は通常「既存ユーザーが見失う」リスクを伴うが、**現在の実測値ではそのリスクがほぼ無い**。
+
+- 1か月間のアクティブデバイス数: **1**
+- インストール: **2件**（Play Console 実測）
+
+失うものが無い。むしろ新規獲得（GROWTH-PLAN の目標: 8件/月 → 300件/月）に振り切れる、
+数少ないタイミングにある。
+
+## 方向性（推奨は A）
+
+### A. 複数の吹き出しが1つに集まる（推奨）
+
+アプリの本質「**69サイトを横断して、同じ話題を1か所に集める**」をそのまま形にする。
+1.49で実装した話題検知（複数サイトが同じスレをまとめたら検知）とも符合する。
+笑顔を1つ残せば親しみも保てる。
+
+- 大小の吹き出し2〜3個が中央に収束
+- いちばん手前の吹き出しに小さく笑顔
+- 48pxでも「複数のかたまりが1つに寄っている」シルエットは残る
+
+### B. 吹き出し＋スレッドの線
+
+吹き出しの中に横線を数本入れて「書き込みの積み重なり＝スレッド」を示す。
+掲示板らしさは出るが、48pxで線が潰れる懸念がある。
+
+### C. 笑顔＋音波（読み上げ推し）
+
+スクリーンショット1枚目と揃うが、アイコンに機能を詰めると小サイズで破綻しやすい。
+アイコンは「何のアプリか」、スクショは「何ができるか」と役割を分けたい。
+
+## デザイン制約（小サイズで成立させる条件）
+
+- **要素は2つまで**。3つ以上入れると48pxで潰れる
+- **線は太く**（1024pxで最低40px相当）。現行の笑顔の線は細めで、縮小に弱い
+- **枠内に収める**。断ち切りは小サイズで事故になる
+- **背景は単色オレンジのまま**。グラデーションは小サイズで濁る
+- iOS は角丸マスクが自動で掛かる。**四隅から10%は重要要素を置かない**
+
+---
+
+## scenario.com へのプロンプト（アイコン）
+
+**注意: 生成結果をそのまま提出しない。** アプリアイコンは幾何学的な精度が要る。
+AIは曲線や対称性を崩すので、**方向性の探索**に使い、確定案はベクターで清書する
+（このリポジトリで SVG を書き起こせる）。
+
+共通ネガティブプロンプト:
+
+```
+text, letters, words, japanese characters, numbers, watermark, signature, realistic photo,
+3d render, drop shadow, gradient background, thin lines, cluttered, multiple panels, border frame
+```
+
+### 案A（推奨）: 集まる吹き出し
+
+```
+Flat vector app icon, solid warm orange #F39800 background, three white rounded speech bubbles
+of different sizes converging toward the center and slightly overlapping, the frontmost bubble
+carries a simple smiling face drawn with thick clean strokes, bold minimal geometry,
+generous margins, perfectly centered composition, high contrast, no gradient, no shadow,
+flat design, app store icon, square, crisp edges
+```
+
+### 案A': 集約をより強く（笑顔なし）
+
+```
+Flat vector app icon, solid warm orange #F39800 background, several white rounded speech bubbles
+funnelling into one larger bubble at the center, sense of many sources merging into one,
+bold thick shapes, minimal, symmetrical, generous margins, no gradient, no shadow,
+flat design, app store icon, square, crisp edges
+```
+
+### 案B: スレッドの積み重なり
+
+```
+Flat vector app icon, solid warm orange #F39800 background, one large white rounded speech bubble
+containing three short thick horizontal bars suggesting stacked posts, bold geometry,
+very thick strokes, minimal, centered, generous margins, no gradient, no shadow,
+flat design, app store icon, square, crisp edges
+```
+
+### 案C: 笑顔＋音波
+
+```
+Flat vector app icon, solid warm orange #F39800 background, a white circular smiling face
+with thick clean strokes, two concentric white arc waves radiating from the right side
+suggesting sound, bold minimal geometry, centered, generous margins, no gradient, no shadow,
+flat design, app store icon, square, crisp edges
+```
+
+## 確定までの進め方
+
+1. 8/22 に scenario.com で A / A' / B / C を各4〜8枚生成し、方向を決める
+2. 選んだ方向を **SVG で清書**（左右対称・線幅の統一・角丸半径の統一をコードで担保）
+3. **48px / 96px に縮小して検証**。ここで潰れたら要素を1つ減らす
+4. 書き出し
+   - `assets/app/icon-1024.png`（1024×1024・角丸なし・透過なし）
+   - `assets/app/adaptive-foreground.png`（Android アダプティブ。**内側66%に収める**）
+   - `assets/app/notification-icon.png`（Android 通知用。**白のシルエットのみ**）
+5. `app.config.ts` の参照は変更不要（同じパスを差し替える）
+6. ストア掲載のアイコンも別途差し替える（Play Console / App Store Connect）
+
+## 変更後に見る指標
+
+Play Console 「ストアのパフォーマンス」で、**ストア掲載ページの表示回数に対するインストール率**を
+差し替え前後で比較する。アイコンは検索結果でのタップ率（表示→訪問）に効くため、
+訪問数の変化も併せて見る。
