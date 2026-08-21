@@ -141,10 +141,12 @@ const config: ExpoConfig = {
     // ⚠️ foregroundImage は「中央66.7%しか表示されない」前提で作ること。
     // 全面に描いたものを渡すとランチャーで外周が切り落とされる(2026-08まで実際にそうで、
     // icon-1024.png と同一の画像が入っていたため吹き出しがほぼ消えていた)。
-    // 差し替えるときは ./scripts/build-icons.sh を通すこと
+    // 差し替えるときは ./scripts/build-icons.sh を通すこと。
+    // 前景は不透明なので backgroundColor は実際には見えない。視差で端が覗いたときに
+    // 違和感が出ないよう、デザインの下端から採った色を入れてある
     adaptiveIcon: {
       foregroundImage: './assets/app/adaptive-foreground.png',
-      backgroundColor: '#F39800',
+      backgroundColor: '#FBA675',
     },
     // App Links(/.well-known/assetlinks.jsonは配信済み)。
     // android/ は .gitignore 済みの prebuild 生成物(Expo CNG)なので、ここが唯一の正本。
@@ -165,9 +167,10 @@ const config: ExpoConfig = {
       'expo-notifications',
       {
         // Androidのステータスバー通知アイコンは白シルエット必須(カラー画像だと白四角になる)。
-        // assets/app/design/notification-source.svg から生成(目・口はalphaを抜いて表現)
+        // icon-master.png から彩度で吹き出しだけを抜いて生成する(scripts/build-icons.sh)。
+        // 吹き出しの中の線はオレンジ=彩度が高いので、自動的に穴になる
         icon: './assets/app/notification-icon.png',
-        color: '#F39800',
+        color: '#FA8659',
       },
     ],
     // Firebase設定ファイルがあるときのみネイティブ組み込みを行う(analyticsはapp同梱のためplugin不要)
