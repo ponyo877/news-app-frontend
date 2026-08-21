@@ -1,19 +1,27 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { logEvent } from '@/lib/analytics';
 import { articleReportUrl } from '@/lib/reportForms';
 import type { RootNavigation } from '@/navigation/types';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { FONT_SCALES, useFontSizeStore } from '@/stores/fontSizeStore';
+import { useSiteFilterStore } from '@/stores/siteFilterStore';
 import { colors } from '@/theme/colors';
 import { fontFamily } from '@/theme/typography';
 
 // 記事画面ヘッダー右のメニュー。
 // 共有は1タップ化のためヘッダー直下のアイコンへ移設済み(share.ts)。
 // 文字サイズはここに置く: ヘッダーのアイコン過密を避けつつ、backdropが
-// 透明なのでピルをタップすると背後のWebViewで即時プレビューできる
+// 透明なのでピルをタップすると背後のWebViewで即時プレビューできる。
+//
+// 「このサイトを非表示」もここに置く。一覧カードのシート
+// (useArticleActionSheet)には元からあったが、記事を読んでいる最中に
+// 「このサイトはもういい」と判断する導線が無かった。競合アプリのレビューで
+// 「記事を見て非表示にしたいサイトを見つけた場合、サイト一覧タブに移動して
+// サイト名を探すのが苦行」という指摘が実際に出ている(docs/COMPETITORS.md)。
 export function ArticleMenu({
   article,
   navigation,
@@ -26,10 +34,38 @@ export function ArticleMenu({
   const [open, setOpen] = useState(false);
   const scale = useFontSizeStore((s) => s.scale);
   const setScale = useFontSizeStore((s) => s.setScale);
+  const blockSite = useSiteFilterStore((s) => s.blockSite);
+  const queryClient = useQueryClient();
 
   const startTts = () => {
     setOpen(false);
     onStartTts();
+  };
+
+  // 一覧カードのシートと違い、こちらは確認を挟む。
+  // 読んでいる記事のサイトを消す=いま見ている画面から戻される操作なので、
+  // 誤タップの取り返しがつかない。戻し方(設定の「表示サイトの選択」)も
+  // その場で伝える。競合レビューでは「誤って触れやすい」ボタンへの不満が多い
+  const hideSite = () => {
+    setOpen(false);
+    Alert.alert(
+      `${article.sitetitle}を非表示にしますか?`,
+      'このサイトの記事は一覧に出なくなります。設定の「表示サイトの選択」でいつでも元に戻せます。',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '非表示にする',
+          style: 'destructive',
+          onPress: () => {
+            blockSite(article.siteID);
+            // 一覧カードのシートと同じく、ブロックを反映するため新着を取り直す
+            void queryClient.invalidateQueries({ queryKey: ['articles', 'latest'] });
+            // 非表示にしたサイトの記事を開いたままにしない
+            navigation.goBack();
+          },
+        },
+      ],
+    );
   };
 
   const report = () => {
@@ -42,7 +78,12 @@ export function ArticleMenu({
 
   return (
     <>
-      <Pressable hitSlop={8} onPress={() => setOpen(true)}>
+      <Pressable
+        hitSlop={8}
+        onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel="メニュー"
+      >
         <MaterialIcons name="more-vert" size={24} color={colors.textPrimary} />
       </Pressable>
       <Modal transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
@@ -76,6 +117,13 @@ export function ArticleMenu({
               <Text style={styles.label}>読み上げ</Text>
             </Pressable>
             <View style={styles.divider} />
+            <Pressable style={styles.item} onPress={hideSite}>
+              <MaterialIcons name="block" size={20} color={colors.textPrimary} />
+              <Text style={styles.label} numberOfLines={1}>
+                {article.sitetitle}を非表示
+              </Text>
+            </Pressable>
+            <View style={styles.divider} />
             <Pressable style={styles.item} onPress={report}>
               <MaterialIcons name="report" size={20} color={colors.textPrimary} />
               <Text style={styles.label}>記事の問題を報告</Text>
@@ -95,6 +143,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 48,
     right: 8,
+    // サイト名を項目に出すため、長い名前でも画面外へ広がらないよう上限を置く
+    maxWidth: 280,
     backgroundColor: colors.surface,
     borderRadius: 4,
     paddingVertical: 8,
