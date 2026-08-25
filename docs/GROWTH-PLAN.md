@@ -101,6 +101,7 @@ DAU = 既存ユーザーの再活性化 + (新規獲得数 × 定着率)
 | `onboarding_done`(Phase 2〜) | selected_count, skipped | 初回サイト選択の完了率 |
 | `font_scale` / `ng_word` / `review_prompt`(Phase 2〜) | scale / action / read_count | 機能利用率 |
 | `push_token_failed`(1.50〜) | step(fetch_token/register), reason | プッシュ登録の失敗率。端末要因(Googleアカウント未設定・通信断)が大半なので**Crashlyticsには送らずここで数える**(本物のクラッシュを埋もれさせない) |
+| `article_report` / `article_report_failed`(1.52〜) | site, reason / kind(network/server/rejected) | 記事表示の不具合報告の件数と理由内訳(DB `article_reports` と突合、`docs/ARTICLE-REPORTS.md`)。失敗は端末側でしか見えないのでここで数える |
 
 ### 2-2. バックエンド緊急修理(いずれも数行〜数十行、10倍トラフィックの前提条件)
 

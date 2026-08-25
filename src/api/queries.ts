@@ -12,11 +12,16 @@ import {
   fetchComments,
   fetchPopular,
   fetchSites,
+  postArticleReport,
   postComment,
   searchArticles,
 } from '@/api/endpoints';
 import { fetchMatsuri, fetchRelated, recentReadIds } from '@/api/recs';
 import { logEvent } from '@/lib/analytics';
+import { collectArticleReportContext } from '@/lib/articleReport';
+import type { ArticleReportReason } from '@/lib/articleReport';
+import { computeDeviceHash } from '@/lib/deviceHash';
+import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { useSiteFilterStore } from '@/stores/siteFilterStore';
 import { useUserStore } from '@/stores/userStore';
 
@@ -96,9 +101,10 @@ export function useComments(articleId: string) {
   });
 }
 
-// コメント投稿エラーの種別。以前は全部「不適切な表現」と表示していたが、
+// POST系のエラー種別(コメント投稿・不具合報告で共通)。以前は全部「不適切な表現」と表示していたが、
 // backendにNGワード検査は存在せず、実際はネットワーク/サーバ障害が大半だった
-export type PostCommentErrorKind = 'network' | 'server' | 'rejected';
+export type PostErrorKind = 'network' | 'server' | 'rejected';
+export type PostCommentErrorKind = PostErrorKind;
 
 export function classifyPostCommentError(status: number): PostCommentErrorKind {
   return status >= 500 ? 'server' : 'rejected';
@@ -123,6 +129,41 @@ export function usePostComment(articleId: string) {
     onSuccess: () => {
       logEvent('comment_post');
       void client.invalidateQueries({ queryKey: queryKeys.comments(articleId) });
+    },
+  });
+}
+
+// 記事表示の不具合報告(記事画面⋮メニュー)。理由だけを受け取り、記事URL・アプリ内ID・端末情報を添えて送る。
+// 同一端末×記事はサーバ側でupsertされるので、2回目も成功として扱ってよい
+export function usePostArticleReport(article: ArticleMeta) {
+  const devicehash = useUserStore((s) => s.devicehash);
+  return useMutation({
+    mutationFn: async (reason: ArticleReportReason) => {
+      // bootstrap前(devicehash未生成)は計算して補う。'' を送るとbackendが400を返すため
+      const hash = devicehash ?? (await computeDeviceHash());
+      let result: { ok: boolean; status: number };
+      try {
+        result = await postArticleReport({
+          articleId: article.id,
+          url: article.url,
+          sitetitle: article.sitetitle,
+          devicehash: hash,
+          reason,
+          ...collectArticleReportContext(),
+        });
+      } catch {
+        throw new Error('network' satisfies PostErrorKind);
+      }
+      if (!result.ok) {
+        throw new Error(classifyPostCommentError(result.status));
+      }
+    },
+    onSuccess: (_, reason) => {
+      logEvent('article_report', { site: article.sitetitle, reason });
+    },
+    // 失敗は端末側でしか見えないので、種別だけ計測に残す(Crashlyticsには送らない)
+    onError: (error) => {
+      logEvent('article_report_failed', { kind: error.message });
     },
   });
 }

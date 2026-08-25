@@ -10,6 +10,7 @@ import {
   commentListSchema,
   siteListSchema,
 } from '@/api/schemas';
+import type { ArticleReportReason } from '@/lib/articleReport';
 
 export type RankingPeriod = 'daily' | 'weekly' | 'monthly';
 
@@ -63,6 +64,40 @@ export async function postComment(
   devicehash: string,
 ): Promise<{ ok: boolean; status: number }> {
   return postForm(`/v1/comment/${articleId}`, { message, devicehash });
+}
+
+export interface PostArticleReportParams {
+  articleId: string;
+  url: string;
+  sitetitle: string;
+  devicehash: string;
+  platform: string;
+  appversion: string;
+  rulesversion: number;
+  reason: ArticleReportReason;
+}
+
+// POST /v1/article/report/:id — 記事表示の不具合報告。同一端末×記事はサーバ側でupsert(2回目も200)。
+// statusを素通しし、呼び出し側(usePostArticleReport)がエラー種別を判定する
+export async function postArticleReport({
+  articleId,
+  url,
+  sitetitle,
+  devicehash,
+  platform,
+  appversion,
+  rulesversion,
+  reason,
+}: PostArticleReportParams): Promise<{ ok: boolean; status: number }> {
+  return postForm(`/v1/article/report/${articleId}`, {
+    url,
+    sitetitle,
+    devicehash,
+    platform,
+    appversion,
+    rulesversion: String(rulesversion),
+    reason,
+  });
 }
 
 export interface PostDeviceTokenParams {

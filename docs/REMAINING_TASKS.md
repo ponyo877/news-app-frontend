@@ -207,6 +207,9 @@ Play の公開ページはアプリ名「広告なし」の直下に Google の�
 > （`src/scraper/embeds.ts`）、tweet 内アンカーの href は温存、iOS のサブフレームは埋め込みホストのみ許可
 > （`src/features/article/loadRequestPolicy.ts`）、哲学ニュース `blockquote` / 暇人速報 `iframe` /
 > ニュー速VIPワイド `center` `iframe` の過剰ルールを絞る（ルール v4）。Android 1.50 実機で「以前は表示されていた」ことも確認済み。
+> あわせて 1.52 で⋮メニューの「記事の問題を報告」(Google フォーム)を「表示の不具合を報告」(理由を選ぶだけで
+> 記事URL・アプリ内ID・端末情報をサーバの `article_reports` に蓄積、管理者は SQL で閲覧・対応状態を更新)に置き換えた。
+> 運用は `docs/ARTICLE-REPORTS.md`。
 
 ### 対応(1.51)
 

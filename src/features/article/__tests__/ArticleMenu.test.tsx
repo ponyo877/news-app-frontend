@@ -7,6 +7,9 @@ import type { RootNavigation } from '@/navigation/types';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { useSiteFilterStore } from '@/stores/siteFilterStore';
 
+// 報告カードはネットワークを叩くので、送信先だけ差し替える(このファイルでは送信までしない)
+jest.mock('@/api/endpoints', () => ({ postArticleReport: jest.fn() }));
+
 // 記事画面から「このサイトを非表示」できることの回帰テスト。
 // 確認を挟むこと自体が仕様(誤タップで読んでいる記事が消えると取り返しがつかない)なので、
 // キャンセル時に何も起きないことまで含めて固定する。背景は docs/COMPETITORS.md
@@ -91,5 +94,32 @@ describe('ArticleMenu のサイト非表示', () => {
 
     expect(useSiteFilterStore.getState().blockedSiteIds).toEqual([]);
     expect(goBack).not.toHaveBeenCalled();
+  });
+});
+
+// 報告はGoogleフォーム遷移ではなく、同じModalの中身を報告カードに切り替えて出す
+describe('ArticleMenu の表示の不具合を報告', () => {
+  it('押すとメニュー項目が消えて報告カードが出る(WebViewへは遷移しない)', async () => {
+    const navigate = jest.fn();
+    const view = await openMenu({ goBack: jest.fn(), navigate });
+
+    await fireEvent.press(view.getByText('表示の不具合を報告'));
+
+    expect(view.queryByText('文字サイズ')).toBeNull();
+    expect(view.getByText('送信')).toBeTruthy();
+    expect(view.getByText('テスト記事')).toBeTruthy();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('キャンセルで閉じ、次に開いたときはメニューに戻っている', async () => {
+    const view = await openMenu({ goBack: jest.fn() });
+
+    await fireEvent.press(view.getByText('表示の不具合を報告'));
+    await fireEvent.press(view.getByText('キャンセル'));
+    expect(view.queryByText('送信')).toBeNull();
+
+    await fireEvent.press(view.getByLabelText('メニュー'));
+    expect(view.getByText('文字サイズ')).toBeTruthy();
+    expect(view.queryByText('送信')).toBeNull();
   });
 });

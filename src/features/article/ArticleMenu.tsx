@@ -3,8 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { ReportArticleDialog } from '@/features/article/ReportArticleDialog';
 import { logEvent } from '@/lib/analytics';
-import { articleReportUrl } from '@/lib/reportForms';
 import type { RootNavigation } from '@/navigation/types';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { FONT_SCALES, useFontSizeStore } from '@/stores/fontSizeStore';
@@ -22,6 +22,12 @@ import { fontFamily } from '@/theme/typography';
 // 「このサイトはもういい」と判断する導線が無かった。競合アプリのレビューで
 // 「記事を見て非表示にしたいサイトを見つけた場合、サイト一覧タブに移動して
 // サイト名を探すのが苦行」という指摘が実際に出ている(docs/COMPETITORS.md)。
+//
+// 「表示の不具合を報告」はGoogleフォーム遷移からサーバ蓄積に置き換えた(2026-08-25)。
+// 1.51で埋め込みが消えていた問題は、記事URLがユーザーから届かず実態把握に数百記事の
+// 自前取得が要った(docs/REMAINING_TASKS.md の訂正)。理由を選ぶだけでURLとIDが届くようにする。
+// 報告カードはこのメニューと同じ1つのModalの中身を切り替えて出す: メニューのModalを閉じながら
+// 別のModalを開くと、iOSはdismissアニメーション中のpresentを黙って失敗させることがある
 export function ArticleMenu({
   article,
   navigation,
@@ -32,10 +38,20 @@ export function ArticleMenu({
   onStartTts: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  // Modalの中身: メニュー項目 or 不具合報告カード
+  const [mode, setMode] = useState<'menu' | 'report'>('menu');
   const scale = useFontSizeStore((s) => s.scale);
   const setScale = useFontSizeStore((s) => s.setScale);
   const blockSite = useSiteFilterStore((s) => s.blockSite);
   const queryClient = useQueryClient();
+
+  // 閉じるときは中身を戻さない(フェードアウト中に報告カードがメニューへ化けるのを避ける)。
+  // 次に開くときにメニューへ戻す
+  const openMenu = () => {
+    setMode('menu');
+    setOpen(true);
+  };
+  const close = () => setOpen(false);
 
   const startTts = () => {
     setOpen(false);
@@ -68,68 +84,69 @@ export function ArticleMenu({
     );
   };
 
-  const report = () => {
-    setOpen(false);
-    navigation.navigate('NormalWebView', {
-      title: '記事の問題を報告',
-      url: articleReportUrl(article.titles, article.url),
-    });
-  };
+  const report = () => setMode('report');
 
   return (
     <>
       <Pressable
         hitSlop={8}
-        onPress={() => setOpen(true)}
+        onPress={openMenu}
         accessibilityRole="button"
         accessibilityLabel="メニュー"
       >
         <MaterialIcons name="more-vert" size={24} color={colors.textPrimary} />
       </Pressable>
-      <Modal transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
-          <View style={styles.menu}>
-            <View style={styles.fontRow}>
-              <Text style={styles.fontRowLabel}>文字サイズ</Text>
-              <View style={styles.pills}>
-                {FONT_SCALES.map((option) => (
-                  <Pressable
-                    key={option.key}
-                    style={[styles.pill, scale === option.key && styles.pillActive]}
-                    onPress={() => {
-                      // メニューは閉じない(背後のWebViewで変更が即プレビューされる)
-                      setScale(option.key);
-                      logEvent('font_scale', { scale: option.key });
-                    }}
-                  >
-                    <Text
-                      style={[styles.pillText, scale === option.key && styles.pillTextActive]}
-                    >
-                      {option.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-            <View style={styles.divider} />
-            <Pressable style={styles.item} onPress={startTts}>
-              <MaterialIcons name="headset" size={20} color={colors.textPrimary} />
-              <Text style={styles.label}>読み上げ</Text>
-            </Pressable>
-            <View style={styles.divider} />
-            <Pressable style={styles.item} onPress={hideSite}>
-              <MaterialIcons name="block" size={20} color={colors.textPrimary} />
-              <Text style={styles.label} numberOfLines={1}>
-                {article.sitetitle}を非表示
-              </Text>
-            </Pressable>
-            <View style={styles.divider} />
-            <Pressable style={styles.item} onPress={report}>
-              <MaterialIcons name="report" size={20} color={colors.textPrimary} />
-              <Text style={styles.label}>記事の問題を報告</Text>
-            </Pressable>
+      <Modal transparent visible={open} animationType="fade" onRequestClose={close}>
+        {mode === 'report' ? (
+          // backdropタップでは閉じない(送信中の誤操作防止)。閉じるのはカードのボタンか戻るキー
+          <View style={styles.dialogBackdrop}>
+            <ReportArticleDialog article={article} onClose={close} />
           </View>
-        </Pressable>
+        ) : (
+          <Pressable style={styles.backdrop} onPress={close}>
+            <View style={styles.menu}>
+              <View style={styles.fontRow}>
+                <Text style={styles.fontRowLabel}>文字サイズ</Text>
+                <View style={styles.pills}>
+                  {FONT_SCALES.map((option) => (
+                    <Pressable
+                      key={option.key}
+                      style={[styles.pill, scale === option.key && styles.pillActive]}
+                      onPress={() => {
+                        // メニューは閉じない(背後のWebViewで変更が即プレビューされる)
+                        setScale(option.key);
+                        logEvent('font_scale', { scale: option.key });
+                      }}
+                    >
+                      <Text
+                        style={[styles.pillText, scale === option.key && styles.pillTextActive]}
+                      >
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+              <View style={styles.divider} />
+              <Pressable style={styles.item} onPress={startTts}>
+                <MaterialIcons name="headset" size={20} color={colors.textPrimary} />
+                <Text style={styles.label}>読み上げ</Text>
+              </Pressable>
+              <View style={styles.divider} />
+              <Pressable style={styles.item} onPress={hideSite}>
+                <MaterialIcons name="block" size={20} color={colors.textPrimary} />
+                <Text style={styles.label} numberOfLines={1}>
+                  {article.sitetitle}を非表示
+                </Text>
+              </Pressable>
+              <View style={styles.divider} />
+              <Pressable style={styles.item} onPress={report}>
+                <MaterialIcons name="report" size={20} color={colors.textPrimary} />
+                <Text style={styles.label}>表示の不具合を報告</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        )}
       </Modal>
     </>
   );
@@ -138,6 +155,14 @@ export function ArticleMenu({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
+  },
+  // 報告カード用。メニューと違い背後のWebViewを見せる必要がないので暗くして注意を集める
+  dialogBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
   },
   menu: {
     position: 'absolute',
