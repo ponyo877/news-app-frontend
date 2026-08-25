@@ -50,6 +50,24 @@ describe('stripLinkHrefs', () => {
     stripLinkHrefs($);
     expect($('a').hasClass('app-inert')).toBe(true);
   });
+
+  // widgets.jsはblockquote内のhref(ツイートURL)からIDを読む。剥ぐと描画されない(1.51で発生)
+  it('Xポスト埋め込み内のリンクはhrefを残す(見た目と操作はapp-inertで殺す)', () => {
+    const $ = load(
+      '<body><blockquote class="twitter-tweet"><p>本文 <a href="https://t.co/x">pic</a></p>' +
+        '<a href="https://twitter.com/a/status/1">June 1, 2026</a></blockquote>' +
+        '<a href="http://x.example">外</a></body>',
+    );
+    stripLinkHrefs($);
+    expect($('blockquote a[href="https://twitter.com/a/status/1"]')).toHaveLength(1);
+    expect($('blockquote a[href="https://t.co/x"]')).toHaveLength(1);
+    expect($('a[href="http://x.example"]')).toHaveLength(0);
+    expect(
+      $('a')
+        .toArray()
+        .every((a) => $(a).hasClass('app-inert')),
+    ).toBe(true);
+  });
 });
 
 describe('serialize', () => {

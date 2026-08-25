@@ -1,5 +1,7 @@
 import type { CheerioAPI } from 'cheerio/slim';
 
+import { TWEET_EMBED_SELECTOR } from '@/scraper/embeds';
+
 // 出典リンクのタップをWebView側で判別するための番兵URL。
 // .invalid は絶対に解決されない予約TLD(RFC 6761)なので、実際に読み込まれることはない。
 // ArticleScreenのonShouldStartLoadWithRequestがこれを捕まえて外部ブラウザへ渡す
@@ -24,9 +26,14 @@ export interface ArticleSource {
 // 「サイトの動作: ナビゲーション」の *存在しないコンテンツにリンクしている*
 // に該当するため、見た目もリンクでなくす。
 // 旧実装は a[target] のみを対象にしていたので、target のないアンカー
-// (安価・サイト内リンク)はhrefが残ったままWebView側で遮断されていた
+// (安価・サイト内リンク)はhrefが残ったままWebView側で遮断されていた。
+//
+// 例外: Xポスト埋め込み内のアンカー。widgets.jsがこのhref(ツイートURL)からIDを読むため、
+// 剥ぐと描画されず空のblockquoteだけが残る(1.51で発生)。描画後はiframeに置き換わるので
+// 押せないリンクとしては残らず、描画失敗時(オフライン等)もapp-inertで見た目と操作を殺す
 export function stripLinkHrefs($: CheerioAPI): void {
-  $('body a').removeAttr('href').addClass(INERT_LINK_CLASS);
+  $('body a').not(`${TWEET_EMBED_SELECTOR} a`).removeAttr('href');
+  $('body a').addClass(INERT_LINK_CLASS);
 }
 
 // 本文の最終行が広告ブロックの区切り線に張り付くと窮屈で読みにくいため、

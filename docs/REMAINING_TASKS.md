@@ -197,6 +197,17 @@ Play の公開ページはアプリ名「広告なし」の直下に Google の�
 除去後、リンク集・powerd by・色の上書きがすべて消えることを iOS/Android の実機で確認済み。
 本文・画像・複数ページ結合には影響しないことも別記事で確認した。
 
+> **2026-08-25 訂正:** 上の「画像に影響しない」は誤りだった。Xポスト（`blockquote.twitter-tweet`）・
+> imgur（`blockquote.imgur-embed-pub`）・Instagram は JS で描画されるため、この一律除去で
+> **本番670記事の約23%（X 11%・imgur 10%）から画像・ポストが空白/灰色バーになっていた**。
+> さらに `stripLinkHrefs` の全アンカー剥奪が widgets.js の必要とする tweet URL まで消していた
+> （href 無しでは widgets.js は描画しない。Chrome で実証）。iOS では別途 `onShouldStartLoadWithRequest` が
+> iframe も遮断しており YouTube が真っ白だった（1.50 から）。
+> 対応（1.52）: `applyCommonRules` が script 除去後に埋め込みの描画スクリプトを種類ごとに1本足す
+> （`src/scraper/embeds.ts`）、tweet 内アンカーの href は温存、iOS のサブフレームは埋め込みホストのみ許可
+> （`src/features/article/loadRequestPolicy.ts`）、哲学ニュース `blockquote` / 暇人速報 `iframe` /
+> ニュー速VIPワイド `center` `iframe` の過剰ルールを絞る（ルール v4）。Android 1.50 実機で「以前は表示されていた」ことも確認済み。
+
 ### 対応(1.51)
 
 **コード**

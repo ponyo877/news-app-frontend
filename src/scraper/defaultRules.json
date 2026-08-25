@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "rules": [
     {
       "name": "ニュー速クオリティ",
@@ -36,7 +36,7 @@
       "removeSelectors": [
         "div.article_mid_v2",
         "div#article_low_v2",
-        "iframe",
+        "iframe[src*=\"himasoku.com/\"]",
         "span[style*=\"color: #CC0033\"]",
         "img[src*=\"/parts/ichiosi.png\"]",
         "script:contains(\"decodeURIComponent\")"
@@ -68,7 +68,7 @@
       "removeSelectors": [
         "span[style*=\"font-size: large\"]",
         "span[style*=\"font-size: 150%\"]",
-        "blockquote",
+        "blockquote:not(.twitter-tweet, .instagram-media, .imgur-embed-pub)",
         "iframe[src*=\"richlink.blogsys.jp\"]",
         "script:contains(\"in_article_cd\")"
       ]
@@ -487,7 +487,8 @@
         "script:contains(\"c_img_param\")",
         "script:contains(\"in_article_cd\")",
         "div.sp_kizi_recommend",
-        "script[src*=\"blog.livedoor.jp/goldennews/js/\"]"
+        "script[src*=\"blog.livedoor.jp/goldennews/js/\"]",
+        "iframe[src*=\"richlink.blogsys.jp\"]"
       ]
     },
     {
@@ -593,7 +594,7 @@
         "script:contains(\"gsspcln\")",
         "div.ninja_onebutton",
         "span.ninja_onebutton_hidden",
-        "iframe[src*=\"midlink_diet2ch\"]",
+        "iframe[src*=\"/rss/midlink\"]",
         "script[src*=\"blog.livedoor.jp/diet2channel/js/\"]",
         "script:contains(\"shorturl\")",
         "div[style*=\"#FF596A\"]"
@@ -778,14 +779,12 @@
         "div[class^=\"ad_\"]",
         "div[class^=\"ads_\"]",
         "div[id^=\"ad_\"]",
-        "div[id^=\"ads_\"]",
         "div[class*=\"ad__\"]",
-        "div.popular_article_pick_up",
         "div.pager-set--ad",
         "div.bookmark",
-        "center",
+        "center:not(:has(img, iframe, blockquote, video))",
         "ins",
-        "iframe"
+        "iframe[src*=\"news4wide.up.seesaa.net\"]"
       ],
       "engine": {
         "bodySelector": "div.article-body",

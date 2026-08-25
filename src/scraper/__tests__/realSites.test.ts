@@ -1,12 +1,14 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { applySiteRules } from '@/scraper/applyRules';
+import { applyCommonRules, applySiteRules } from '@/scraper/applyRules';
 import { detectEngine } from '@/scraper/engines';
+import { ARTICLE_BODY_SELECTOR } from '@/scraper/engines/livedoor';
 import { loadDoc } from '@/scraper/htmlLoad';
 import { matchSiteRule } from '@/scraper/ruleMatcher';
 import { bundledRuleSet } from '@/scraper/rulesStore';
 import { serialize, stripLinkHrefs } from '@/scraper/serialize';
+import { countEmbeds, expectedEmbedScripts } from '@/scraper/__fixtures__/embedCounts';
 
 // 実サイトHTMLでの検証(P5)。`npm run fetch-fixtures` 実行後にのみ動く。
 // テンプレート変更(エンジン非対応化・ルールの風化)を手元で検知するためのテスト。
@@ -40,15 +42,24 @@ maybeDescribe('実サイトHTML(fetch-fixtures取得分)', () => {
       return;
     }
 
-    await engine.prepare($, () => Promise.reject(new Error('no network in test')));
+    const bodySelector = rule?.engine?.bodySelector ?? ARTICLE_BODY_SELECTOR;
+    const embedsBefore = countEmbeds($, $(bodySelector));
+
+    await engine.prepare($, () => Promise.reject(new Error('no network in test')), rule);
     if (rule) {
       applySiteRules($, rule);
     }
+    applyCommonRules($);
     stripLinkHrefs($);
     const output = serialize($, { url: sourceUrl, siteName: name });
 
     // 本文が残っていること
     expect($('div.article-body-outer').text().trim().length).toBeGreaterThan(0);
+    // 埋め込みが原文の本文と同数残り、描画スクリプトが種類ごとに1本あること
+    expect(countEmbeds($, $('div.article-body-outer'))).toEqual(embedsBefore);
+    for (const src of expectedEmbedScripts(embedsBefore)) {
+      expect($(`body script[src="${src}"]`)).toHaveLength(1);
+    }
     // 除去対象セレクタが出力に残っていないこと
     for (const selector of rule?.removeSelectors ?? []) {
       expect($(selector)).toHaveLength(0);

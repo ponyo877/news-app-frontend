@@ -1,12 +1,14 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { applySiteRules } from '@/scraper/applyRules';
+import { applyCommonRules, applySiteRules } from '@/scraper/applyRules';
 import { detectEngine } from '@/scraper/engines';
+import { ARTICLE_BODY_SELECTOR } from '@/scraper/engines/livedoor';
 import { loadDoc } from '@/scraper/htmlLoad';
 import { matchSiteRule } from '@/scraper/ruleMatcher';
 import { bundledRuleSet } from '@/scraper/rulesStore';
 import { serialize, stripLinkHrefs } from '@/scraper/serialize';
+import { countEmbeds, expectedEmbedScripts } from '@/scraper/__fixtures__/embedCounts';
 
 // 追加候補サイトの検証。`npm run fetch-candidates` 実行後にのみ動く。
 // realSites.test.ts より厳しく、全フィクスチャに対して
@@ -18,12 +20,7 @@ const OUTPUT_DIR = join(CANDIDATE_DIR, '__output__');
 const shouldDump = process.env.DUMP_SCRAPER_OUTPUT === '1';
 
 // 出力に残ってはいけない要素(全サイト共通)
-const FORBIDDEN_SELECTORS = [
-  'div.ninja-recommend-block',
-  'div.amazon',
-  'ins',
-  'noscript iframe',
-];
+const FORBIDDEN_SELECTORS = ['div.ninja-recommend-block', 'div.amazon', 'ins', 'noscript iframe'];
 
 // 残存script/iframeを広告・レコメンドと判定する署名
 const AD_SIGNATURE =
@@ -52,8 +49,14 @@ maybeDescribe('候補サイトHTML(fetch-candidates取得分)', () => {
     const engine = detectEngine($, rule);
     expect(engine).toBeDefined();
 
+    // 原文の本文にある埋め込み(整形で減ってはいけない)
+    const bodySelector = rule!.engine?.bodySelector ?? ARTICLE_BODY_SELECTOR;
+    const embedsBefore = countEmbeds($, $(bodySelector));
+
+    // scrapeArticleと同じ順序
     await engine!.prepare($, () => Promise.reject(new Error('no network in test')), rule);
     applySiteRules($, rule!);
+    applyCommonRules($);
     stripLinkHrefs($);
     const output = serialize($, { url: sourceUrl, siteName: name });
     if (shouldDump) {
@@ -66,6 +69,13 @@ maybeDescribe('候補サイトHTML(fetch-candidates取得分)', () => {
 
     // 本文が残っていること
     expect($('div.article-body-outer').text().trim().length).toBeGreaterThan(0);
+
+    // 埋め込み(Xポスト・imgur・Instagram・YouTube)が原文の本文と同数残り、
+    // 描画スクリプトが種類ごとに1本あること(1.51で空白になった回帰の検知)
+    expect(countEmbeds($, $('div.article-body-outer'))).toEqual(embedsBefore);
+    for (const src of expectedEmbedScripts(embedsBefore)) {
+      expect($(`body script[src="${src}"]`)).toHaveLength(1);
+    }
 
     // 除去対象セレクタが残っていないこと
     for (const selector of rule!.removeSelectors ?? []) {

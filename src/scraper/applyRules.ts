@@ -1,6 +1,7 @@
 import type { CheerioAPI } from 'cheerio/slim';
 import { isTag, isText, type AnyNode, type Element } from 'domhandler';
 
+import { appendEmbedScripts } from '@/scraper/embeds';
 import { reportSelectorMiss } from '@/scraper/ruleStats';
 import type { AnchorCleanupRule, SiteRule } from '@/scraper/types';
 
@@ -16,7 +17,9 @@ const COMMON_REMOVE_SELECTORS = [
   // 広告やアンテナのリンク集をその場で描き直してしまう。
   // 整形結果に対する後付けの改変を止めるため、本文のJSは一律で落とす
   // (汎用エンジンは engines/generic.ts で同じことをしている)。
-  // まとめ表示にJSは不要で、残っているのは広告・計測・レコメンドが大半
+  // まとめ表示にJSは不要で、残っているのは広告・計測・レコメンドが大半。
+  // JSで描画される埋め込み(Xポスト・imgur・Instagram)はapplyCommonRulesが
+  // 除去後に自前の描画スクリプトを足して復元する(embeds.ts)
   'script',
   'noscript',
   // livedoor Blogの「ライブドアアプリでフォローする」誘導(126/140フィクスチャに存在)
@@ -29,11 +32,33 @@ const COMMON_REMOVE_SELECTORS = [
   '#Bp2ArchiveTitleText',
 ];
 
+// lazyload系(srcが無く data-src 等に本URL)の画像。JSを落とすと一生読み込まれないので、
+// 本URLをsrcへ移して素の<img>にする(WordPress系のリンクカード画像などで発生)
+const LAZY_SRC_ATTRS = ['data-src', 'data-original', 'data-lazy-src'];
+
 // サイトルールと違い、無い方が普通なのでreportSelectorMissは呼ばない
 export function applyCommonRules($: CheerioAPI): void {
   for (const selector of COMMON_REMOVE_SELECTORS) {
     $('body').find(selector).remove();
   }
+  restoreLazyImages($);
+  // 順序に依存: scriptを全て落とした後で、埋め込みの描画に必要な分だけ足す
+  appendEmbedScripts($);
+}
+
+function restoreLazyImages($: CheerioAPI): void {
+  $('body')
+    .find('img')
+    .each((_, img) => {
+      const src = $(img).attr('src') ?? '';
+      if (src !== '' && !src.startsWith('data:')) {
+        return;
+      }
+      const real = LAZY_SRC_ATTRS.map((attr) => $(img).attr(attr)).find((value) => value);
+      if (real) {
+        $(img).attr('src', real);
+      }
+    });
 }
 
 // マッチ済みのサイトルールを適用する。ルールは完全なデータ(関数なし)なので

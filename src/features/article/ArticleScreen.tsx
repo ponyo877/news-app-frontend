@@ -20,6 +20,8 @@ import { useRelatedArticles } from '@/api/queries';
 import { ErrorState } from '@/components/ErrorState';
 import { ArticleHeaderActions } from '@/features/article/ArticleHeaderActions';
 import { fontScaleScript } from '@/features/article/fontScale';
+import { decideLoadRequest } from '@/features/article/loadRequestPolicy';
+import type { LoadRequest } from '@/features/article/loadRequestPolicy';
 import { RelatedArticlesSheet } from '@/features/article/RelatedArticlesSheet';
 import { TtsPlayerBar } from '@/features/article/TtsPlayerBar';
 import { useTtsPlayer } from '@/features/article/useTtsPlayer';
@@ -28,7 +30,6 @@ import { useVisibleArticles } from '@/lib/useVisibleArticles';
 import { ttsClearScript, ttsFollowScript } from '@/features/article/ttsFollow';
 import { articleUnavailableReason } from '@/scraper/errors';
 import type { ArticleUnavailableReason } from '@/scraper/errors';
-import { SOURCE_LINK_URL } from '@/scraper/serialize';
 import { buildTtsScriptWithAnchors } from '@/scraper/ttsScript';
 import type { TtsSegment } from '@/scraper/ttsScript';
 import { CommentPanel } from '@/features/comments/CommentPanel';
@@ -47,17 +48,16 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Article'>;
 // useCallback依存が変わり、再生中のクロージャが作り直されてしまう
 const EMPTY_SEGMENTS: TtsSegment[] = [];
 
-// WebView内の遷移可否。出典リンクだけは外部ブラウザへ逃がす。
-// WebView内で開くと元サイトを広告ごと表示することになり、整形の意味も失われる。
-// 本文中のhrefは剥奪済みだが、それ以外の遷移は保険として遮断する
+// WebView内の遷移可否(判定本体はloadRequestPolicy.ts)。出典リンクだけは外部ブラウザへ逃がす
 function makeLoadRequestHandler(article: ArticleMeta) {
-  return (req: { url: string }): boolean => {
-    if (req.url === SOURCE_LINK_URL) {
+  return (req: LoadRequest): boolean => {
+    const decision = decideLoadRequest(req, article.url);
+    if (decision === 'open-source') {
       logEvent('source_open', { site: article.sitetitle, from: 'footer' });
       void Linking.openURL(article.url);
       return false;
     }
-    return req.url === article.url || req.url === 'about:blank';
+    return decision === 'allow';
   };
 }
 

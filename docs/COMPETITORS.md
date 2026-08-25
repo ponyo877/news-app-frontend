@@ -58,6 +58,8 @@ Play で「2chまとめ」を検索し、上位アプリのストア掲載情報
 **まとめくんは構造的にこれを踏まない。** `src/scraper/applyRules.ts` の `COMMON_REMOVE_SELECTORS` が
 全サイトで `script` / `noscript` を除去してから WebView に渡すため、
 元サイトの Cookie 同意バナーはそもそも実行されない（コード確認済み）。
+残すのは Xポスト・imgur・Instagram の描画スクリプト（`src/scraper/embeds.ts`、埋め込みがある記事にだけ
+アプリ側から1本ずつ足す）のみ。
 
 ### ② 画像が出ない・レイアウトが崩れる
 
@@ -66,6 +68,8 @@ Play で「2chまとめ」を検索し、上位アプリのストア掲載情報
 
 **まとめくんは画像を消していない。** `defaultRules.json` で除去している `img` は
 1サイトの固定バナー（`img[src*="/parts/ichiosi.png"]`）1件だけで、他はすべて `script` 要素（確認済み）。
+ただし 1.51 では `script` 一律除去の副作用で imgur / Xポスト の埋め込み画像が空白になっていた
+（2026-08-25 に本番670記事で実測、記事の約23%）。1.52 で修復（`docs/REMAINING_TASKS.md` の訂正参照）。
 
 ### ③ 読み込み完了でスクロール位置が先頭に戻る
 

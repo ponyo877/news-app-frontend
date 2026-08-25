@@ -18,16 +18,20 @@ describe('applySiteRules(同梱ルール)', () => {
     const $ = load(
       '<body><script src="https://blogroll.livedoor.net/js/blogroll.js"></script><div id="f984a">ad</div><p>本文</p></body>',
     );
-    applySiteRules($, ruleFor('http://news4vip.livedoor.biz/archives/1.html', 'ニュー速クオリティ'));
+    applySiteRules(
+      $,
+      ruleFor('http://news4vip.livedoor.biz/archives/1.html', 'ニュー速クオリティ'),
+    );
     expect($('script')).toHaveLength(0);
     expect($('#f984a')).toHaveLength(0);
     expect($('p').text()).toBe('本文');
   });
 
-  it('暇人速報: 広告div・iframe・強調span・イチオシ画像を除去', () => {
+  it('暇人速報: 広告div・自前広告iframe・強調span・イチオシ画像を除去(YouTubeは残す)', () => {
     const $ = load(
       '<body><div class="article_mid_v2">ad</div><div id="article_low_v2">ad</div>' +
-        '<iframe src="x"></iframe>' +
+        '<iframe src="http://himasoku.com/ueko2017.htm"></iframe>' +
+        '<iframe src="https://www.youtube.com/embed/abc"></iframe>' +
         '<span style="color: #CC0033; font-weight: bold; font-size: 16px;">PR</span>' +
         // style部分一致化により、空白・属性順の揺れた変種も除去できる
         '<span style="font-size: 16px;color: #CC0033;background-color: #e6e6fa;">PR2</span>' +
@@ -35,7 +39,9 @@ describe('applySiteRules(同梱ルール)', () => {
         '<p>本文</p></body>',
     );
     applySiteRules($, ruleFor('http://himasoku.com/archives/1.html', '暇人速報'));
-    expect($('div.article_mid_v2, #article_low_v2, iframe, span, img')).toHaveLength(0);
+    expect($('div.article_mid_v2, #article_low_v2, span, img')).toHaveLength(0);
+    expect($('iframe[src*="himasoku.com"]')).toHaveLength(0);
+    expect($('iframe[src*="youtube.com"]')).toHaveLength(1);
     expect($('p').text()).toBe('本文');
   });
 
@@ -46,14 +52,34 @@ describe('applySiteRules(同梱ルール)', () => {
     applySiteRules($inazuma, ruleFor('http://inazumanews2.com/archives/1.html', '稲妻速報'));
     expect($inazuma('div.ika2, ul#anop, ul.inc')).toHaveLength(0);
 
+    // blockquote一括除去はXポスト埋め込みまで消していたため、埋め込みは除外する
     const $tetsugaku = load(
-      '<body><span style="font-size: large;">PR</span><blockquote>q</blockquote><p>本文</p></body>',
+      '<body><span style="font-size: large;">PR</span><blockquote>q</blockquote>' +
+        '<blockquote class="twitter-tweet"><a href="https://x.com/a/status/1"></a></blockquote>' +
+        '<p>本文</p></body>',
     );
     applySiteRules(
       $tetsugaku,
       ruleFor('http://blog.livedoor.jp/nwknews/archives/1.html', '哲学ニュース'),
     );
-    expect($tetsugaku('span, blockquote')).toHaveLength(0);
+    expect($tetsugaku('span')).toHaveLength(0);
+    expect($tetsugaku('blockquote')).toHaveLength(1);
+    expect($tetsugaku('blockquote.twitter-tweet')).toHaveLength(1);
+  });
+
+  it('ニュー速VIPワイド: 広告だけのcenterと自前iframeは除去し、画像入りcenterとYouTubeは残す', () => {
+    const $ = load(
+      '<body><center><script>var adstir_vars = {};</script></center>' +
+        '<center><img src="https://example.com/a.jpg"></center>' +
+        '<iframe src="//news4wide.up.seesaa.net/common/under.html"></iframe>' +
+        '<iframe src="https://www.youtube.com/embed/abc"></iframe>' +
+        '<p>本文</p></body>',
+    );
+    applySiteRules($, ruleFor('http://news4wide.net/archives/1.html', 'ニュー速VIPワイド'));
+    expect($('center')).toHaveLength(1);
+    expect($('center img')).toHaveLength(1);
+    expect($('iframe')).toHaveLength(1);
+    expect($('iframe').attr('src')).toContain('youtube.com');
   });
 
   it('VIPPERな俺: 内部リンク(hrefPrefix)と直後の<br>1個を除去', () => {
@@ -123,5 +149,49 @@ describe('applyCommonRules', () => {
     expect($('script')).toHaveLength(0);
     expect($('noscript')).toHaveLength(0);
     expect($('body').text()).toContain('本文');
+  });
+
+  // 1.51でscriptを一律除去した結果、JSで描画するXポスト・imgur・Instagramが
+  // 空白になった(本番670記事の23%)。埋め込みがある場合だけ描画スクリプトを足す
+  it('Xポスト・imgurの埋め込みがあれば、サイトのscriptを落とした上で描画スクリプトを1本ずつ足す', () => {
+    const $ = load(
+      '<body><blockquote class="twitter-tweet"><a href="https://twitter.com/a/status/1"></a></blockquote>' +
+        '<script async src="https://platform.twitter.com/widgets.js"></script>' +
+        '<blockquote class="twitter-tweet"><a href="https://x.com/a/status/2"></a></blockquote>' +
+        '<script async src="//platform.x.com/widgets.js"></script>' +
+        '<blockquote class="imgur-embed-pub" data-id="abc"></blockquote>' +
+        '<script async src="//s.imgur.com/min/embed.js"></script>' +
+        '<script>var adstir_vars = {};</script><p>本文</p></body>',
+    );
+    applyCommonRules($);
+    expect($('script')).toHaveLength(2);
+    expect($('script[src="https://platform.twitter.com/widgets.js"]')).toHaveLength(1);
+    expect($('script[src="https://s.imgur.com/min/embed.js"]')).toHaveLength(1);
+    expect($('blockquote.twitter-tweet')).toHaveLength(2);
+    expect($('blockquote.imgur-embed-pub')).toHaveLength(1);
+  });
+
+  it('埋め込みが無い本文にはscriptを足さない', () => {
+    const $ = load('<body><p>本文</p><script>var adstir_vars = {};</script></body>');
+    applyCommonRules($);
+    expect($('script')).toHaveLength(0);
+  });
+
+  // lazyload系はJSを落とすと画像が一生読み込まれない
+  it('src無しのlazyload画像はdata-srcをsrcへ移す', () => {
+    const $ = load(
+      '<body><img data-src="https://example.com/a.jpg" class="lozad">' +
+        '<img src="data:image/gif;base64,R0lGOD" data-original="https://example.com/b.jpg">' +
+        '<img src="https://example.com/c.jpg" data-src="https://example.com/wrong.jpg"></body>',
+    );
+    applyCommonRules($);
+    const srcs = $('img')
+      .toArray()
+      .map((img) => $(img).attr('src'));
+    expect(srcs).toEqual([
+      'https://example.com/a.jpg',
+      'https://example.com/b.jpg',
+      'https://example.com/c.jpg',
+    ]);
   });
 });
