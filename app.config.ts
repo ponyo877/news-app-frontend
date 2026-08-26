@@ -98,6 +98,13 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/app/icon-1024.png',
   userInterfaceStyle: 'dark',
+  // App Store の製品ページに「言語: 英語」と出ていた(実測 languageCodesISO2A=['EN'])。
+  // アプリ名も説明文も日本語なのに英語アプリ扱いされる。
+  // Appleはバンドル内の .lproj から対応言語を判定するので、ja.lproj を作らせる。
+  // CFBundleDevelopmentRegion(下のinfoPlist)とセットで初めて日本語アプリになる
+  locales: {
+    ja: './assets/locales/ja.json',
+  },
   ios: {
     // 既存App Storeアプリと同一(ハイフン)。Androidと文字列が異なる点に注意
     bundleIdentifier: 'com.matomebeta-app',
@@ -111,6 +118,12 @@ const config: ExpoConfig = {
     requireFullScreen: true,
     infoPlist: {
       CFBundleDisplayName: 'まとめくん',
+      // 既定の地域。これがenのままだとlocalesを足しても英語アプリとして扱われる
+      CFBundleDevelopmentRegion: 'ja',
+      // Appleはバンドル内の .lproj からも対応言語を判定するが、
+      // locales で生成される ja.lproj が実際にバンドルへ入るかはビルドまで確認できない。
+      // このキーは Info.plist から直接読まれるため、確実に日本語アプリとして扱わせる
+      CFBundleLocalizations: ['ja'],
       // まとめサイトの一部がHTTPのみ対応のため全面許可(機能要件)
       NSAppTransportSecurity: { NSAllowsArbitraryLoads: true },
       'UISupportedInterfaceOrientations~ipad': [
