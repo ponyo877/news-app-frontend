@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>feature graphic</title>
+<style>
+  {{FONT_CSS}}
+  :root { {{CSS_VARS}} }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: var(--W); height: var(--H); overflow: hidden; }
+  body {
+    position: relative; font-family: 'MPLUS Rounded 1c';
+    background: linear-gradient(100deg, #FCC3A8 0%, #F9A67C 50%, #F5824E 100%);
+    -webkit-font-smoothing: antialiased;
+  }
+  .glow {
+    position: absolute; left: 78%; top: 50%; width: 620px; height: 620px; transform: translate(-50%, -50%);
+    background: radial-gradient(closest-side, rgba(255,255,255,.40), rgba(255,255,255,0));
+  }
+  .prop { position: absolute; transform-origin: center; }
+  .prop img { display: block; width: 100%; height: auto; }
+  .text { position: absolute; left: 60px; top: 50%; transform: translateY(-50%); z-index: 5; }
+  .title { font-weight: 900; font-size: 92px; line-height: 1.1; letter-spacing: -0.02em; color: #3B2016; }
+  .line { font-weight: 500; font-size: 32px; line-height: 1.5; color: #7A4A2E; white-space: nowrap; }
+  .line:first-of-type { margin-top: 14px; }
+  body.debug .text { outline: 3px solid red; }
+</style>
+</head>
+<body class="{{BODY_CLASS}}">
+{{LAYERS}}
+</body>
+</html>

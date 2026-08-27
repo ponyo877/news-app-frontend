@@ -57,3 +57,4 @@ src/scraper/__fixtures__/candidates/
 # ストア用スクリーンショットの合成結果(scripts/build-store-screenshots.sh で作り直せる)。
 # 素材の store-assets/bg と store-assets/screens はコミットする
 store-assets/out/
+store-assets/props/candidates/

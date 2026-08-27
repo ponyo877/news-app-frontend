@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>{{TITLE}}</title>
+<style>
+  /* build.mjs が --W --H などを注入する。フォントと画像は data URL で埋め込む(file:// は読めない) */
+  {{FONT_CSS}}
+  :root { {{CSS_VARS}} }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: var(--W); height: var(--H); overflow: hidden; }
+  body {
+    position: relative;
+    font-family: 'MPLUS Rounded 1c';
+    background: linear-gradient(180deg, #FCC3A8 0%, #F9A67C 55%, #F5824E 100%);
+    -webkit-font-smoothing: antialiased;
+  }
+  .glow {
+    position: absolute; left: 50%; top: var(--glowTop);
+    width: calc(var(--W) * 1.5); height: calc(var(--W) * 1.5);
+    transform: translate(-50%, -40%);
+    background: radial-gradient(closest-side, rgba(255,255,255,.42), rgba(255,255,255,0));
+    pointer-events: none;
+  }
+  .prop { position: absolute; transform-origin: center; }
+  .prop img { display: block; width: 100%; height: auto; }
+  .text { position: absolute; left: 0; right: 0; top: var(--textTop); text-align: center; z-index: 5; }
+  .head {
+    display: inline-block;
+    font-weight: 900; font-size: var(--headPx); line-height: 1.16; letter-spacing: -0.02em;
+    color: #3B2016; white-space: nowrap;
+  }
+  .sub {
+    display: inline-block; margin-top: 0.34em;
+    font-weight: 500; font-size: var(--subPx); line-height: 1.4; letter-spacing: 0.01em;
+    color: #7A4A2E; white-space: nowrap;
+  }
+  .device {
+    position: absolute; background: #0B0B0C;
+    box-shadow: 0 calc(var(--W) * .04) calc(var(--W) * .09) rgba(70, 25, 10, .38),
+                0 calc(var(--W) * .008) calc(var(--W) * .02) rgba(70, 25, 10, .25),
+                inset 0 0 0 1.5px rgba(255,255,255,.12);
+  }
+  .screen { position: relative; overflow: hidden; background: #212121; }
+  .screen img { display: block; width: 100%; height: auto; }
+  .island { position: absolute; left: 50%; transform: translateX(-50%); background: #000; border-radius: 999px; }
+  .hole { position: absolute; left: 50%; transform: translateX(-50%); background: #000; border-radius: 50%; }
+  .chip {
+    position: absolute; overflow: hidden; z-index: 6;
+    box-shadow: 0 calc(var(--W) * .03) calc(var(--W) * .06) rgba(60, 20, 10, .45),
+                0 0 0 2px rgba(255,255,255,.65);
+    background: #212121;
+  }
+  .chip img { display: block; position: absolute; }
+  body.debug .text { outline: 3px solid red; }
+  body.debug .chip { outline: 3px solid lime; }
+  body.debug .screen { outline: 3px solid cyan; }
+</style>
+</head>
+<body class="{{BODY_CLASS}}">
+{{LAYERS}}
+</body>
+</html>
