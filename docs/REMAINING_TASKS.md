@@ -25,7 +25,7 @@
 | App Store プライバシーポリシー URL | ✅ **修正済み**(1.43 でリリースされる) |
 | App Store バージョン 1.43 | ✅ 作成済み・ビルド43 紐付け済み(提出準備中) |
 | App Store 年齢制限指定 | ✅ **2026-08-27 に訂正**(無制限Webアクセス はい→いいえ。算出 13+ / iOS26未満 12+。**1.53 配信後に反映**) |
-| **App Store バージョン 1.53** | 🟡 ASC に下書き作成済み・メタデータ入力済み。ビルド 57 をローカルビルドしてアップロード中。**未提出** |
+| **App Store バージョン 1.53** | ✅ **2026-08-27 審査提出済み(WAITING_FOR_REVIEW)**。ビルド 57 添付・承認後に自動リリース。これで言語表記と年齢区分が反映される |
 | **Android の 1.53** | ⏸️ **出さない**。1.53 の変更(`locales`/`CFBundleDevelopmentRegion`/`CFBundleLocalizations`)は **iOS 専用**で Android に機能差分がゼロ。Play の年齢区分はビルド不要で更新済み。`versionCode: 59` は次回 Android リリースで使う |
 | EU トレーダーステータス(DSA) | ✅ **2026-08-27 に「ノントレーダー」で申告**。ASC の警告は解消(「すべての規制要件を満たしています」)。**EU 27か国では配信されなくなる** |
 | App Store 審査提出 | ✅ **1.44 公開済み**(2026-08-05 リリース) |
@@ -54,6 +54,22 @@
 `.lproj` が実際にバンドルへ入るかはビルドしないと確認できないため、
 Info.plist から直接読まれる `CFBundleLocalizations` を併記して確実にしてある。
 prebuild で両キーと `ja.lproj` の生成は確認済み。**表示が変わるのは 1.53 を配信してから。**
+
+**2026-08-27 追記: ビルドした ipa を展開して実物を確認した。**
+prebuild の出力ではなく App Store に出す成果物そのもので確定させている。
+
+```
+CFBundleShortVersionString => 1.53
+CFBundleVersion            => 57
+CFBundleDevelopmentRegion  => ja
+CFBundleLocalizations      => [ "ja" ]
+CFBundleDisplayName        => まとめくん
+Payload/app.app/ja.lproj/InfoPlist.strings  ← バンドル内に存在
+```
+
+> ⚠️ `plutil -extract <key> json <file>` は **`-o -` を付けないと対象ファイルを上書きする**。
+> ipa から展開した Info.plist をこれで壊して、一度は「キーが無い」と誤読した。
+> 中身を見るだけなら `plutil -p` を使うこと。
 
 ### ✅ 年齢区分を実態に合わせて訂正 — 3者の食い違いが解消した
 
