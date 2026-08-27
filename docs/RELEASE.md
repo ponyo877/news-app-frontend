@@ -186,3 +186,28 @@ eas submit -p android --latest    # 内部テストトラックへ
 - targetSdk 35 のエッジツーエッジ表示はdev buildでの実機確認項目に含めること
 - `react-native-default-preference`(レガシーprefs読み取り)はdev buildでの動作確認が必要。
   読めない場合もdevicehashはANDROID_ID/IDFVから同一値を再計算するため実害は限定的
+
+### EAS の無料枠を使い切ったときはローカルビルドに切り替える(2026-08-27 実測)
+
+`eas build --platform ios` が **Free プランのビルド枠切れ**で落ちることがある。
+
+```
+This account has used its builds from the Free plan this month, which will reset in 4 days
+    Error: build command failed.
+```
+
+**紛らわしいことに終了コードは 0 で返る**ので、`&&` で繋いだ後続処理は素通りする。
+ログ本文の `Error: build command failed.` を見ること。
+
+このマシンには Xcode 26.6 / fastlane / CocoaPods が揃っているので、
+`--local` を足せば**枠を消費せずに同じ成果物が作れる**。
+
+```bash
+npx eas-cli@latest build --profile production --platform ios --local --non-interactive
+```
+
+`--local` は EAS から証明書とプロビジョニングプロファイルを取ってきて、
+ローカルの xcodebuild + fastlane gym でビルドする。カレントに `build-*.ipa` が出るので、
+`eas submit -p ios --path <ipa>` で提出する。
+
+> ⚠️ ビルドは Mac 本体を数十分専有する。**VM 上では実行しないこと**(別途の運用ルール)。
