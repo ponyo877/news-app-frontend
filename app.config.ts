@@ -101,7 +101,9 @@ const config: ExpoConfig = {
   // App Store の製品ページに「言語: 英語」と出ていた(実測 languageCodesISO2A=['EN'])。
   // アプリ名も説明文も日本語なのに英語アプリ扱いされる。
   // Appleはバンドル内の .lproj から対応言語を判定するので、ja.lproj を作らせる。
-  // CFBundleDevelopmentRegion(下のinfoPlist)とセットで初めて日本語アプリになる
+  // CFBundleDevelopmentRegion(下のinfoPlist)とセットで初めて日本語アプリになる。
+  // JSON のキーは "ios" の下に置く。トップレベルに置くと Android の values-b+ja/strings.xml にも書かれ、
+  // 既定ロケールに無いキーとして lintVitalRelease(ExtraTranslation)が落ちる(1.53 の Android ビルドで発生)
   locales: {
     ja: './assets/locales/ja.json',
   },
