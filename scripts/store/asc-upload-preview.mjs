@@ -11,6 +11,7 @@
 //
 // 手順: 編集可能なバージョン → ja のローカリゼーション → appPreviewSets(APP_IPHONE_67 = 6.9/6.7インチ共通、無ければ作る)
 //       → 既存を削除 → 予約 → 分割 PUT → コミット(MD5)→ 処理完了待ち(動画は数分かかる)→ previewFrameTimeCode を設定
+import { Buffer } from 'node:buffer';
 import { createHash, createSign } from 'node:crypto';
 import { readFileSync, statSync, existsSync } from 'node:fs';
 import { basename, resolve } from 'node:path';

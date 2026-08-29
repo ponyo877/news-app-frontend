@@ -2,6 +2,7 @@
 //
 // 認証: ~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8(既定 ZNB52NZ7Q6)。Issuer ID は
 // ASC → ユーザとアクセス → 統合 → App Store Connect API の先頭に出る値(ASC_ISSUER_ID で上書き可)。
+import { Buffer } from 'node:buffer';
 import { createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
