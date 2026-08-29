@@ -3,6 +3,8 @@
 //
 //   node scripts/store/play-upload-listing.mjs --dry-run   # 今の掲載画像の枚数を表示するだけ(編集は破棄)
 //   node scripts/store/play-upload-listing.mjs             # 差し替えて commit(掲載情報の審査に自動で送られる)
+//   node scripts/store/play-upload-listing.mjs --video https://www.youtube.com/watch?v=XXXX   # プロモ動画の URL も設定(画像と一緒に commit)
+//   node scripts/store/play-upload-listing.mjs --video URL --no-images                          # 動画 URL だけ
 //
 // 認証: eas.json の submit.production.android.serviceAccountKeyPath と同じサービスアカウント JSON
 //       (--key で上書き可)。Play Console の「ユーザーと権限」でストア掲載情報の編集権限が要る。
@@ -18,6 +20,8 @@ const OUT = resolve(ROOT, 'store-assets/out');
 const args = process.argv.slice(2);
 const opt = (name, dflt) => { const i = args.indexOf(name); return i >= 0 && args[i + 1] ? args[i + 1] : dflt; };
 const DRY = args.includes('--dry-run');
+const VIDEO = opt('--video', null);            // YouTube の動画 URL(公開か限定公開・収益化オフ・埋め込み可)
+const NO_IMAGES = args.includes('--no-images');
 const PKG = opt('--package', 'com.matomebeta_app');
 const LANG = opt('--lang', 'ja-JP');
 const KEY_PATH = resolve(ROOT, opt('--key', JSON.parse(readFileSync(resolve(ROOT, 'eas.json'), 'utf8')).submit.production.android.serviceAccountKeyPath));
@@ -73,10 +77,17 @@ try {
     const n = (r.images ?? []).length;
     if (n) console.log(`  ${t}: ${n}枚`);
   }
+  const listing = await api('GET', `${E}/listings/${LANG}`);
+  console.log(`  video: ${listing.video ?? '(none)'}`);
   if (DRY) {
     console.log('dry-run: ここまで。edit は破棄します');
   } else {
-    for (const u of UPLOADS) {
+    if (VIDEO) {
+      // listings.update は全フィールドを送る(title / shortDescription / fullDescription を落とすと消える)
+      await api('PUT', `${E}/listings/${LANG}`, { ...listing, video: VIDEO });
+      console.log(`video: ${VIDEO}`);
+    }
+    for (const u of NO_IMAGES ? [] : UPLOADS) {
       const files = u.files.map((f) => resolve(OUT, f));
       const missing = files.filter((f) => !existsSync(f));
       if (missing.length) throw new Error(`無いファイル: ${missing.join(', ')}(先に npm run store:build)`);
