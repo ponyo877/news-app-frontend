@@ -141,10 +141,21 @@ adb shell "mkdir -p /data/data/com.matomebeta_app/app_flutter && echo -n 'site1,
 
 ## 6. ストア提出
 
+ビルドはローカル(§8 参照。EAS の枠を使わない)。提出は iOS のみ `eas submit` でアップロードし、以降は API スクリプトで完結させる。
+
 ```bash
-eas submit -p ios --latest
-eas submit -p android --latest    # 内部テストトラックへ
+# 1) バージョンを上げてコミット(app.config.ts の buildNumber / versionCode。EAS のローカルビルドは HEAD をクローンするので未コミット分は入らない)
+# 2) ビルド(同時に走らせてよい。iOS 30〜40分・Android 10〜15分)
+nohup npx eas-cli build -p ios --profile production --local --non-interactive --output=build-1.53-b58.ipa > /tmp/build-ios.log 2>&1 &
+nohup npx eas-cli build -p android --profile production --local --non-interactive --output=build-1.53-b60.aab > /tmp/build-android.log 2>&1 &
+# 3) iOS: ASC にアップロード → 処理完了を待って 1.53 に添付・新機能・審査へ提出(編集可能なバージョンが要る)
+npx eas-cli submit -p ios --path build-1.53-b58.ipa --non-interactive
+npm run store:asc-review submit -- --build 58 --notes store-assets/release-notes/ios-1.53.txt
+# 4) Android: 製品版へ段階公開 10%(Play Console 不要。拡大は --rollout 0.25 --version-code 60 のように AAB 無しで)
+node scripts/store/play-release.mjs --aab build-1.53-b60.aab --notes store-assets/release-notes/android-1.53.txt --rollout 0.1
 ```
+
+旧: `eas submit -p ios --latest` / `eas submit -p android --latest`(内部テストトラック → Console で昇格)。
 
 - 段階公開: Android 10%→25%→50%→100%(クラッシュ率監視、問題時は即停止)、
   iOS 7日間の段階的リリースを有効化

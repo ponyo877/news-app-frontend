@@ -23,9 +23,11 @@ npm run store:preview             # out/preview-*.png(一覧と、検索結果�
 npm run store:play -- --dry-run   # Play の掲載画像の現状を表示(--dry-run 無しで 7枚+フィーチャーグラフィックを差し替えて commit)
 npm run store:asc -- --dry-run    # ASC のバージョン状態と今のセットを表示(--version 1.54 で下書きを作って iPhone 7枚+iPad 3枚を上げる)
 npm run store:asc-review status   # ASC の審査提出の一覧。`withdraw` で審査待ちの提出を取り下げてバージョンを編集可能に戻す(順番は失う)
+npm run store:asc-review submit -- --build 58 --notes store-assets/release-notes/ios-1.53.txt   # ビルド添付→新機能→審査へ提出(eas submit の後)
+node scripts/store/play-release.mjs --aab build-1.53-b60.aab --notes store-assets/release-notes/android-1.53.txt --rollout 0.1   # 製品版へ段階公開
 ```
 
-ストアへの反映は API スクリプトで行う(ブラウザ不要)。
+ストアへの反映は API スクリプトで行う(ブラウザ不要)。アプリ本体のリリース手順は `docs/RELEASE.md` §6。
 - Play: eas.json のサービスアカウントを使う。**掲載情報の編集権限**が無いとアップロードは通って最後の commit だけ 403 になる
 - ASC: `~/.appstoreconnect/private_keys/AuthKey_ZNB52NZ7Q6.p8`(共通部分は `asc-api.mjs`)。**審査待ちのバージョンがあると新バージョンを作れない**(409)ので、`store:asc-review withdraw` で取り下げてそのバージョンに載せる。
   1枚ずつ完了を待って上げるので到着順=指定順になる(relationships の置き換えは同じ集合の並べ替え専用)。
