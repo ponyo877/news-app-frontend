@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # store-assets/out/ の出力がストアに上げられる状態かを機械的に検査する。
 #
-#   ./scripts/store/verify.sh
+#   ./scripts/store/verify.sh                  # store-assets/out を検査
+#   ./scripts/store/verify.sh store-assets/out-try   # 別の出力先を検査
 #
 # 検査項目:
 #   - 寸法(play 1080x1920 / ios 1320x2868 / ipad 2064x2752 / feature-graphic 1024x500)
@@ -10,10 +11,10 @@
 #     旧 build-store-screenshots.sh は影マスクを -roll で巡回させて上端を 42% 暗くしていた)
 #   - 左上ピクセルが背景色 #FCC3A8 ±3(色プロファイル変換の混入検知)
 #   - ファイルサイズ 8MB 以下(Play の上限)
-#   - manifest.json の文字領域 ≤ 20%(フィーチャーグラフィックは対象外)/ 画面の可視率 ≤ 75% / フォント検証済み
+#   - manifest.json の文字領域 ≤ 20%(フィーチャーグラフィックは対象外)/ 画面の可視率 ≤ 86% / フォント検証済み
 set -uo pipefail
 cd "$(dirname "$0")/../.."
-OUT=store-assets/out
+OUT=${1:-store-assets/out}
 fail=0
 ng () { echo "  ✗ $1"; fail=$((fail+1)); }
 
@@ -54,7 +55,7 @@ if not m: print("  ✗ manifest に無い(build.mjs で作り直す)"); sys.exit
 bad = []
 if m["devices"] and m["textAreaRatio"] > 0.20: bad.append(f"文字領域 {m['textAreaRatio']*100:.1f}% > 20%")
 for d in m["devices"]:
-    if d["visible"] > 0.75: bad.append(f"可視率 {d['visible']*100:.0f}% > 75%")
+    if d["visible"] > 0.86: bad.append(f"可視率 {d['visible']*100:.0f}% > 86%")
 if not m["fontsChecked"]: bad.append("フォント未検証")
 for b in bad: print("  ✗ " + b)
 sys.exit(1 if bad else 0)

@@ -18,9 +18,15 @@ out/              合成結果(gitignore)。npm run store:build で作り直せ�
 npm run store:props -- estimate   # scenario.com の消費CUを dryRun で見積もる(課金なし)
 npm run store:props -- props      # 装飾の候補を生成(1種 23CU・2候補)。既にあるものは飛ばす
 npm run store:build               # 合成 → out/{play,ios,ipad}-N.png, out/feature-graphic.png
-npm run store:verify              # 寸法・アルファ・黒帯・文字20%・可視率75% を検査
+npm run store:verify              # 寸法・アルファ・黒帯・文字20%・可視率86% を検査
 npm run store:preview             # out/preview-*.png(一覧と、検索結果風の3枚並び)
+npm run store:play -- --dry-run   # Play の掲載画像の現状を表示(--dry-run 無しで 7枚+フィーチャーグラフィックを差し替えて commit)
+npm run store:asc -- --dry-run    # ASC のバージョン状態と今のセットを表示(--version 1.54 で下書きを作って iPhone 7枚+iPad 3枚を上げる)
 ```
+
+ストアへの反映は API スクリプトで行う(ブラウザ不要)。
+- Play: eas.json のサービスアカウントを使う。**掲載情報の編集権限**が無いとアップロードは通って最後の commit だけ 403 になる
+- ASC: `~/.appstoreconnect/private_keys/AuthKey_ZNB52NZ7Q6.p8`。**審査中のバージョンがあると新バージョンを作れない**(409)。並び順は relationships の置き換えで確定させるので UI のドラッグ問題は起きない
 
 スライドの定義(コピー・実画面・拡大チップの矩形・装飾の配置)は `scripts/store/slides.mjs` だけを触ればよい。
 `node scripts/store/build.mjs --formats play --slides 1 --debug` で、文字/チップ/画面に枠を描いた出力と HTML が `out/debug/` に残る。
@@ -72,7 +78,7 @@ adb exec-out screencap -p > store-assets/screens/android/<name>.png
   (Play / App Store 双方の規定)。AI に画面を描かせない
 - **日本語のコピーも AI に描かせない。** 字形が崩れる。文字は合成時に実フォント(M PLUS Rounded 1c)で乗せる
 - **本番の広告ユニットを踏まない。** production ビルドで撮らないこと
-- **画面下部を写さない。** 端末を版面外へはみ出させてバナー広告とタブバーを隠す(build.mjs が可視率 ≤ 75% を強制)
+- **画面下部を写さない。** 端末を版面外へはみ出させてバナー広告とタブバーを隠す(build.mjs が可視率 ≤ 86% を強制。実画面では広告が約87%、タブバーが約93%から始まる)
 - **新着タブは撮らない。** 4件目にインフィード広告(Test Ad)が入る
 - **表示中の記事タイトルを確認する。** 年齢区分の申告(Play 12歳以上・軽度のののしりあり)と整合する範囲に収める
 - **「広告なし/広告カット」「唯一/初」「具体的なサイト数」は書かない**(`docs/GROWTH-PLAN.md` 5-1)

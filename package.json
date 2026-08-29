@@ -74,6 +74,8 @@
     "store:build": "node scripts/store/build.mjs",
     "store:verify": "scripts/store/verify.sh",
     "store:preview": "scripts/store/preview.sh",
+    "store:asc": "node scripts/store/asc-upload-screenshots.mjs",
+    "store:play": "node scripts/store/play-upload-listing.mjs",
     "store:props": "python3 scripts/store/gen-props.py"
   },
   "private": true

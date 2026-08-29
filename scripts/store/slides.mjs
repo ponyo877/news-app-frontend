@@ -6,11 +6,13 @@
 // 単位:
 //   x, y, w …… 版面の幅・高さに対する割合(0〜1)。パノラマ用の scene は x を 0〜3(3枚ぶん)で書く
 //   chip.rect … 元スクリーンショットのピクセル矩形 [x, y, w, h](端末ごとに指定)
-//   visible …… 端末画面のうち版面に見えている高さの割合。タブバー/広告を隠すため 0.75 以下に保つ
+//   visible …… 端末画面のうち版面に見えている高さの割合。タブバー/広告を隠すため 0.86 以下に保つ
+//             (実画面では記事系の広告が ≈87%、一覧系のタブバーが ≈93% から始まる)
+//   w / x / visible は数値のほか { play, tall } の帯別指定ができる
 //
-// 装飾の置き場は版面の縦横比で変わる:
-//   band='tall'(iOS 6.9 / iPad) は見出しと端末の間に帯が空くので、そこに大きめの装飾を置く
-//   band='play'(1080×1920) は端末がほぼ全面を占めるので、上部の角に小さく置く
+// 端末の位置は下端基準(top = H − visible×画面高 − ベゼル)なので、縦長の版面ほど端末が下に落ちる。
+// band='tall'(iOS 6.9 / iPad) は w と visible を大きめにして見出しの直下まで持ち上げ、
+// 装飾はどちらの帯も見出しの左右(上部の角)に小さく置く
 //
 // 見出しは 1行 ≤ 8文字・2行。サブは 1行 ≤ 22文字。絵文字は使わない(別フォントが混ざる)。
 
@@ -25,24 +27,24 @@ export const bezelPx = { android: 26, iphone: 26, ipad: 34 };
 
 // 端末の置き方。x を省略すると中央。visible から上端を逆算する
 export const layouts = {
-  A: [{ w: 0.90, visible: 0.71 }],
-  B: [{ w: 1.10, visible: 0.55 }],
+  A: [{ w: { play: 0.90, tall: 0.92 }, visible: { play: 0.71, tall: 0.82 } }],
+  B: [{ w: 1.10, visible: { play: 0.55, tall: 0.66 } }],
   C: [
-    { w: 0.76, x: -0.05, visible: 0.72, z: 1 },
-    { w: 0.76, x: 0.29,  visible: 0.62, z: 2 },
+    { w: { play: 0.76, tall: 0.82 }, x: { play: -0.05, tall: -0.06 }, visible: { play: 0.72, tall: 0.85 }, z: 1 },
+    { w: { play: 0.76, tall: 0.82 }, x: { play: 0.29,  tall: 0.26 },  visible: { play: 0.62, tall: 0.78 }, z: 2 },
   ],
 };
 
 // 1〜3枚目の背景に横断して置く装飾(x は 0〜3)。各スライドの panorama 番号ぶん左へずらして描く
 export const scene = {
   tall: [
-    { src: 'bubble-big',     x: 0.12, y: 0.29, w: 0.28, rotate: -12, z: 'back' },
-    { src: 'sound-rings',    x: 0.50, y: 0.60, w: 1.35, opacity: 0.8, z: 'back' },
-    { src: 'bubble-cluster', x: 0.94, y: 0.25, w: 0.36, rotate: 6,   z: 'back' },
-    { src: 'flame',          x: 1.13, y: 0.31, w: 0.20, rotate: -8,  z: 'front' },
-    { src: 'bubble-big',     x: 1.88, y: 0.27, w: 0.24, rotate: 14,  z: 'back' },
-    { src: 'flame',          x: 2.09, y: 0.26, w: 0.14, rotate: 10,  z: 'back' },
-    { src: 'bubble-cluster', x: 2.92, y: 0.29, w: 0.38, rotate: -6,  z: 'back' },
+    { src: 'bubble-big',     x: 0.09, y: 0.085, w: 0.15, rotate: -14, z: 'back' },
+    { src: 'sound-rings',    x: 0.50, y: 0.58,  w: 1.35, opacity: 0.8, z: 'back' },
+    { src: 'bubble-cluster', x: 0.90, y: 0.175, w: 0.20, rotate: 8,   z: 'back' },
+    { src: 'flame',          x: 1.08, y: 0.10,  w: 0.13, rotate: -8,  z: 'back' },
+    { src: 'bubble-big',     x: 1.91, y: 0.165, w: 0.15, rotate: 12,  z: 'back' },
+    { src: 'flame',          x: 2.08, y: 0.09,  w: 0.12, rotate: 10,  z: 'back' },
+    { src: 'bubble-cluster', x: 2.91, y: 0.175, w: 0.20, rotate: -6,  z: 'back' },
   ],
   play: [
     { src: 'bubble-big',     x: 0.085, y: 0.075, w: 0.13, rotate: -14, z: 'back' },
@@ -80,7 +82,7 @@ export const slides = [
     id: 4, layout: 'C', screens: ['search', 'ranking'],
     head: ['今日いちばん', '読まれたスレ。'],
     sub: '日間・週間・月間のランキングと検索',
-    props: { tall: [{ src: 'crown-sparkles', x: 0.84, y: 0.29, w: 0.26, rotate: 8, z: 'front' }],
+    props: { tall: [{ src: 'crown-sparkles', x: 0.86, y: 0.30, w: 0.22, rotate: 8, z: 'front' }],
              play: [{ src: 'crown-sparkles', x: 0.905, y: 0.11, w: 0.17, rotate: 8, z: 'back' }] },
   },
   {
@@ -89,8 +91,8 @@ export const slides = [
     sub: '読みたいサイトだけを選んで表示できる',
     chip: { rect: { android: [20, 470, 1190, 170], ios: [20, 510, 1250, 130], ipad: [20, 360, 1900, 130] },
             scale: { android: 1.25, ios: 1.15, ipad: 1.15 }, x: 0.50, dy: 0 },
-    props: { tall: [{ src: 'bubble-cluster', x: 0.12, y: 0.30, w: 0.32, rotate: -10, z: 'back' },
-                    { src: 'bubble-big',     x: 0.90, y: 0.25, w: 0.24, rotate: 12,  z: 'back' }],
+    props: { tall: [{ src: 'bubble-cluster', x: 0.09, y: 0.105, w: 0.19, rotate: -10, z: 'back' },
+                    { src: 'bubble-big',     x: 0.91, y: 0.165, w: 0.15, rotate: 12,  z: 'back' }],
              play: [{ src: 'bubble-cluster', x: 0.09, y: 0.10, w: 0.16, rotate: -10, z: 'back' },
                     { src: 'bubble-big',     x: 0.915, y: 0.15, w: 0.13, rotate: 12,  z: 'back' }] },
   },
@@ -100,8 +102,9 @@ export const slides = [
     sub: 'あなた向けのおすすめと、記事ごとの関連',
     chip: { rect: { android: [260, 325, 1020, 150], ios: [280, 372, 1010, 100], ipad: [800, 250, 1264, 110] },
             scale: 1.4, x: 0.58, dy: 0 },
-    props: { tall: [{ src: 'sound-rings', x: 0.50, y: 0.60, w: 1.25, opacity: 0.6, z: 'back' },
-                    { src: 'bubble-big',  x: 0.10, y: 0.28, w: 0.24, rotate: -14, z: 'back' }],
+    props: { tall: [{ src: 'sound-rings', x: 0.50, y: 0.58, w: 1.25, opacity: 0.6, z: 'back' },
+                    { src: 'bubble-big',  x: 0.09, y: 0.09, w: 0.15, rotate: -14, z: 'back' },
+                    { src: 'flame',       x: 0.92, y: 0.13, w: 0.13, rotate: 10,  z: 'back' }],
              play: [{ src: 'bubble-big',  x: 0.085, y: 0.09, w: 0.13, rotate: -14, z: 'back' },
                     { src: 'flame',       x: 0.92,  y: 0.12, w: 0.12, rotate: 10,  z: 'back' }] },
   },
@@ -109,7 +112,7 @@ export const slides = [
     id: 7, layout: 'C', screens: ['ngwords', 'hide-site'],
     head: ['読みたくない', '話題は、隠す。'],
     sub: 'NGワードとサイト非表示で、一覧を自分好みに',
-    props: { tall: [{ src: 'bubble-cluster', x: 0.86, y: 0.27, w: 0.32, rotate: 8, z: 'back' }],
+    props: { tall: [{ src: 'bubble-cluster', x: 0.91, y: 0.095, w: 0.18, rotate: 8, z: 'back' }],
              play: [{ src: 'bubble-cluster', x: 0.905, y: 0.13, w: 0.17, rotate: 8, z: 'back' }] },
   },
 ];

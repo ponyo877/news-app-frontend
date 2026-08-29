@@ -174,8 +174,8 @@ Apple の公式システム状況にも掲載されなかった。
 | Android 1.51 | ✅ **製品版で100%公開済み**（Play Console: 最終公開日 2026-08-20） |
 | iOS 1.51 | ⏳ **まだ審査中**。App Store の公開ページは 1.50（8/18 リリース）のまま |
 | Android デベロッパーの確認（9/30期限） | ✅ **要件を満たしている**（Play Console ホームに「すべてのアプリの登録が完了し…満たしています」と表示）。**対応不要** |
-| Play ストア掲載情報 | ⏳ 詳しい説明にキーワードを補って**審査に送信済み**（8/21）。**スクリーンショット v2（7枚＋フィーチャーグラフィック）を 8/28 に、プロモ動画（YouTube 用 1080×1920）を 8/29 に生成済み・未アップ**（`docs/ASO-SCREENSHOTS.md`・`docs/PROMO-VIDEO.md`） |
-| App Store 掲載情報 | 🔴 **2021年のFlutter版のまま**。差し替え案は `docs/ASO-IOS.md`。適用は未実施（セッション切れ）。**スクリーンショット v2（iPhone 6.9インチ 7枚＋iPad 13インチ 3枚）を 8/28 に生成済み・App プレビュー動画を 8/29 に生成済み（`docs/PROMO-VIDEO.md`）・1.53 審査完了後に 1.54 で差し替える** |
+| Play ストア掲載情報 | ⏳ 詳しい説明にキーワードを補って**審査に送信済み**（8/21）。**スクリーンショット v2（7枚＋フィーチャーグラフィック）は 8/29 に API で差し替えを試みたが、サービスアカウント `eas-submit@matome-play-submit` に掲載情報の編集権限が無く commit が 403**。Play Console → ユーザーと権限 → 同アカウント → 「ストアの掲載情報、価格、配信を編集」を付けてから `node scripts/store/play-upload-listing.mjs`（`--dry-run` で確認可）。プロモ動画（YouTube 用 1080×1920）は 8/29 に生成済み・未アップ（`docs/PROMO-VIDEO.md`） |
+| App Store 掲載情報 | 🔴 **2021年のFlutter版のまま**。差し替え案は `docs/ASO-IOS.md`。適用は未実施（セッション切れ）。**スクリーンショット v2（iPhone 6.9インチ 7枚＋iPad 13インチ 3枚）は 8/29 に端末位置を持ち上げて再生成済み**。1.53 が `WAITING_FOR_REVIEW` の間は新バージョンを作れない（API で確認: `You cannot create a new version of the App in the current state`）。審査完了後に `node scripts/store/asc-upload-screenshots.mjs --version 1.54`（順番も API で確定する）。App プレビュー動画は 8/29 に生成済み（`docs/PROMO-VIDEO.md`） |
 | 旧GCP VM | ⚠️ RUNNING のまま。本番でないことは確定（`news-app-infra/README.md`）。**停止するか要判断** |
 | Play デバイス獲得数（過去28日） | 6（前28日比 +100%）／月間アクティブ 1 |
 

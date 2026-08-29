@@ -4,6 +4,7 @@
 //   node scripts/store/build.mjs                       # 全フォーマット・全スライド
 //   node scripts/store/build.mjs --formats play,ios    # フォーマットを絞る(play / ios / ipad / feature)
 //   node scripts/store/build.mjs --slides 1,2 --debug  # スライドを絞る。--debug は文字/チップ/画面に枠を描き HTML も out/debug/ に残す
+//   node scripts/store/build.mjs --out store-assets/out-try  # 出力先を変える(現行の out/ を残したまま比較するとき)
 //
 // 素材:
 //   store-assets/screens/{android,ios,ipad}/<name>.png … 実画面(必ず本物。AI に描かせない)
@@ -16,7 +17,7 @@
 // build が失敗する条件(ストア規定と既存方針の機械的な担保):
 //   - 見出し/サブに使う文字がフォントに収録されていない(フォールバック混入)
 //   - 文字領域が版面の 20% を超える(Play のプロモーション適格条件)
-//   - 端末画面の可視率が 75% を超える(タブバー/バナー広告が写る)
+//   - 端末画面の可視率が 86% を超える(タブバー/バナー広告が写る。実画面では広告 ≈87%・タブバー ≈93% から)
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -25,7 +26,7 @@ import { formats, bezelPx, layouts, scene, slides, ipadSlides, feature } from '.
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const ASSETS = path.join(ROOT, 'store-assets');
-const OUT = path.join(ASSETS, 'out');
+const OUT = process.argv.includes('--out') ? path.resolve(process.argv[process.argv.indexOf('--out') + 1]) : path.join(ASSETS, 'out');
 const FONT_DIR = path.join(ROOT, 'node_modules/@expo-google-fonts/m-plus-rounded-1c');
 const FONTS = [
   { weight: 900, file: '900Black/MPLUSRounded1c_900Black.ttf' },
@@ -34,7 +35,7 @@ const FONTS = [
 ];
 const BG_TOP = '#FCC3A8';
 const MAX_TEXT_AREA = 0.20;
-const MAX_VISIBLE = 0.75;
+const MAX_VISIBLE = 0.86;  // 記事系は広告が 87% 付近、一覧系はタブバーが 93% 付近から(iOS/iPad/Android とも)
 
 // 元スクリーンショットの端末ごとの寸法(px)。画面の角丸・ノッチは実機の形に合わせる
 const FRAME = {
@@ -152,8 +153,11 @@ function propHtml(p, W, H, shiftX = 0) {
   return `<div class="prop" style="left:${px(cx - w / 2)};top:${px(cy - h / 2)};width:${px(w)};height:${px(h)};transform:${tf};opacity:${p.opacity ?? 1};z-index:${z}"><img src="${img.url}"></div>`;
 }
 
-function deviceGeometry(fmt, spec, src) {
+function deviceGeometry(fmt, raw, src) {
   const { W, H } = fmt;
+  // w / x / visible は数値か { play, tall } の帯別指定(縦長版面ほど端末が相対的に短くなるので、tall は大きく・高く置く)
+  const band = (v) => (v != null && typeof v === 'object' ? v[fmt.band] : v);
+  const spec = { ...raw, w: band(raw.w), x: band(raw.x), visible: band(raw.visible) };
   const deviceW = spec.w * W;
   const bezel = bezelPx[fmt.frame] * (W / 1080) * (spec.w / 0.9);
   const screenW = deviceW - bezel * 2;
