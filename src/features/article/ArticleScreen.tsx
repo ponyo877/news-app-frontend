@@ -26,6 +26,7 @@ import { RelatedArticlesSheet } from '@/features/article/RelatedArticlesSheet';
 import { TtsPlayerBar } from '@/features/article/TtsPlayerBar';
 import { useTtsPlayer } from '@/features/article/useTtsPlayer';
 import { useArticleHtml } from '@/features/article/useArticleHtml';
+import { markSessionError } from '@/lib/review';
 import { useVisibleArticles } from '@/lib/useVisibleArticles';
 import { ttsClearScript, ttsFollowScript } from '@/features/article/ttsFollow';
 import { articleUnavailableReason } from '@/scraper/errors';
@@ -234,6 +235,13 @@ export function ArticleScreen({ route, navigation }: Props) {
       followsTtsRef.current = true;
     }
   }, [isTtsOpen]);
+
+  // 取得失敗を見せた直後にレビュー依頼を出さない(src/lib/review.ts)
+  useEffect(() => {
+    if (htmlQuery.isError) {
+      markSessionError();
+    }
+  }, [htmlQuery.isError]);
 
   // 取得失敗(タイムアウト・削除済み・非対応)。旧実装は data===undefined のまま無限スピナーだった
   if (htmlQuery.isError) {

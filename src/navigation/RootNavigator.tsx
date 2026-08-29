@@ -15,6 +15,7 @@ import { fetchArticleMeta } from '@/api/endpoints';
 import { useMatsuri } from '@/api/queries';
 import { MatsuriScreen } from '@/features/matsuri/MatsuriScreen';
 import { NotificationPromptDialog } from '@/components/NotificationPromptDialog';
+import { ReviewPromptDialog } from '@/components/ReviewPromptDialog';
 import { ArticleScreen } from '@/features/article/ArticleScreen';
 import { OnboardingScreen } from '@/features/onboarding/OnboardingScreen';
 import { NgWordScreen } from '@/features/settings/NgWordScreen';
@@ -24,12 +25,19 @@ import { NormalWebViewScreen } from '@/features/webview/NormalWebViewScreen';
 import { logError, logEvent, logScreenView } from '@/lib/analytics';
 import { parseArticleLink } from '@/lib/deepLinks';
 import { parseNotificationArticle, requestPermissionAndRegister } from '@/lib/notifications';
-import { maybeRequestStoreReview } from '@/lib/review';
+import {
+  acceptReviewPrompt,
+  dismissReviewPrompt,
+  notePositiveSignal,
+  reviewPromptCopy,
+  useReviewPromptUi,
+} from '@/lib/review';
 import { MainTabs } from '@/navigation/MainTabs';
 import type { ArticleOpenFrom, RootStackParamList } from '@/navigation/types';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { useArticleStatusStore } from '@/stores/articleStatusStore';
 import { useNotificationStore } from '@/stores/notificationStore';
+import { useReviewStore } from '@/stores/reviewStore';
 import { useUserStore } from '@/stores/userStore';
 import { colors } from '@/theme/colors';
 import { fontFamily } from '@/theme/typography';
@@ -61,6 +69,9 @@ export function RootNavigator() {
   const handledNotificationRef = useRef<string | null>(null);
   const handledLinkRef = useRef<string | null>(null);
   const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+  // レビュー依頼のカード(iOS)。出す判断は src/lib/review.ts、ここは描画だけ
+  const reviewPrompt = useReviewPromptUi((s) => s.pending);
+  const activeDayCount = useReviewStore((s) => s.activeDays.length);
 
   const openArticle = (article: ArticleMeta, from: ArticleOpenFrom) => {
     if (navigationRef.isReady()) {
@@ -126,18 +137,21 @@ export function RootNavigator() {
   // getCurrentRoute()がフォーカス中のルート名として返すため、タブ別利用率が取れる
   const trackScreen = () => {
     const currentRouteName = navigationRef.getCurrentRoute()?.name;
+    const previousRouteName = routeNameRef.current;
     if (currentRouteName && currentRouteName !== routeNameRef.current) {
       routeNameRef.current = currentRouteName;
       logScreenView(currentRouteName);
     }
     maybeShowNotificationPrompt(currentRouteName);
-    // レビュー依頼(記事10本+3日+1回だけ)。通知プレ許諾(既読3本)が先に消化される
+    // レビュー依頼の弱いトリガー(記事を読んで一覧に戻った)。起動直後や設定画面の行き来では出さない。
+    // 通知プレ許諾(既読3本)が先に消化される。強いトリガー(読み上げ完了・お気に入り追加)は各所から直接呼ぶ
     if (
+      previousRouteName === 'Article' &&
       currentRouteName !== 'Article' &&
       !showNotificationPrompt &&
       useNotificationStore.getState().promptDone
     ) {
-      void maybeRequestStoreReview();
+      notePositiveSignal('return');
     }
   };
 
@@ -270,6 +284,12 @@ export function RootNavigator() {
         visible={showNotificationPrompt}
         onAccept={onAcceptNotification}
         onDecline={onDeclineNotification}
+      />
+      <ReviewPromptDialog
+        visible={reviewPrompt !== null && !showNotificationPrompt}
+        {...reviewPromptCopy(reviewPrompt ?? 'return', activeDayCount)}
+        onAccept={acceptReviewPrompt}
+        onLater={dismissReviewPrompt}
       />
     </NavigationContainer>
   );

@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { articleReportUrl } from '@/lib/reportForms';
+import { notePositiveSignal } from '@/lib/review';
 import { shareArticle } from '@/lib/share';
 import type { RootNavigation } from '@/navigation/types';
 import { ArticleMeta, useArticleFlags, useArticleStatusStore } from '@/stores/articleStatusStore';
@@ -53,7 +54,13 @@ function ArticleActionSheet({ article, onClose }: { article: ArticleMeta; onClos
       icon: favoriteFlg ? ('favorite' as const) : ('favorite-border' as const),
       iconColor: favoriteFlg ? '#F44336' : colors.black,
       label: 'お気に入り',
-      onPress: () => toggleFavorite(article),
+      onPress: () => {
+        toggleFavorite(article);
+        // 追加したときだけ好機のサイン(解除は違う)。カードはシートの描画後に重なる
+        if (!favoriteFlg) {
+          notePositiveSignal('favorite');
+        }
+      },
     },
     {
       key: 'block',

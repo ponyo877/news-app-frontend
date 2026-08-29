@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { usePostArticleReport } from '@/api/queries';
 import type { PostErrorKind } from '@/api/queries';
 import { ARTICLE_REPORT_REASONS } from '@/lib/articleReport';
+import { noteNegativeSignal } from '@/lib/review';
 import type { ArticleReportReason } from '@/lib/articleReport';
 import type { ArticleMeta } from '@/stores/articleStatusStore';
 import { colors } from '@/theme/colors';
@@ -36,6 +37,8 @@ export function ReportArticleDialog({ article, onClose }: ReportArticleDialogPro
       return;
     }
     submittingRef.current = true;
+    // 不満のサイン。しばらくレビュー依頼を出さない(src/lib/review.ts)
+    noteNegativeSignal();
     report.mutate(reason, {
       onSettled: () => {
         submittingRef.current = false;

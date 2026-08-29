@@ -8,6 +8,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -17,6 +18,7 @@ import { adsHidden, initializeAds } from '@/lib/ads';
 import { logError } from '@/lib/analytics';
 import { bootstrapUser } from '@/lib/bootstrap';
 import { configureNotificationHandler, syncPushTokenIfGranted } from '@/lib/notifications';
+import { beginSession } from '@/lib/review';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { useReviewStore } from '@/stores/reviewStore';
@@ -47,11 +49,18 @@ export default function App() {
       // 起動処理の失敗でアプリを止めない(次回起動時に再試行される)
       logError(error, 'bootstrapUser');
     });
-    // レビュー依頼の起点時刻(初回起動 or 1.48更新後の初起動)
+    // レビュー依頼の起点時刻(初回起動 or 1.48更新後の初起動)と利用日。復帰のたびにセッションを仕切り直す
     useReviewStore.getState().ensureInstallAt();
+    beginSession();
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        beginSession();
+      }
+    });
     // 許諾済み端末のみ: トークンローテーションに追随してサーバへ再登録
     const notificationPrefs = useNotificationStore.getState();
     void syncPushTokenIfGranted(notificationPrefs.digestEnabled, notificationPrefs.matsuriEnabled);
+    return () => appStateSubscription.remove();
   }, []);
 
   useEffect(() => {

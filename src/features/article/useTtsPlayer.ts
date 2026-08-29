@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { logEvent } from '@/lib/analytics';
+import { REVIEW_TTS_MIN_SEGMENTS, notePositiveSignal } from '@/lib/review';
 import type { TtsSegment } from '@/scraper/ttsScript';
 import { TTS_VOICE_POOL_SIZE } from '@/scraper/ttsScript';
 
@@ -73,6 +74,10 @@ export function useTtsPlayer(segments: TtsSegment[], site: string) {
         if (index >= segments.length) {
           setStatus('done');
           logEvent('tts_complete', { site });
+          // 最後まで聴き終えた=満足のサイン。数行の記事は対象外(src/lib/review.ts)
+          if (segments.length >= REVIEW_TTS_MIN_SEGMENTS) {
+            notePositiveSignal('tts_complete');
+          }
           return;
         }
         setSegmentIndex(index);

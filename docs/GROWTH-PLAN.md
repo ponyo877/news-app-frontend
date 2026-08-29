@@ -99,7 +99,7 @@ DAU = 既存ユーザーの再活性化 + (新規獲得数 × 定着率)
 | `article_open`(Phase 2〜 from追加) | site, article_id, from | 導線内訳(for You評価の中核) |
 | `read_end_reached`(Phase 2〜) | site | 記事を最後まで読んだ率 |
 | `onboarding_done`(Phase 2〜) | selected_count, skipped | 初回サイト選択の完了率 |
-| `font_scale` / `ng_word` / `review_prompt`(Phase 2〜) | scale / action / read_count | 機能利用率 |
+| `font_scale` / `ng_word` / `review_prompt`(Phase 2〜) | scale / action / trigger(review_prompt は trigger=tts_complete・favorite・return、action=show・accept・later(iOS カード)/ request(Android)) | 機能利用率 |
 | `push_token_failed`(1.50〜) | step(fetch_token/register), reason | プッシュ登録の失敗率。端末要因(Googleアカウント未設定・通信断)が大半なので**Crashlyticsには送らずここで数える**(本物のクラッシュを埋もれさせない) |
 | `article_report` / `article_report_failed`(1.52〜) | site, reason / kind(network/server/rejected) | 記事表示の不具合報告の件数と理由内訳(DB `article_reports` と突合、`docs/ARTICLE-REPORTS.md`)。失敗は端末側でしか見えないのでここで数える |
 
@@ -192,7 +192,16 @@ DAU = 既存ユーザーの再活性化 + (新規獲得数 × 定着率)
 
 ### 4-3. ストア評価の底上げ
 
-- `expo-store-review` 導入。トリガー: 「記事10本読了 + インストール3日後」の好機に1回だけ
+- `expo-store-review` 導入。1.48〜1.53 は「記事10本読了 + インストール3日後」に1回だけ。
+  **1.54 で「良い評価をもらえそうな瞬間」に聞く方式へ**(`src/lib/review.ts`):
+  - 好機: 読み上げを最後まで聴き終えた(5セグメント以上)/ お気に入りに追加した / 記事から一覧に戻った(既読10本以上)
+  - ガード: インストール3日・利用日3日・既読5本(戻りは10本)・「表示の不具合を報告」から14日は出さない・
+    そのセッションで記事の取得エラーを見たら出さない・前回から90日・1年に3回まで(Apple の上限と同じ)・
+    iOS で「評価する」を押した人には二度と出さない
+  - 文言: iOS は事実だけのカード(「〜ありがとうございます」+「個人で開発しています。App Store での評価が次の改善の励みになります」)
+    →「評価する」で OS ダイアログ。「5つ星」「高評価」は書かない。**Android は Play In-App Review の
+    ガイドラインで事前の質問文・誘導文が禁止**なので OS のカードを直接出す
+  - 1.48〜1.53 で1回依頼済みの人は、その時刻を「前回依頼」として引き継ぎ 90 日後から再依頼(v1→v2 マイグレーション)
 - 評価改善はASOの表示順位に直結 → Phase 3 の獲得効率を上げる先行投資
 
 ### 4-4. 競合標準機能の追いつき(離脱理由の除去)
@@ -370,7 +379,7 @@ DAU = 既存ユーザーの再活性化 + (新規獲得数 × 定着率)
 - [x] NGワード(上限50・NFKC部分一致)+ブロックの全タブ適用(`useVisibleArticles`)
 - [x] 文字サイズS/M/L/XL(Android textZoom / iOS text-size-adjust。ArticleMenu内ピル)
 - [x] 新着サイト別バランシング(ページ内上限5・連続2。並べ替えのみ)
-- [x] ストアレビュー依頼(既読10本+3日+1回だけ)
+- [x] ストアレビュー依頼(既読10本+3日+1回だけ)→ 1.54 で好機トリガー方式に改修(§4-3)
 - [x] 日本語化統一・コメントエラー実文言化(backendにNG検査は存在しなかった)
 
 ### 残タスク(1.49以降)
