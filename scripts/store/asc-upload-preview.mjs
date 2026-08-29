@@ -86,6 +86,20 @@ for (const s of sets.data) {
   console.log(`  set ${s.attributes.previewType} (${s.id}): ${previews.data.length}本 ${previews.data.map((x) => `${x.attributes.fileName}[${x.attributes.assetDeliveryState?.state}]`).join(', ')}`);
 }
 if (DRY) { console.log('dry-run: ここまで。アップロードは行いません'); process.exit(0); }
+// --poster-only: 既にあるプレビューのポスターフレームだけ設定し直す(アップロード直後の PATCH では既定の 5 秒に戻ることがある)
+if (args.includes('--poster-only')) {
+  const set0 = sets.data.find((s) => s.attributes.previewType === DISPLAY_TYPE);
+  const cur = set0 ? (await api('GET', `/appPreviewSets/${set0.id}/appPreviews`)).data[0] : null;
+  if (!cur) throw new Error('プレビューが無い');
+  await api('PATCH', `/appPreviews/${cur.id}`, { data: { type: 'appPreviews', id: cur.id, attributes: { previewFrameTimeCode: POSTER } } });
+  for (let i = 0; i < 60; i++) {
+    const a = (await api('GET', `/appPreviews/${cur.id}`)).data.attributes;
+    if (a.previewFrameTimeCode === POSTER && a.previewImage?.templateUrl) { console.log(`poster set: ${a.previewFrameTimeCode}`); process.exit(0); }
+    await sleep(5000);
+  }
+  console.log('poster: 設定は送ったが反映確認が取れなかった(ASC で確認)');
+  process.exit(0);
+}
 if (!existsSync(FILE)) throw new Error(`${FILE} が無い(cd promo && npm run render:appstore && npm run deliver)`);
 
 let set = sets.data.find((s) => s.attributes.previewType === DISPLAY_TYPE);
