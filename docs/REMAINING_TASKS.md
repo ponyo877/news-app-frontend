@@ -25,7 +25,7 @@
 | App Store プライバシーポリシー URL | ✅ **修正済み**(1.43 でリリースされる) |
 | App Store バージョン 1.43 | ✅ 作成済み・ビルド43 紐付け済み(提出準備中) |
 | App Store 年齢制限指定 | ✅ **2026-08-27 に訂正**(無制限Webアクセス はい→いいえ。算出 13+ / iOS26未満 12+。**1.53 配信後に反映**) |
-| **App Store バージョン 1.53** | ✅ **2026-08-27 審査提出済み(WAITING_FOR_REVIEW)**。ビルド 57 添付・承認後に自動リリース。これで言語表記と年齢区分が反映される |
+| **App Store バージョン 1.53** | ⏳ 2026-08-27 に審査提出したが **8/29 にスクリーンショットを載せるため取り下げた（DEVELOPER_REJECTED・ビルド 57 は添付のまま）**。修正を入れてから再提出する。承認されると言語表記と年齢区分とスクリーンショットが一緒に反映される |
 | **Android の 1.53** | ⏸️ **出さない**。1.53 の変更(`locales`/`CFBundleDevelopmentRegion`/`CFBundleLocalizations`)は **iOS 専用**で Android に機能差分がゼロ。Play の年齢区分はビルド不要で更新済み。`versionCode: 59` は次回 Android リリースで使う |
 | EU トレーダーステータス(DSA) | ✅ **2026-08-27 に「ノントレーダー」で申告**。ASC の警告は解消(「すべての規制要件を満たしています」)。**EU 27か国では配信されなくなる** |
 | App Store 審査提出 | ✅ **1.44 公開済み**(2026-08-05 リリース) |
@@ -175,7 +175,7 @@ Apple の公式システム状況にも掲載されなかった。
 | iOS 1.51 | ⏳ **まだ審査中**。App Store の公開ページは 1.50（8/18 リリース）のまま |
 | Android デベロッパーの確認（9/30期限） | ✅ **要件を満たしている**（Play Console ホームに「すべてのアプリの登録が完了し…満たしています」と表示）。**対応不要** |
 | Play ストア掲載情報 | ⏳ 詳しい説明にキーワードを補って**審査に送信済み**（8/21）。**スクリーンショット v2（7枚＋フィーチャーグラフィック）は 8/29 に API で差し替えを試みたが、サービスアカウント `eas-submit@matome-play-submit` に掲載情報の編集権限が無く commit が 403**。Play Console → ユーザーと権限 → 同アカウント → 「ストアの掲載情報、価格、配信を編集」を付けてから `node scripts/store/play-upload-listing.mjs`（`--dry-run` で確認可）。プロモ動画（YouTube 用 1080×1920）は 8/29 に生成済み・未アップ（`docs/PROMO-VIDEO.md`） |
-| App Store 掲載情報 | 🔴 **2021年のFlutter版のまま**。差し替え案は `docs/ASO-IOS.md`。適用は未実施（セッション切れ）。**スクリーンショット v2（iPhone 6.9インチ 7枚＋iPad 13インチ 3枚）は 8/29 に端末位置を持ち上げて再生成済み**。1.53 が `WAITING_FOR_REVIEW` の間は新バージョンを作れない（API で確認: `You cannot create a new version of the App in the current state`）。審査完了後に `node scripts/store/asc-upload-screenshots.mjs --version 1.54`（順番も API で確定する）。App プレビュー動画は 8/29 に生成済み（`docs/PROMO-VIDEO.md`） |
+| App Store 掲載情報 | ⏳ **8/29 に 1.53 を審査から取り下げ（`store:asc-review withdraw`、`DEVELOPER_REJECTED`）、6.9インチ 7枚＋iPad 13インチ 3枚を 1.53 に API で載せた。再提出はしていない（さらに修正を入れる予定）**。6.5インチ（v1 の 6枚）・5.5インチ（Flutter 版 6枚）・iPad 12.9インチ第2世代（2022年の 4枚）のセットは残っていて、そのサイズの端末には古い画像が出る。消すなら `npm run store:asc -- --delete-legacy`。掲載文の差し替え案は `docs/ASO-IOS.md`。App プレビュー動画は 8/29 に生成済み（`docs/PROMO-VIDEO.md`） |
 | 旧GCP VM | ⚠️ RUNNING のまま。本番でないことは確定（`news-app-infra/README.md`）。**停止するか要判断** |
 | Play デバイス獲得数（過去28日） | 6（前28日比 +100%）／月間アクティブ 1 |
 

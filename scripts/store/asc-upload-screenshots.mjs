@@ -5,9 +5,10 @@
 //   node scripts/store/asc-upload-screenshots.mjs                      # 編集可能なバージョンに out/ の iPhone 7枚 + iPad 3枚を上げる
 //   node scripts/store/asc-upload-screenshots.mjs --version 1.54       # 編集可能なバージョンが無ければ 1.54 を作ってから上げる
 //   node scripts/store/asc-upload-screenshots.mjs --only iphone        # iphone / ipad に絞る
+//   node scripts/store/asc-upload-screenshots.mjs --delete-legacy     # 6.9インチ/13インチ以外の古いセット(6.5・5.5インチ、12.9インチ第2世代)を消す。
+//                                                                     # 残っていると、その画面サイズの端末には古い画像が出続ける(ASC は無いサイズにだけ 6.9/13 を流用する)
 //
-// 認証: ~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8(既定 ZNB52NZ7Q6)。Issuer ID は
-// ASC → ユーザとアクセス → 統合 → App Store Connect API の先頭に出る値(--issuer か ASC_ISSUER_ID で上書き可)。
+// 認証は asc-api.mjs(~/.appstoreconnect/private_keys/AuthKey_ZNB52NZ7Q6.p8)。審査提出の取り下げは asc-review.mjs。
 //
 // 手順: 編集可能なバージョンを探す(無ければ --version で作る。作るだけなら何も公開されない)
 //       → ja のローカリゼーション → 表示タイプごとのスクリーンショットセット(無ければ作る)
@@ -15,50 +16,25 @@
 //       → セットの relationships を並び順どおりに置き換える(UI のドラッグ並べ替えが効かない対策)
 //
 // 表示タイプ: iPhone 6.9インチ = APP_IPHONE_67(6.7 と共通)/ iPad 13インチ = APP_IPAD_PRO_3GEN_129
-import { createHash, createSign } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { readFileSync, statSync, existsSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
-import { homedir } from 'node:os';
+import { api, APP_ID, sleep } from './asc-api.mjs';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 const OUT = resolve(ROOT, 'store-assets/out');
 const args = process.argv.slice(2);
 const opt = (name, dflt) => { const i = args.indexOf(name); return i >= 0 && args[i + 1] ? args[i + 1] : dflt; };
-const ISSUER = opt('--issuer', process.env.ASC_ISSUER_ID ?? '8e5079df-4827-4f89-b7cd-b77a2b19e16c');
-const KEY_ID = opt('--key', 'ZNB52NZ7Q6');
-const APP_ID = opt('--app', '1546424384');
 const VERSION = opt('--version', null);
 const LOCALE = opt('--locale', 'ja');
 const ONLY = opt('--only', null);
 const DRY = args.includes('--dry-run');
+const DELETE_LEGACY = args.includes('--delete-legacy');
 
 const SETS = [
   { key: 'iphone', type: 'APP_IPHONE_67', files: [1, 2, 3, 4, 5, 6, 7].map((n) => `ios-${n}.png`) },
   { key: 'ipad', type: 'APP_IPAD_PRO_3GEN_129', files: [1, 2, 4].map((n) => `ipad-${n}.png`) },
 ].filter((s) => !ONLY || s.key === ONLY);
-
-const KEY = readFileSync(resolve(homedir(), '.appstoreconnect/private_keys', `AuthKey_${KEY_ID}.p8`), 'utf8');
-const b64url = (b) => Buffer.from(b).toString('base64').replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
-function jwt() {
-  const now = Math.floor(Date.now() / 1000);
-  const h = b64url(JSON.stringify({ alg: 'ES256', kid: KEY_ID, typ: 'JWT' }));
-  const p = b64url(JSON.stringify({ iss: ISSUER, iat: now, exp: now + 15 * 60, aud: 'appstoreconnect-v1' }));
-  const s = createSign('SHA256');
-  s.update(`${h}.${p}`);
-  return `${h}.${p}.${b64url(s.sign({ key: KEY, dsaEncoding: 'ieee-p1363' }))}`;
-}
-const API = 'https://api.appstoreconnect.apple.com/v1';
-async function api(method, path, body) {
-  const res = await fetch(path.startsWith('http') ? path : `${API}${path}`, {
-    method,
-    headers: { authorization: `Bearer ${jwt()}`, 'content-type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`${method} ${path}: ${res.status} ${text.slice(0, 800)}`);
-  return text ? JSON.parse(text) : {};
-}
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // 提出後(WAITING_FOR_REVIEW 以降)はメタデータがロックされるので編集可能とみなさない
 const EDITABLE = new Set(['PREPARE_FOR_SUBMISSION', 'DEVELOPER_REJECTED', 'REJECTED', 'METADATA_REJECTED', 'INVALID_BINARY']);
@@ -95,6 +71,14 @@ for (const s of sets.data) {
   console.log(`  set ${s.attributes.screenshotDisplayType} (${s.id}): ${shots.data.length}枚 ${shots.data.map((x) => x.attributes.fileName).join(', ')}`);
 }
 if (DRY) { console.log('dry-run: ここまで。アップロードは行いません'); process.exit(0); }
+if (DELETE_LEGACY) {
+  const keep = new Set(SETS.map((s) => s.type));
+  for (const s of sets.data.filter((s) => !keep.has(s.attributes.screenshotDisplayType))) {
+    await api('DELETE', `/appScreenshotSets/${s.id}`);
+    console.log(`deleted legacy set ${s.attributes.screenshotDisplayType} (${s.id})`);
+  }
+  process.exit(0);
+}
 
 async function uploadOne(setId, file) {
   const bytes = readFileSync(file);
@@ -137,8 +121,15 @@ for (const spec of SETS) {
     ids.push(await uploadOne(set.id, f));
     console.log(`  ✓ ${basename(f)}`);
   }
-  await api('PATCH', `/appScreenshotSets/${set.id}/relationships/appScreenshots`, { data: ids.map((id) => ({ type: 'appScreenshots', id })) });
-  const now = await api('GET', `/appScreenshotSets/${set.id}/appScreenshots?limit=20`);
+  // 1枚ずつ完了を待って上げているので通常は到着順=指定順。ずれていたときだけ、いま入っている集合そのもので並べ直す
+  // (relationships の置き換えは reorder 専用で、集合が違うと 409 "Can't Add/Remove Relationship when reorder Set")
+  let now = await api('GET', `/appScreenshotSets/${set.id}/appScreenshots?limit=20`);
+  const current = now.data.map((x) => x.id);
+  const want = ids.filter((id) => current.includes(id)).concat(current.filter((id) => !ids.includes(id)));
+  if (want.join() !== current.join()) {
+    await api('PATCH', `/appScreenshotSets/${set.id}/relationships/appScreenshots`, { data: want.map((id) => ({ type: 'appScreenshots', id })) });
+    now = await api('GET', `/appScreenshotSets/${set.id}/appScreenshots?limit=20`);
+  }
   console.log(`${spec.type}: 並び順 ${now.data.map((x) => x.attributes.fileName).join(' → ')}`);
 }
 console.log(`done: ${version.attributes.versionString} の「プレビューとスクリーンショット」に反映(公開はこのバージョンの提出時)`);

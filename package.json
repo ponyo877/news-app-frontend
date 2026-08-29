@@ -75,6 +75,7 @@
     "store:verify": "scripts/store/verify.sh",
     "store:preview": "scripts/store/preview.sh",
     "store:asc": "node scripts/store/asc-upload-screenshots.mjs",
+    "store:asc-review": "node scripts/store/asc-review.mjs",
     "store:play": "node scripts/store/play-upload-listing.mjs",
     "store:props": "python3 scripts/store/gen-props.py",
     "store:asc-preview": "node scripts/store/asc-upload-preview.mjs"

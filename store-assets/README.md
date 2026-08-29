@@ -22,11 +22,14 @@ npm run store:verify              # 寸法・アルファ・黒帯・文字20%�
 npm run store:preview             # out/preview-*.png(一覧と、検索結果風の3枚並び)
 npm run store:play -- --dry-run   # Play の掲載画像の現状を表示(--dry-run 無しで 7枚+フィーチャーグラフィックを差し替えて commit)
 npm run store:asc -- --dry-run    # ASC のバージョン状態と今のセットを表示(--version 1.54 で下書きを作って iPhone 7枚+iPad 3枚を上げる)
+npm run store:asc-review status   # ASC の審査提出の一覧。`withdraw` で審査待ちの提出を取り下げてバージョンを編集可能に戻す(順番は失う)
 ```
 
 ストアへの反映は API スクリプトで行う(ブラウザ不要)。
 - Play: eas.json のサービスアカウントを使う。**掲載情報の編集権限**が無いとアップロードは通って最後の commit だけ 403 になる
-- ASC: `~/.appstoreconnect/private_keys/AuthKey_ZNB52NZ7Q6.p8`。**審査中のバージョンがあると新バージョンを作れない**(409)。並び順は relationships の置き換えで確定させるので UI のドラッグ問題は起きない
+- ASC: `~/.appstoreconnect/private_keys/AuthKey_ZNB52NZ7Q6.p8`(共通部分は `asc-api.mjs`)。**審査待ちのバージョンがあると新バージョンを作れない**(409)ので、`store:asc-review withdraw` で取り下げてそのバージョンに載せる。
+  1枚ずつ完了を待って上げるので到着順=指定順になる(relationships の置き換えは同じ集合の並べ替え専用)。
+  6.5・5.5インチ・12.9インチ第2世代の古いセットが残っていると、そのサイズの端末には古い画像が出る。消すなら `store:asc -- --delete-legacy`
 
 スライドの定義(コピー・実画面・拡大チップの矩形・装飾の配置)は `scripts/store/slides.mjs` だけを触ればよい。
 `node scripts/store/build.mjs --formats play --slides 1 --debug` で、文字/チップ/画面に枠を描いた出力と HTML が `out/debug/` に残る。
