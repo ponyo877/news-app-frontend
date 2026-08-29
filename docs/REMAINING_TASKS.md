@@ -174,8 +174,8 @@ Apple の公式システム状況にも掲載されなかった。
 | Android 1.51 | ✅ **製品版で100%公開済み**（Play Console: 最終公開日 2026-08-20） |
 | iOS 1.51 | ⏳ **まだ審査中**。App Store の公開ページは 1.50（8/18 リリース）のまま |
 | Android デベロッパーの確認（9/30期限） | ✅ **要件を満たしている**（Play Console ホームに「すべてのアプリの登録が完了し…満たしています」と表示）。**対応不要** |
-| Play ストア掲載情報 | ⏳ 詳しい説明にキーワードを補って**審査に送信済み**（8/21）。**スクリーンショット v2（7枚＋フィーチャーグラフィック）は 8/29 に API で差し替えを試みたが、サービスアカウント `eas-submit@matome-play-submit` に掲載情報の編集権限が無く commit が 403**。Play Console → ユーザーと権限 → 同アカウント → 「ストアの掲載情報、価格、配信を編集」を付けてから `node scripts/store/play-upload-listing.mjs`（`--dry-run` で確認可）。プロモ動画（YouTube 用 1080×1920）は 8/29 に生成済み・未アップ（`docs/PROMO-VIDEO.md`） |
-| App Store 掲載情報 | ⏳ **8/29 に 1.53 を審査から取り下げ（`store:asc-review withdraw`、`DEVELOPER_REJECTED`）、6.9インチ 7枚＋iPad 13インチ 3枚を 1.53 に API で載せた。再提出はしていない（さらに修正を入れる予定）**。6.5インチ（v1 の 6枚）・5.5インチ（Flutter 版 6枚）・iPad 12.9インチ第2世代（2022年の 4枚）のセットは残っていて、そのサイズの端末には古い画像が出る。消すなら `npm run store:asc -- --delete-legacy`。掲載文の差し替え案は `docs/ASO-IOS.md`。App プレビュー動画は 8/29 に生成済み（`docs/PROMO-VIDEO.md`） |
+| Play ストア掲載情報 | ⏳ **8/29 にスクリーンショット v2（7枚）・フィーチャーグラフィック・紹介動画 URL（YouTube 限定公開）を API で差し替えて commit 済み（掲載情報の審査中）**。サービスアカウントには「ストアでの表示の管理」を付与済み。**タブレット用（7インチ2枚・10インチ4枚）は 8/21 の v1 のまま**（`docs/PROMO-VIDEO.md`・`store-assets/README.md`） |
+| App Store 掲載情報 | ⏳ **8/29 に 1.53 を審査から取り下げ（`store:asc-review withdraw`、`DEVELOPER_REJECTED`）、6.9インチ 7枚＋iPad 13インチ 3枚と App プレビュー（ポスター 00:00:10:10）を 1.53 の下書きに入れた。旧枠（6.5/5.5インチ・iPad 12.9 第2世代）は削除済み。再提出はしていない（修正を入れてから、必要なら新ビルドを添えて提出）**。掲載文は 1.52 で差し替え済み（`docs/ASO-IOS.md`） |
 | 旧GCP VM | ⚠️ RUNNING のまま。本番でないことは確定（`news-app-infra/README.md`）。**停止するか要判断** |
 | Play デバイス獲得数（過去28日） | 6（前28日比 +100%）／月間アクティブ 1 |
 
