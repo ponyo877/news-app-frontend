@@ -5,12 +5,15 @@
 //   node scripts/store/play-upload-listing.mjs             # 差し替えて commit(掲載情報の審査に自動で送られる)
 //   node scripts/store/play-upload-listing.mjs --video https://www.youtube.com/watch?v=XXXX   # プロモ動画の URL も設定(画像と一緒に commit)
 //   node scripts/store/play-upload-listing.mjs --video URL --no-images                          # 動画 URL だけ
+//   node scripts/store/play-upload-listing.mjs --types sevenInchScreenshots,tenInchScreenshots  # 差し替える枠を選ぶ(既定 phoneScreenshots,featureGraphic)
 //
 // 認証: eas.json の submit.production.android.serviceAccountKeyPath と同じサービスアカウント JSON
 //       (--key で上書き可)。Play Console の「ユーザーと権限」でストア掲載情報の編集権限が要る。
 //       権限が無いと画像のアップロードまでは通り、最後の commit だけ 403 PERMISSION_DENIED で落ちる(2026-08-29 に確認)。
 // 手順: edit を作る → listings/ja-JP の各 imageType を deleteall → 1枚ずつ upload → edit を commit。
-//       タブレット用(sevenInch/tenInch)は Android 実機の画像が無いので触らない(iPad の画像は iOS の UI)。
+//       タブレット用(sevenInch/tenInch)は Android タブレットの実画面が無いので、スマホ用 7枚をそのまま流用する
+//       (v1 と同じ扱い。Play は 16:9〜9:16 なら受理。iPad の画像は iOS の UI なので使わない)。既定では触らず --types で指定したときだけ。
+import { Buffer } from 'node:buffer';
 import { createSign } from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -26,10 +29,17 @@ const PKG = opt('--package', 'com.matomebeta_app');
 const LANG = opt('--lang', 'ja-JP');
 const KEY_PATH = resolve(ROOT, opt('--key', JSON.parse(readFileSync(resolve(ROOT, 'eas.json'), 'utf8')).submit.production.android.serviceAccountKeyPath));
 
-const UPLOADS = [
-  { imageType: 'phoneScreenshots', files: [1, 2, 3, 4, 5, 6, 7].map((n) => `play-${n}.png`) },
-  { imageType: 'featureGraphic', files: ['feature-graphic.png'] },
-];
+const PHONES = [1, 2, 3, 4, 5, 6, 7].map((n) => `play-${n}.png`);
+const FILES_BY_TYPE = {
+  phoneScreenshots: PHONES,
+  sevenInchScreenshots: PHONES,
+  tenInchScreenshots: PHONES,
+  featureGraphic: ['feature-graphic.png'],
+};
+const TYPES = opt('--types', 'phoneScreenshots,featureGraphic').split(',');
+const unknown = TYPES.filter((t) => !FILES_BY_TYPE[t]);
+if (unknown.length) throw new Error(`--types に未対応の枠: ${unknown.join(', ')}(${Object.keys(FILES_BY_TYPE).join(' / ')})`);
+const UPLOADS = TYPES.map((imageType) => ({ imageType, files: FILES_BY_TYPE[imageType] }));
 const ALL_TYPES = ['phoneScreenshots', 'sevenInchScreenshots', 'tenInchScreenshots', 'featureGraphic', 'icon', 'tvBanner', 'tvScreenshots', 'wearScreenshots'];
 
 // ---- サービスアカウントの JWT → アクセストークン ---------------------------
