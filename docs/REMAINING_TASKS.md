@@ -171,7 +171,7 @@ Apple の公式システム状況にも掲載されなかった。
 
 | 項目 | 状態 |
 |---|---|
-| Android 1.53(vc60) | ⏳ **2026-08-29 に製品版へ 10% 段階公開で提出(inProgress・Play の審査待ち)**。拡大は `node scripts/store/play-release.mjs --rollout 0.25 --version-code 60`。1.53 は当初 iOS のみの予定だったが評価依頼の改修で Android にも出す。locales の iOS 専用キーで lintVitalRelease が落ちる件は `assets/locales/ja.json` を `ios` 配下にして解消 |
+| Android 1.53(vc60) | ✅ **2026-08-29 に製品版へ 10% で提出 → 2026-08-30 に 100%(completed)へ拡大**(Play の審査後に配信)。1.53 は当初 iOS のみの予定だったが評価依頼の改修で Android にも出した。locales の iOS 専用キーで lintVitalRelease が落ちる件は `assets/locales/ja.json` を `ios` 配下にして解消 |
 | Android 1.51 | ✅ **製品版で100%公開済み**（Play Console: 最終公開日 2026-08-20） |
 | iOS 1.51 | ⏳ **まだ審査中**。App Store の公開ページは 1.50（8/18 リリース）のまま |
 | Android デベロッパーの確認（9/30期限） | ✅ **要件を満たしている**（Play Console ホームに「すべてのアプリの登録が完了し…満たしています」と表示）。**対応不要** |
