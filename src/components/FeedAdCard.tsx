@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 
-import { bannerAdUnitId } from '@/lib/ads';
+import { adsHidden, bannerAdUnitId } from '@/lib/ads';
 import { colors } from '@/theme/colors';
 import { fontFamily } from '@/theme/typography';
 
@@ -19,6 +19,11 @@ import { fontFamily } from '@/theme/typography';
 // BannerAdは未配信のとき何も描画しないため、畳まないと区切り線と
 // 「広告」ラベルだけの空枠が記事の間に残る
 export function FeedAdCard() {
+  // 撮影用ビルド(EXPO_PUBLIC_ADS_ENV=off)では枠ごと出さない。hooks を持つ本体は別関数に分けて条件分岐する
+  return adsHidden ? null : <FeedAdBanner />;
+}
+
+function FeedAdBanner() {
   const [filled, setFilled] = useState(false);
 
   return (

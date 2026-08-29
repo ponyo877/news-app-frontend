@@ -33,7 +33,7 @@ import type { ArticleUnavailableReason } from '@/scraper/errors';
 import { buildTtsScriptWithAnchors } from '@/scraper/ttsScript';
 import type { TtsSegment } from '@/scraper/ttsScript';
 import { CommentPanel } from '@/features/comments/CommentPanel';
-import { bannerAdUnitId } from '@/lib/ads';
+import { adsHidden, bannerAdUnitId } from '@/lib/ads';
 import { logEvent } from '@/lib/analytics';
 import type { RootStackParamList } from '@/navigation/types';
 import { useArticleStatusStore } from '@/stores/articleStatusStore';
@@ -325,17 +325,19 @@ export function ArticleScreen({ route, navigation }: Props) {
           上下にクリアランスを取ってコンテンツともジェスチャー領域とも接しないようにする。
           配信が無いあいだ(アカウント停止・在庫切れ・オフライン)は帯とラベルを出さず、
           セーフエリアの余白だけ残す。BannerAdはマウントしたままなのでリクエストは続く */}
-      <View style={[isAdFilled && styles.adBlock, { paddingBottom: insets.bottom }]}>
-        {isAdFilled && <Text style={styles.adLabel}>広告</Text>}
-        <View style={styles.adRow}>
-          <BannerAd
-            unitId={bannerAdUnitId}
-            size={BannerAdSize.BANNER}
-            onAdLoaded={() => setIsAdFilled(true)}
-            onAdFailedToLoad={() => setIsAdFilled(false)}
-          />
+      {!adsHidden && (
+        <View style={[isAdFilled && styles.adBlock, { paddingBottom: insets.bottom }]}>
+          {isAdFilled && <Text style={styles.adLabel}>広告</Text>}
+          <View style={styles.adRow}>
+            <BannerAd
+              unitId={bannerAdUnitId}
+              size={BannerAdSize.BANNER}
+              onAdLoaded={() => setIsAdFilled(true)}
+              onAdFailedToLoad={() => setIsAdFilled(false)}
+            />
+          </View>
         </View>
-      </View>
+      )}
     </KeyboardAvoidingView>
   );
 }

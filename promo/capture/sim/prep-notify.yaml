@@ -1,0 +1,44 @@
+# 記事を 3 本開いて一覧へ戻り、通知プレ許諾「あとで」を押して promptDone にする(prep.yaml から呼ぶ)。
+appId: com.matomebeta-app
+---
+- launchApp:
+    stopApp: true
+    clearState: false
+- extendedWaitUntil:
+    visible: "😁まとめくん😁"
+    timeout: 20000
+# ---- 記事を 3 本開く(通知プレ許諾を出させて「あとで」)
+- tapOn:
+    text: "ランキング"
+- tapOn:
+    text: "1, .*"
+- extendedWaitUntil:
+    visible: "メニュー"
+    timeout: 10000
+- tapOn:
+    point: "9%, 9%"
+- tapOn:
+    text: "あとで"
+    optional: true
+- tapOn:
+    text: "2, .*"
+- extendedWaitUntil:
+    visible: "メニュー"
+    timeout: 10000
+- tapOn:
+    point: "9%, 9%"
+- tapOn:
+    text: "あとで"
+    optional: true
+- tapOn:
+    text: "3, .*"
+- extendedWaitUntil:
+    visible: "メニュー"
+    timeout: 10000
+- tapOn:
+    point: "9%, 9%"
+- tapOn:
+    text: "あとで"
+    optional: true
+- tapOn:
+    text: "ホーム"

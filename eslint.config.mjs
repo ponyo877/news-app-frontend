@@ -5,7 +5,8 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['node_modules/**', '.expo/**', 'android/**', 'ios/**', 'coverage/**'],
+    // promo/ は Remotion の別プロジェクト(自前の tsconfig)。ルートの型チェック・lint には巻き込まない
+    ignores: ['node_modules/**', '.expo/**', 'android/**', 'ios/**', 'coverage/**', 'promo/**'],
   },
   ...expoConfig,
   {

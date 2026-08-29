@@ -1,0 +1,209 @@
+# iOS シミュレータ上の「まとめくん」を操作する台本(Maestro)。run.ts が起動し、録画と同期する。
+#   単体で試す: ~/.maestro/bin/maestro --device <udid> test capture/sim/flow.yaml(cue サーバが無いと runScript で止まる)
+#   セレクタの確認: ~/.maestro/bin/maestro --device <udid> hierarchy
+#
+# 作法:
+#   - 各操作の「直前」に cue.js で合図を送る(後だと settle 待ちで数秒ずれる)。合図名は postprocess.ts の ANCHORS と対応
+#   - Maestro に sleep は無いので hold.js(MS)で待つ
+#   - 録画中(ready 以降)に optional: true の tapOn を置かない(見つからないと既定タイムアウトまで待つ)
+#   - ストーリー: S1 ランキング → S2 記事+読み上げ(主役) → S3 ホーム → 🔥祭り → S4 祭りの記事
+appId: com.matomebeta-app
+env:
+  CUE_URL: http://localhost:8790/cue
+---
+- launchApp:
+    stopApp: true
+    clearState: false          # MMKV(オンボーディング済・通知プレ許諾済・NGワード)を保つ
+- extendedWaitUntil:
+    visible: "😁まとめくん😁"
+    timeout: 20000
+# 🔥 が無い(=祭りが 0 件)ならここで失敗させる。祭りの無い日は撮らない
+- extendedWaitUntil:
+    visible: "進行中の祭りを見る"
+    timeout: 15000
+- runScript:
+    file: cue.js
+    env:
+      EVENT: ready
+- runScript:
+    file: hold.js
+    env:
+      MS: "1500"
+# ---- S1 ランキング(日間)
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapRanking
+- tapOn:
+    text: "ランキング"
+    waitToSettleTimeoutMs: 300
+- runScript:
+    file: hold.js
+    env:
+      MS: "900"
+- swipe:
+    start: "50%, 70%"
+    end: "50%, 52%"
+    duration: 600
+- runScript:
+    file: hold.js
+    env:
+      MS: "400"
+- swipe:
+    start: "50%, 50%"
+    end: "50%, 72%"
+    duration: 600
+- runScript:
+    file: hold.js
+    env:
+      MS: "600"
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapArticle1
+- tapOn:
+    text: "1, .*"
+    waitToSettleTimeoutMs: 300
+- extendedWaitUntil:
+    visible: "メニュー"
+    timeout: 10000
+- runScript:
+    file: hold.js
+    env:
+      MS: "2500"
+# ---- S2 読み上げ
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapMenu
+- tapOn:
+    text: "メニュー"
+    waitToSettleTimeoutMs: 300
+# ⋮ メニュー(RN Modal)は 1 つの要素に潰れて見えるので、文言は正規表現で待ち、項目は座標で押す
+- extendedWaitUntil:
+    visible: ".*読み上げ.*"
+    timeout: 5000
+- runScript:
+    file: hold.js
+    env:
+      MS: "700"
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapTts
+- tapOn:
+    point: "62%, 16%"
+    waitToSettleTimeoutMs: 300
+- extendedWaitUntil:
+    visible: "読み上げを一時停止"
+    timeout: 8000
+- runScript:
+    file: hold.js
+    env:
+      MS: "1800"
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapRate
+- tapOn:
+    text: "読み上げ速度を変更"
+- tapOn:
+    text: "読み上げ速度を変更"
+- tapOn:
+    text: "読み上げ速度を変更"
+# 速度ピルの文言はボタンのラベルに潰れて見えないので待たない(タップで即座に切り替わる)
+- runScript:
+    file: hold.js
+    env:
+      MS: "300"
+- runScript:
+    file: hold.js
+    env:
+      MS: "9000"
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapTtsClose
+- tapOn:
+    text: "読み上げを閉じる"
+    waitToSettleTimeoutMs: 300
+- runScript:
+    file: hold.js
+    env:
+      MS: "600"
+# ---- S3 戻る → ホーム → 🔥
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapBack1
+- tapOn:
+    point: "9%, 9%"
+    waitToSettleTimeoutMs: 300
+- extendedWaitUntil:
+    visible: "😁まとめくん😁"
+    timeout: 5000
+- runScript:
+    file: hold.js
+    env:
+      MS: "700"
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapHome
+- tapOn:
+    text: "ホーム"
+    waitToSettleTimeoutMs: 300
+- runScript:
+    file: hold.js
+    env:
+      MS: "800"
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapMatsuri
+- tapOn:
+    text: "進行中の祭りを見る"
+    waitToSettleTimeoutMs: 300
+- extendedWaitUntil:
+    visible: "🔥 いま祭りのスレ"
+    timeout: 8000
+# 一覧はスクロールしない(Maestro の swipe の離し際が項目のタップとして拾われ、記事が開いてしまった: m1)
+- runScript:
+    file: hold.js
+    env:
+      MS: "2600"
+# ---- S4 祭りの 1 件目
+- runScript:
+    file: cue.js
+    env:
+      EVENT: tapArticle2
+- tapOn:
+    point: "50%, 22%"
+    waitToSettleTimeoutMs: 300
+- extendedWaitUntil:
+    visible: "メニュー"
+    timeout: 10000
+- runScript:
+    file: hold.js
+    env:
+      MS: "2500"
+- swipe:
+    start: "50%, 75%"
+    end: "50%, 45%"
+    duration: 900
+- runScript:
+    file: hold.js
+    env:
+      MS: "1200"
+- swipe:
+    start: "50%, 75%"
+    end: "50%, 45%"
+    duration: 900
+- runScript:
+    file: hold.js
+    env:
+      MS: "1500"
+- runScript:
+    file: cue.js
+    env:
+      EVENT: captureStop

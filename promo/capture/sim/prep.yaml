@@ -1,0 +1,13 @@
+# 撮影前の状態づくり(1 回だけ。MMKV に残る)。
+#   - NG ワードを登録して、映したくない題名をランキングから正規に間引く(NG_WORDS は撮影日の precheck を見て決める)
+#   - 記事を 3 本開いて一覧に戻り、通知プレ許諾ダイアログ「あとで」を押して promptDone にする
+#     (押しておかないと本番の録画中に白いモーダルが被さる)
+# 実行: ~/.maestro/bin/maestro --device <udid> test -e NG1=容疑者 -e NG2=胸 -e NG3=デカすぎる capture/sim/prep.yaml
+appId: com.matomebeta-app
+env:
+  NG1: "容疑者"
+  NG2: "胸"
+  NG3: "デカすぎる"
+---
+- runFlow: prep-ng.yaml
+- runFlow: prep-notify.yaml

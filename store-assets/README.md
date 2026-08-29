@@ -1,6 +1,7 @@
 # ストア掲載用の画像素材
 
 `docs/ASO-SCREENSHOTS.md` の設計にもとづく実素材。合成は `scripts/store/`。
+**紹介動画**(App Store プレビュー / Play プロモ動画)は `promo/`(`docs/PROMO-VIDEO.md`)。
 
 ```
 screens/android/  Pixel 10 Pro エミュレータ(1280×2856)で撮った実画面 ★これが本体

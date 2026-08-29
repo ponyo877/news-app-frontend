@@ -13,7 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { queryClient } from '@/api/queries';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { initializeAds } from '@/lib/ads';
+import { adsHidden, initializeAds } from '@/lib/ads';
 import { logError } from '@/lib/analytics';
 import { bootstrapUser } from '@/lib/bootstrap';
 import { configureNotificationHandler, syncPushTokenIfGranted } from '@/lib/notifications';
@@ -38,7 +38,10 @@ export default function App() {
   const appReady = fontsLoaded || fontError != null;
 
   useEffect(() => {
-    void initializeAds();
+    // 撮影用ビルドでは広告SDKを初期化しない(UMP同意フォームとATTプロンプトも出さない)
+    if (!adsHidden) {
+      void initializeAds();
+    }
     // 初回起動の案内はオンボーディング画面(RootNavigator側で表示)に吸収した
     bootstrapUser().catch((error) => {
       // 起動処理の失敗でアプリを止めない(次回起動時に再試行される)

@@ -8,5 +8,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "exclude": ["node_modules", "android", "ios", ".expo"]
+  "exclude": ["node_modules", "android", "ios", ".expo", "promo"]
 }

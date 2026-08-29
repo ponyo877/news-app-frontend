@@ -27,6 +27,11 @@ const usesProductionAds = process.env.EXPO_PUBLIC_ADS_ENV === 'production';
 
 export const bannerAdUnitId = usesProductionAds ? PROD_BANNER_UNIT_ID : TestIds.BANNER;
 
+// ストア用の動画・スクリーンショットを撮るビルド専用: 広告枠も同意フォーム(UMP/ATT)も出さない。
+// `EXPO_PUBLIC_ADS_ENV=off` を付けてローカルビルドしたときだけ真になる(ストアビルドは未設定なので常に偽)。
+// テスト広告の「Test mode」バナーが映像に写り込むのを防ぐため(promo/README.md)
+export const adsHidden = process.env.EXPO_PUBLIC_ADS_ENV === 'off';
+
 // 本番ビルドを開発者の実機で動かすときの保険。
 // プロファイル判定(上)は production ビルドまでは守れないため、
 // 実機で製品版を確認する場合はこちらに端末を登録してテスト広告に落とす。

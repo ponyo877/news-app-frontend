@@ -1,0 +1,39 @@
+{
+  "name": "matomekun-promo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "まとめくん 紹介動画の撮影・合成パイプライン(Maestro + simctl 録画 → Remotion → ffmpeg)",
+  "scripts": {
+    "setup": "sh scripts/sync-assets.sh",
+    "precheck": "tsx capture/precheck.ts",
+    "capture": "tsx capture/sim/run.ts",
+    "capture:dry": "tsx capture/sim/run.ts --no-record",
+    "postprocess": "tsx capture/sim/postprocess-cli.ts",
+    "studio": "remotion studio",
+    "render:appstore": "remotion render AppStorePreview out/AppStorePreview.mov --codec prores --prores-profile hq",
+    "render:social": "remotion render SocialPromo out/SocialPromo.mov --codec prores --prores-profile hq",
+    "deliver": "sh scripts/deliver.sh",
+    "verify": "sh scripts/verify.sh",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.518",
+    "@remotion/fonts": "4.0.518",
+    "@remotion/media": "4.0.518",
+    "@remotion/transitions": "4.0.518",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.518"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tsx": "^4.23",
+    "typescript": "~5.9"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
+}

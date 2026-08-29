@@ -1,0 +1,17 @@
+node_modules/
+# 撮影の生録画・timeline(テイクごとに数百 MB)
+captures/
+# Remotion が読む中間ファイル(30fps H.264)
+public/captures/
+# ルートから同期する生成物(scripts/sync-assets.sh で再生成)
+public/fonts/
+public/brand/
+public/props/
+# 音素材(再配布不可。ライセンス台帳は README.md)
+public/audio/*
+!public/audio/.gitkeep
+out/
+.maestro/
+*.mov
+*.mp4
+*.webm
